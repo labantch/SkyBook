@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SkyBook.Business/SkyBook.Business.csproj" />
+  <Project Path="SkyBook.Data/SkyBook.Data.csproj" />
+  <Project Path="SkyBook.Presentation/SkyBook.Presentation.csproj" />
+</Solution>
