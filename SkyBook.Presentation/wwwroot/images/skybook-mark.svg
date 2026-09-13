@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="SkyBook">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F0D78C"/>
+      <stop offset="100%" stop-color="#D4A017"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0B192C"/>
+      <stop offset="100%" stop-color="#243B55"/>
+    </linearGradient>
+  </defs>
+  <path d="M6 36 L40 6 L30 28 L14 32 Z" fill="url(#g1)"/>
+  <path d="M14 32 L40 6 L34 38 L22 34 Z" fill="url(#g2)"/>
+</svg>

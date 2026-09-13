@@ -1,0 +1,160 @@
+/* SkyBook – site-wide mobile friendliness */
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100%;
+  position: relative;
+  overscroll-behavior-y: auto;
+}
+
+@media (max-width: 768px) {
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Prevent iOS zoom on inputs */
+  input, select, textarea, button {
+    font-size: 16px !important;
+    max-width: 100%;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Common layout breathing room */
+  main, .max-w-7xl, .max-w-6xl, .max-w-5xl {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  h1 {
+    font-size: clamp(1.5rem, 6vw, 2rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: clamp(1.25rem, 5vw, 1.6rem) !important;
+  }
+
+  /* Stack common flex/grid toolbars */
+  .flex.flex-wrap {
+    gap: 0.5rem;
+  }
+
+  /* Cards / sections */
+  .rounded-2xl, .rounded-xl {
+    max-width: 100%;
+  }
+
+  /* Fixed drawers full width on phone */
+  #booking-drawer,
+  #flight-drawer,
+  #flight-info-drawer,
+  #drawer-admin-profile > div.absolute.inset-y-0.right-0,
+  [id^="drawer-"] > div.absolute.inset-y-0.right-0 {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Flights page: stack fare columns */
+  #flights-list-container .grid,
+  #flights-list-container [class*="grid-cols"] {
+    min-width: 0;
+  }
+
+  /* Management console */
+  #main-sidebar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  #main-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  body.mgmt-mobile #viewport-root,
+  body.mgmt-mobile .flex-1.flex.flex-col {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* Seat map horizontal scroll */
+  #seat-map-container,
+  .seat-map-wrapper,
+  [data-purpose="seat-map"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* My bookings cards */
+  #bookings-container > div {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  /* Account forms full width */
+  #form-login, #form-signup {
+    width: 100%;
+  }
+
+  /* Hide decorative overflow */
+  .shadow-2xl, .shadow-xl {
+    box-shadow: 0 8px 24px rgba(11, 25, 44, 0.08);
+  }
+}
+
+@media (max-width: 480px) {
+  .px-6, .px-8, .p-6, .p-8 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Smaller flight time numbers */
+  .text-2xl.font-extrabold,
+  .text-3xl.font-black {
+    font-size: 1.35rem !important;
+  }
+
+  /* Stack action button rows */
+  .flex.items-center.justify-end.gap-2,
+  .flex.items-center.gap-3.self-end {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .flex.items-center.justify-end.gap-2 > button,
+  .flex.items-center.gap-3.self-end > button {
+    flex: 1 1 auto;
+    min-width: 120px;
+  }
+}
+
+
+/* sticky payment sidebar (desktop) */
+@media (min-width: 1024px) {
+  #trip-summary-panel {
+    position: sticky !important;
+    top: 6rem !important;
+    align-self: start !important;
+  }
+}

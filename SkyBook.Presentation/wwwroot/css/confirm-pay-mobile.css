@@ -1,0 +1,24 @@
+/* Responsive refinements for the Confirm & Pay checkout. */
+@media (max-width:639px){
+  body{overflow-x:hidden}
+  main{padding-top:0!important}
+  main>div>.max-w-7xl{padding:1.5rem 1rem!important}
+  main h1{font-size:1.75rem!important;line-height:2.2rem!important}
+  main section{padding:1.25rem!important}
+  main section .bg-surface-container-low{padding:1rem!important}
+  .font-title-flight-code{font-size:1.3rem!important;line-height:1.65rem!important;letter-spacing:.02em!important}
+  .font-label-caps{letter-spacing:.05em}
+  .grid{min-width:0}
+  input{min-width:0;font-size:16px!important}
+  #payment-options-group{grid-template-columns:1fr!important}
+  #payment-options-group label{min-height:5.25rem}
+  #confirmation-modal>div{padding:1.5rem!important}
+  #confirmation-modal .font-title-flight-code{font-size:1.25rem!important;letter-spacing:.08em!important}
+  footer{padding:2rem 1rem!important}
+  footer>div{padding:0!important}
+}
+@media (max-width:420px){
+  main section>div.flex.items-center.justify-between{align-items:flex-start;gap:.75rem}
+  main section>div.flex.items-center.justify-between>a{flex-shrink:0}
+  .font-body-sm{overflow-wrap:anywhere}
+}
