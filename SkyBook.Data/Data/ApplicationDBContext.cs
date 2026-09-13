@@ -12,7 +12,12 @@ namespace SkyBook.Data.Data
             : base(options)
         {
         }
-        
+
+        public ApplicationDbContext()
+        {
+            
+        }
+
 
         public DbSet<Airport> Airports { get; set; }
         public DbSet<Aircraft> Aircrafts { get; set; }
