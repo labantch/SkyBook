@@ -1,8 +1,2078 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/cards-mobile.css" />
+<style>@@layer base{html,body{margin:0;padding:0;height:auto;min-height:100%;}html{overflow-y:scroll;}body{overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:auto;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}</style>
+}
+
+<div class="flex flex-col w-full">
+<!-- Cinematic Aircraft Hero -->
+<section class="relative w-full -mt-20 overflow-hidden">
+<!-- Image Backdrop with refined cinematic gradient scrims -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center" style="background-image: url(&quot;/images/Hero.jpeg&quot;);">
+<div class="absolute inset-0 bg-gradient-to-t from-background via-primary/40 to-primary/80 mix-blend-multiply"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary/70 via-transparent to-primary/50"></div>
+<div class="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-b from-transparent to-background"></div>
 </div>
+<!-- Hero Content Container -->
+<div class="relative max-w-7xl mx-auto px-6 lg:px-12 pt-36 pb-32 lg:pt-44 lg:pb-40 flex flex-col items-start text-left">
+<!-- Sovereign Badge -->
+<div class="inline-flex items-center gap-space-xs px-3.5 py-1.5 rounded-full bg-surface-container-lowest/15 backdrop-blur-md mb-6 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-secondary-fixed tracking-widest uppercase">The Sovereign Skyways • Flagship 2025</span>
+</div>
+<!-- Headline -->
+<h1 class="font-display-hero text-display-hero text-on-primary max-w-4xl tracking-tight leading-tight">
+        Experience Flight in its Purest Elegance
+      </h1>
+<p class="font-body-lg text-body-lg text-surface-variant max-w-2xl mt-4 text-balance">
+        Curated long-haul journeys connecting Dubai, London, New York, Tokyo and beyond in unmatched comfort.
+      </p>
+<!-- Key Metrics Strip -->
+<div class="hidden sm:flex items-center gap-8 mt-8 text-on-primary/90">
+<div class="flex flex-col">
+<span class="font-title-flight-code text-title-flight-code tracking-wide text-secondary-fixed">100%</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-surface-variant">Private Lie-Flat Suites</span>
+</div>
+<div class="w-px h-8 bg-surface-variant/30"></div>
+<div class="flex flex-col">
+<span class="font-title-flight-code text-title-flight-code tracking-wide text-secondary-fixed">38</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-surface-variant">Global Flagship Lounges</span>
+</div>
+<div class="w-px h-8 bg-surface-variant/30"></div>
+<div class="flex flex-col">
+<span class="font-title-flight-code text-title-flight-code tracking-wide text-secondary-fixed">5★</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-surface-variant">Skytrax Certified Sovereign</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Overlapping Booking Card Module -->
+<section class="relative z-20 max-w-7xl mx-auto px-6 lg:px-12 w-full -mt-24 lg:-mt-28">
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-[0_16px_48px_-12px_rgba(14,28,47,0.18)] p-6 lg:p-8 overflow-visible relative">
+<!-- Search Engine Top Bar: Tabs Only (Fare Type Removed) -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6">
+<!-- Trip Type Selector Tabs -->
+<div class="inline-flex items-center p-1 rounded-lg bg-surface-container" id="trip-tabs">
+<button class="px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all bg-[#0B192C] text-white shadow-sm" data-trip="round-trip" id="tab-round-trip" type="button">
+            Round Trip
+          </button>
+<button class="px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all text-on-surface-variant hover:text-on-surface" data-trip="one-way" id="tab-one-way" type="button">
+            One Way
+          </button>
+<button class="px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all text-on-surface-variant hover:text-on-surface" data-trip="multi-city" id="tab-multi-city" type="button">
+            Multi-City
+          </button>
+</div>
+<div class="hidden sm:flex items-center gap-2 text-xs font-medium text-on-surface-variant">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Live Sovereign Seat Inventory 2026</span>
+</div>
+</div>
+<!-- Standard Mode: Round Trip & One Way Inputs Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch relative" id="standard-search-container">
+<!-- Combined Departure & Destination with Seam-Centered Swap Button -->
+<div class="lg:col-span-6 relative grid grid-cols-1 sm:grid-cols-2 rounded-lg bg-surface-container-low p-1 gap-1">
+<!-- Departure (From) -->
+<div class="airport-field relative flex flex-col justify-between p-3.5 rounded-md hover:bg-surface-container transition-colors cursor-pointer group" data-field-role="origin" id="origin-box">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Departure From</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">flight_takeoff</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="origin-code">LHR</span>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="origin-city">London Heathrow</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="origin-country">United Kingdom</span>
+</div>
+<!-- Overlapping Centered Route Swap Button -->
+<div class="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest border border-outline-variant/50 hover:bg-surface-container flex items-center justify-center text-primary transition-transform duration-300 shadow-md" id="btn-swap-airports" title="Swap departure and destination" type="button">
+<span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+</button>
+</div>
+<!-- Destination (To) -->
+<div class="airport-field relative flex flex-col justify-between p-3.5 rounded-md hover:bg-surface-container transition-colors cursor-pointer group" data-field-role="destination" id="destination-box">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Destination</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">flight_land</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="destination-code">DXB</span>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="destination-city">Dubai Intl</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="destination-country">United Arab Emirates</span>
+</div>
+</div>
+<!-- Dates (Departure & Return) with Interactive Popup Calendar -->
+<div class="lg:col-span-3 grid grid-cols-2 gap-2 relative">
+<!-- Departure Date Container -->
+<div class="relative flex flex-col justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group border border-transparent hover:border-outline-variant/40" id="departure-date-container">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Departure</span>
+<span class="material-symbols-outlined text-[16px] text-secondary group-hover:scale-110 transition-transform">calendar_month</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="departure-date-display">Oct 24</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="departure-sub-display">Saturday, 2026</span>
+</div>
+<!-- Return Date Container -->
+<div class="relative flex flex-col justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-transparent hover:border-outline-variant/40" id="return-date-container">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Return</span>
+<span class="material-symbols-outlined text-[16px] text-secondary group-hover:scale-110 transition-transform">calendar_month</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="return-date-display">Nov 02</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="return-sub-display">Monday, 2026</span>
+</div>
+</div>
+<!-- Passengers / Class Trigger (Standard Mode) -->
+<div class="lg:col-span-3 relative">
+<div class="h-full flex flex-col justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group passenger-trigger-standard" id="guests-trigger">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Passengers / Class</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">expand_more</span>
+</div>
+<span class="text-sm md:text-base font-semibold text-primary truncate" id="guests-display">1 Passenger, Business Class</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary font-semibold" id="cabin-display">Business Class</span>
+</div>
+</div>
+</div>
+<!-- Multi-City Mode Container (Matches Image Reference) -->
+<div class="space-y-3 hidden" id="multicity-search-container">
+<!-- Segment Rows Container -->
+<div class="space-y-3" id="multicity-rows-container">
+<!-- Flight 1 Row (Card style from reference image) -->
+<div class="multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group" data-row-id="1">
+<!-- From field -->
+<div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
+<div class="flex items-baseline gap-1.5">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" readonly="" type="text" value="Cairo CAI">
+</div>
+</div>
+<!-- Swap Arrow -->
+<div class="flex items-center justify-center px-1">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center segment-swap-btn" title="Swap cities" type="button">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+</button>
+</div>
+<!-- To field -->
+<div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
+<div class="flex items-baseline gap-1.5">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" readonly="" type="text" value="A Coruña YJC">
+</div>
+</div>
+<!-- Vertical Divider -->
+<div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
+<!-- Departure Date Field -->
+<div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-1">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
+<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">11 Sep 2026</span>
+</div>
+<!-- Vertical Divider -->
+<div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
+<!-- Passengers / Class Field -->
+<div class="relative w-full md:w-60 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer flex items-center justify-between multicity-passenger-trigger">
+<div>
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Passengers / Class</span>
+<span class="text-sm md:text-base font-semibold text-primary block truncate mc-passenger-label">1 Passenger, Economy</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant ml-1">expand_more</span>
+</div>
+</div>
+<!-- Flight 2 Row -->
+<div class="multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group" data-row-id="2">
+<!-- From field -->
+<div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
+<div class="flex items-baseline gap-1.5">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin airport or city" readonly="" type="text" value="A Coruña YJC">
+</div>
+</div>
+<!-- Swap Arrow -->
+<div class="flex items-center justify-center px-1">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center segment-swap-btn" title="Swap cities" type="button">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+</button>
+</div>
+<!-- To field -->
+<div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
+<div class="flex items-baseline gap-1.5">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination airport or city" readonly="" type="text" value="Dubai DXB">
+</div>
+</div>
+<!-- Vertical Divider -->
+<div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
+<!-- Departure Date Field -->
+<div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-2">
+<span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
+<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">12 Sep 2026</span>
+</div>
+<!-- Optional Delete Button for Segment 2+ -->
+<div class="flex items-center justify-end px-2">
+<button class="w-8 h-8 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/40 flex items-center justify-center transition-colors btn-remove-segment" title="Remove Flight" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add Flight Button Row -->
+<div class="pt-2 flex items-center justify-between">
+<button class="inline-flex items-center gap-1.5 text-secondary hover:text-on-secondary-fixed font-semibold text-sm transition-colors py-1 px-2 rounded-md hover:bg-secondary-container/20" id="btn-add-flight" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="">Add a flight</span>
+</button>
+<span class="text-xs text-on-surface-variant hidden sm:inline">Add up to 3 multi-city sovereign segments</span>
+</div>
+</div>
+<!-- Universal Elevated Passengers & Cabin Class Popover (Dynamically repositioned on click) -->
+<div class="hidden absolute w-80 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-[0_20px_48px_rgba(11,25,44,0.22)] border border-outline-variant/50 p-5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 pointer-events-auto" id="universal-passengers-popover">
+<div class="flex items-center justify-between pb-3 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">group</span>
+<span class="font-headline-sm text-sm font-bold text-primary tracking-tight">Passengers &amp; Cabin Class</span>
+</div>
+<button class="w-7 h-7 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" id="btn-close-passengers" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Steppers Container -->
+<div class="py-3.5 space-y-3.5 divide-y divide-surface-container/60">
+<!-- Adults -->
+<div class="flex items-center justify-between pt-1">
+<div>
+<div class="text-sm font-semibold text-primary">Adults</div>
+<div class="text-xs text-on-surface-variant">Age 12+ years</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-adults" type="button" disabled="">-</button>
+<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-adults">1</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-adults" type="button">+</button>
+</div>
+</div>
+<!-- Children -->
+<div class="flex items-center justify-between pt-3">
+<div>
+<div class="text-sm font-semibold text-primary">Children</div>
+<div class="text-xs text-on-surface-variant">Age 2-11 years</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-children" type="button" disabled="">-</button>
+<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-children">0</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-children" type="button">+</button>
+</div>
+</div>
+<!-- Infants -->
+<div class="flex items-center justify-between pt-3">
+<div>
+<div class="text-sm font-semibold text-primary">Infants</div>
+<div class="text-xs text-on-surface-variant">Under 2 years (on lap)</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-infants" type="button" disabled="">-</button>
+<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-infants">0</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-infants" type="button">+</button>
+</div>
+</div>
+</div>
+<!-- Cabin Class Selector -->
+<div class="pt-3 border-t border-surface-container">
+<span class="font-label-caps text-[11px] uppercase tracking-wider text-on-surface-variant block mb-2 font-semibold">Cabin Class</span>
+<div class="grid grid-cols-2 gap-2">
+<label class="cabin-radio-pill flex items-center gap-2 p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container cursor-pointer transition-colors bg-surface-container-low">
+<input class="text-secondary focus:ring-secondary" name="cabin-class-choice" type="radio" value="Economy">
+<span class="text-xs font-medium text-primary">Economy</span>
+</label>
+<label class="cabin-radio-pill flex items-center gap-2 p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container cursor-pointer transition-colors bg-surface-container-low">
+<input checked="" class="text-secondary focus:ring-secondary" name="cabin-class-choice" type="radio" value="Business Class">
+<span class="text-xs font-medium text-primary">Business Class</span>
+</label>
+<label class="cabin-radio-pill flex items-center gap-2 p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container cursor-pointer transition-colors bg-surface-container-low">
+<input class="text-secondary focus:ring-secondary" name="cabin-class-choice" type="radio" value="First Sovereign Suite">
+<span class="text-xs font-medium text-primary">First Sovereign Suite</span>
+</label>
+</div>
+</div>
+<!-- Apply Button -->
+<div class="mt-4 pt-3 border-t border-surface-container">
+<button class="w-full py-2.5 rounded-lg bg-[#0B192C] text-white font-label-caps text-label-caps uppercase tracking-wider hover:bg-secondary transition-colors font-semibold shadow-sm" id="btn-apply-passengers" type="button">
+          Apply Passengers &amp; Class
+        </button>
+</div>
+</div>
+<!-- Elevated Shared Airport Picker Dropdown (Anchored to whichever field is clicked) -->
+<div class="hidden absolute w-80 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-[0_20px_48px_rgba(11,25,44,0.22)] border border-outline-variant/50 p-3 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl" id="luxury-airport-dropdown">
+<div class="pb-2.5 px-1">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined text-[18px] text-secondary absolute left-3 pointer-events-none">search</span>
+<input class="w-full pl-9 pr-8 py-2 bg-surface-container-low rounded-lg text-xs md:text-sm text-primary placeholder:text-on-surface-variant/70 border border-outline-variant/40 focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none transition-all" id="airport-search-input" placeholder="Search city, code or airport..." type="text">
+<button class="absolute right-2.5 text-on-surface-variant hover:text-primary transition-colors hidden" id="airport-search-clear" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="px-2 py-1 flex items-center justify-between text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant border-b border-surface-container">
+<span class="">Sovereign Gateways</span>
+<span class="text-[10px] text-secondary font-semibold" id="airport-results-count">11 Airfields</span>
+</div>
+<div class="max-h-64 overflow-y-auto divide-y divide-surface-container/60 mt-1 pr-0.5" id="airport-items-container">
+<!-- Populated Dynamically via JS with full 11 Curated Luxury Gateways -->
+</div>
+</div>
+<!-- Interactive Luxury Popup Calendar Element (Dynamically positioned beneath active date input) -->
+<div class="absolute mt-2 w-80 sm:w-[340px] bg-surface-container-lowest rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.18)] border border-[#e5e7eb] p-5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 hidden pointer-events-auto" id="luxury-calendar-modal">
+<div class="flex items-center justify-between pb-3 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">event</span>
+<span class="font-headline-sm text-sm font-bold text-primary tracking-tight" id="cal-title">September 2026</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-full hover:bg-surface-container flex items-center justify-center text-primary transition-colors" id="btn-prev-month" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-7 h-7 rounded-full hover:bg-surface-container flex items-center justify-center text-primary transition-colors" id="btn-next-month" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+<button class="w-7 h-7 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors ml-1" id="btn-close-calendar" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<!-- Day Headers -->
+<div class="grid grid-cols-7 text-center pt-3 pb-2 text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">
+<span class="">Su</span><span class="">Mo</span><span class="">Tu</span><span class="">We</span><span class="">Th</span><span class="">Fr</span><span class="">Sa</span>
+</div>
+<!-- Calendar Days Grid -->
+<div class="grid grid-cols-7 gap-1 text-center" id="cal-days-grid"><div class="h-9 w-9"></div><div class="h-9 w-9"></div><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">1</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">2</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">3</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">4</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">5</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">6</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">7</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">8</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">9</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">10</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">11</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">12</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">13</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">14</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">15</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">16</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">17</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">18</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">19</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">20</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">21</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">22</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">23</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">24</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">25</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">26</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">27</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">28</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">29</button><button class="h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all text-primary hover:bg-secondary/15 hover:text-secondary" type="button">30</button></div>
+<div class="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> Sovereign Flights Available</span>
+<span class="font-label-caps uppercase tracking-wider text-[10px] text-secondary font-semibold">2026 Schedule</span>
+</div>
+</div>
+<!-- Submit & Auxiliary Amenities Strip -->
+<div class="mt-6 pt-5 border-t border-surface-container/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex flex-wrap items-center gap-6 text-on-surface-variant font-body-sm text-body-sm py-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">wifi</span>
+<span class="">Complimentary Starlink Ka-Band</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">concierge</span>
+<span class="">Chauffeur Drive Included</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">credit_card</span>
+<span class="">Zero Booking Surcharge</span>
+</div>
+</div>
+<!-- Primary CTA Button Fixed to Dark Navy #0B192C with Gold Hover Touch -->
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-lg bg-[#0B192C] text-white hover:bg-secondary hover:text-white transition-all shadow-[0_6px_20px_rgba(11,25,44,0.3)] font-headline-sm text-headline-sm font-medium group shrink-0" id="btn-search-flights" type="button">
+<span class="">Search Flights</span>
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1 group-hover:-translate-y-0.5">flight</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Curated Destinations Grid -->
+        <section class="max-w-7xl mx-auto px-6 lg:px-12 pt-24 pb-16 w-full">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                        <span class="font-label-caps text-label-caps uppercase tracking-widest text-secondary font-semibold">Long-Haul Masterpieces</span>
+                    </div>
+                    <h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Curated Sovereign Destinations</h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+
+                <!-- Card 1: Dubai -->
+                <a href="/Flight/Results" class="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container-lowest shadow-[0_4px_20px_-4px_rgba(11,25,44,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(11,25,44,0.12)] transition-all cursor-pointer no-underline">
+                    <div class="relative h-64 w-full overflow-hidden">
+                        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="/images/img-9d7df59a71.jpg" alt="Dubai">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent"></div>
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-caps text-label-caps text-primary uppercase font-bold tracking-wider">Twice daily A350</span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-on-primary">
+                            <span class="font-title-flight-code text-title-flight-code tracking-tight">DXB</span>
+                            <p class="font-body-sm text-body-sm text-surface-variant">Dubai, United Arab Emirates</p>
+                        </div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between bg-surface-container-lowest">
+                        <div>
+                            <span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant block">From Round Trip</span>
+                            <span class="font-price-lg text-price-lg text-primary font-bold">$1,450</span>
+                        </div>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low text-primary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Card 2: Tokyo -->
+                <a href="/Flight/Results" class="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container-lowest shadow-[0_4px_20px_-4px_rgba(11,25,44,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(11,25,44,0.12)] transition-all cursor-pointer no-underline">
+                    <div class="relative h-64 w-full overflow-hidden">
+                        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="/images/img-7729f9c663.jpg" alt="Tokyo">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent"></div>
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-caps text-label-caps text-primary uppercase font-bold tracking-wider">Daily Non-Stop</span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-on-primary">
+                            <span class="font-title-flight-code text-title-flight-code tracking-tight">HND</span>
+                            <p class="font-body-sm text-body-sm text-surface-variant">Tokyo Haneda, Japan</p>
+                        </div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between bg-surface-container-lowest">
+                        <div>
+                            <span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant block">From Round Trip</span>
+                            <span class="font-price-lg text-price-lg text-primary font-bold">$1,820</span>
+                        </div>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low text-primary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Card 3: Singapore -->
+                <a href="/Flight/Results" class="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container-lowest shadow-[0_4px_20px_-4px_rgba(11,25,44,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(11,25,44,0.12)] transition-all cursor-pointer no-underline">
+                    <div class="relative h-64 w-full overflow-hidden">
+                        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="/images/img-aec8d855a3.jpg" alt="Singapore">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent"></div>
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-caps text-label-caps text-primary uppercase font-bold tracking-wider">Twice daily A350</span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-on-primary">
+                            <span class="font-title-flight-code text-title-flight-code tracking-tight">SIN</span>
+                            <p class="font-body-sm text-body-sm text-surface-variant">Singapore Changi</p>
+                        </div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between bg-surface-container-lowest">
+                        <div>
+                            <span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant block">From Round Trip</span>
+                            <span class="font-price-lg text-price-lg text-primary font-bold">$1,640</span>
+                        </div>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low text-primary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Card 4: New York -->
+                <a href="/Flight/Results" class="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container-lowest shadow-[0_4px_20px_-4px_rgba(11,25,44,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(11,25,44,0.12)] transition-all cursor-pointer no-underline">
+                    <div class="relative h-64 w-full overflow-hidden">
+                        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="/images/img-4764130b02.jpg" alt="New York">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent"></div>
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-caps text-label-caps text-primary uppercase font-bold tracking-wider">3x Daily Flagship</span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-on-primary">
+                            <span class="font-title-flight-code text-title-flight-code tracking-tight">JFK</span>
+                            <p class="font-body-sm text-body-sm text-surface-variant">New York John F. Kennedy</p>
+                        </div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between bg-surface-container-lowest">
+                        <div>
+                            <span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant block">From Round Trip</span>
+                            <span class="font-price-lg text-price-lg text-primary font-bold">$1,280</span>
+                        </div>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low text-primary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+<!-- Live Transcontinental Route Interactive Timeline Feature with Luxury Island & Sea Backdrop -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 py-10 w-full">
+<div class="relative rounded-xl p-8 lg:p-12 overflow-hidden shadow-xl border border-outline-variant/30 text-on-primary" id="featured-flight-card">
+<!-- Luxury Island & Ocean Sea Background Layer -->
+<img alt="Tropical ocean sea and coral islands from above" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none" src="/images/img-9263dc8b94.jpg">
+<!-- Deep Midnight Navy Scrim Gradient to ensure high legibility and contrast -->
+<div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(to right, rgba(11, 25, 44, 0.95) 0%, rgba(11, 25, 44, 0.85) 50%, rgba(11, 25, 44, 0.65) 100%);"></div>
+<!-- Ambient Decorative Flight Vector Graphic -->
+<div class="absolute -right-20 -bottom-20 w-96 h-96 opacity-10 pointer-events-none">
+<svg class="w-full h-full text-secondary-fixed" fill="none" viewBox="0 0 400 400">
+<circle cx="200" cy="200" r="180" stroke="currentColor" stroke-dasharray="8 8" stroke-width="2"></circle>
+<circle cx="200" cy="200" r="130" stroke="currentColor" stroke-width="1.5"></circle>
+<circle cx="200" cy="200" r="70" stroke="currentColor" stroke-width="2"></circle>
+</svg>
+</div>
+<div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<div class="lg:col-span-5 flex flex-col gap-3">
+<div class="inline-flex items-center gap-2 text-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]">airlines</span>
+<span class="font-label-caps text-label-caps uppercase tracking-widest font-semibold">Featured Daily Flight</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg font-semibold tracking-tight text-on-primary">
+            Flight SK-001 • Non-Stop Transatlantic
+          </h3>
+<p class="font-body-md text-body-md text-surface-variant leading-relaxed">
+            London Heathrow to New York JFK in 7h 45m. Experience our next-generation enclosed First Suite with double bed transformation and à la carte caviar service.
+          </p>
+<div class="flex items-center gap-4 mt-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-lowest/15 backdrop-blur-sm font-label-caps text-label-caps text-secondary-fixed tracking-wider uppercase border border-secondary/30">On-Time Performance: 98.4%</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-lowest/15 backdrop-blur-sm font-label-caps text-label-caps text-on-primary tracking-wider uppercase border border-white/10">Cabin: Suites &amp; Business Only</span>
+</div>
+</div>
+<!-- Route Visual Map / Graphic Timeline -->
+<div class="lg:col-span-7 bg-[#0B192C]/80 backdrop-blur-md rounded-xl p-6 flex flex-col justify-between border border-white/10 shadow-2xl" id="featured-route-panel">
+<div class="flex items-center justify-between pb-6">
+<div class="flex flex-col"><span class="font-title-flight-code text-title-flight-code font-bold text-on-primary">LHR</span>
+<span class="font-body-sm text-body-sm text-[#F1F4F9]">London Heathrow T5</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed mt-1 tabular-nums">11:45 AM</span></div>
+<!-- Vector Flight Path Line -->
+<div class="flex-1 mx-6 flex flex-col items-center">
+<span class="font-label-caps text-label-caps text-on-primary-container uppercase tracking-wider mb-2 tabular-nums">7h 45m • Non-Stop</span>
+<div class="w-full relative flex items-center">
+<div class="h-0.5 w-full bg-on-primary-container/30"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-7 h-7 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px] rotate-90">flight</span>
+</div>
+</div>
+</div>
+<span class="font-body-sm text-body-sm text-secondary-fixed mt-2">Airbus A350-1000ULR</span>
+</div>
+<div class="flex flex-col items-end"><span class="font-title-flight-code text-title-flight-code font-bold text-on-primary">JFK</span>
+<span class="font-body-sm text-body-sm text-[#F1F4F9]">New York JFK T7</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed mt-1 tabular-nums">02:30 PM</span></div>
+</div>
+<div class="pt-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-t border-white/10">
+<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-on-primary-container font-body-sm text-body-sm">
+<span class="flex items-center gap-1 text-surface-variant"><span class="material-symbols-outlined text-[16px] text-secondary-fixed">bed</span> 200cm Lie-Flat</span>
+<span class="flex items-center gap-1 text-surface-variant"><span class="material-symbols-outlined text-[16px] text-secondary-fixed">restaurant</span> On-Demand Dining</span>
+<span class="flex items-center gap-1 text-surface-variant"><span class="material-symbols-outlined text-[16px] text-secondary-fixed">tv</span> 32" 4K OLED</span>
+</div>
+<div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 shrink-0">
+<div class="flex flex-col items-end sm:text-right">
+<span class="font-headline-sm text-sm sm:text-base font-bold text-secondary-fixed tracking-tight tabular-nums">From $4,500</span>
+<span class="font-label-caps text-[10px] text-[#F1F4F9]/75 uppercase tracking-wider">or 50k Sovereign Miles</span>
+</div>
+<button class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface-container-lowest text-primary font-body-md text-body-md font-semibold hover:bg-secondary-fixed hover:ring-2 hover:ring-[#C5A880] hover:shadow-[0_0_16px_rgba(197,168,128,0.35)] transition-all duration-200 shadow-sm" id="featured-flight-btn" type="button">
+<span class="">View Cabin Layout</span>
+<span class="material-symbols-outlined text-[18px]">airline_seat_recline_extra</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- The SkyBook Distinction: Pillar Features -->
+<!-- Interactive Flight Frequency & Fleet Showcase Strip -->
+<section class="w-full py-12 px-6 lg:px-12 max-w-7xl mx-auto"><div class="relative overflow-hidden rounded-2xl min-h-[220px] p-8 lg:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl"><img alt="Ultra-modern private VIP jet at dusk" class="w-full h-full object-cover absolute inset-0" src="/images/img-9d7df59a71.jpg"><div class="bg-gradient-to-r from-[#0B192C]/90 via-[#0B192C]/75 to-[#0B192C]/50 absolute inset-0"></div><div class="relative z-10 max-w-xl"><span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary-fixed font-semibold">GLOBAL SOVEREIGN NETWORK</span><h3 class="font-headline-lg text-headline-lg text-white mt-1 tracking-tight">Need a Private Falcon or VIP Charter?</h3><p class="font-body-md text-body-md text-surface-variant mt-2 leading-relaxed">Beyond our scheduled long-haul routes, SkyBook Private Aviation Concierge provides bespoke charter solutions on ultra-long-range Gulfstream G700 and Bombardier Global 7500 jets.</p></div><div class="relative z-10 flex items-center gap-4 shrink-0"><button class="px-6 py-3 rounded-lg bg-secondary text-white font-body-md text-body-md font-medium hover:bg-secondary-fixed hover:text-primary transition-all duration-200 shadow-md flex items-center gap-2" type="button"><span class="">Explore SkyClub Tiers</span><span class="material-symbols-outlined text-[18px]">verified</span></button></div></div></section><section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-20" id="about-us"><div class="text-center max-w-3xl mx-auto mb-16"><div class="inline-flex items-center gap-2 mb-2"></div><h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Pioneering the Future of Sovereign Flight</h2><p class="font-body-lg text-body-lg text-on-surface-variant mt-3 text-balance">Founded on the belief that aviation should elevate human potential, safeguard our biosphere, and honor exceptional hospitality.</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-8"><!-- Card 1: Our Business --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Private luxury business jet at modern terminal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-c5e0657bf6.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">apartment</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our Business</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Engineered for sustainable long-term enterprise value. Operating an uncompromising modern fleet with zero debt distress, industry-leading punctuality, and curated intercontinental corridors that power global commerce and sovereign leadership.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">99.4% ON-TIME RELIABILITY • AAA CAPITAL RATING</span></div></div><!-- Card 2: Our Planet --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Airliner soaring above lush green mountains" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-9a36587a2e.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">eco</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our Planet</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Committed to Net-Zero flight operations by 2035. SkyBook leads sovereign SAF (Sustainable Aviation Fuel) procurement, employs AI-optimized supersonic flight paths that cut fuel burn by 18%, and restores 100% of our ecosystem footprint.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">100% CARBON-NEUTRAL PATHWAYS • 45% SAF FLEET MIX</span></div></div><!-- Card 3: Our People --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Captains and flight crew welcoming guests at jet steps" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-e5e8d258b5.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">groups</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our People</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Our captains, diplomatic concierges, and master chefs represent the pinnacle of global aviation. We cultivate a culture of uncompromising safety, world-class continuous training, and heartfelt, bespoke service.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">1,200+ MASTER AVIATORS • 24/7 BESPOKE BUTLER CONCIERGE</span></div></div></div></section>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // LUXURY AIRPORT DATA REPOSITORY
+    const AIRPORTS_DATA = [
+      { code: 'DXB', city: 'Dubai Intl', country: 'United Arab Emirates' },
+      { code: 'LHR', city: 'London Heathrow', country: 'United Kingdom' },
+      { code: 'JFK', city: 'New York JFK', country: 'United States' },
+      { code: 'HND', city: 'Tokyo Haneda', country: 'Japan' },
+      { code: 'SIN', city: 'Singapore Changi', country: 'Singapore' },
+      { code: 'CAI', city: 'Cairo Intl', country: 'Egypt' },
+      { code: 'YJC', city: 'A Coruña', country: 'Spain' },
+      { code: 'CDG', city: 'Paris Charles de Gaulle', country: 'France' },
+      { code: 'SYD', city: 'Sydney Kingsford Smith', country: 'Australia' },
+      { code: 'FRA', city: 'Frankfurt am Main', country: 'Germany' },
+      { code: 'ZRH', city: 'Zurich Airport', country: 'Switzerland' }
+    ];
+
+    // 1. TRIP TABS & SWITCHING MODES
+    const tripTabButtons = document.querySelectorAll('#trip-tabs button');
+    const returnDateContainer = document.getElementById('return-date-container');
+    const standardContainer = document.getElementById('standard-search-container');
+    const multicityContainer = document.getElementById('multicity-search-container');
+    let currentTripMode = 'round-trip';
+
+    tripTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tripTabButtons.forEach(b => {
+          b.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all text-on-surface-variant hover:text-on-surface';
+        });
+        btn.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all bg-[#0B192C] text-white shadow-sm';
+
+        currentTripMode = btn.getAttribute('data-trip');
+        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
+
+        if (currentTripMode === 'multi-city') {
+          standardContainer.classList.add('hidden');
+          multicityContainer.classList.remove('hidden');
+        } else {
+          multicityContainer.classList.add('hidden');
+          standardContainer.classList.remove('hidden');
+
+          if (currentTripMode === 'one-way') {
+            returnDateContainer.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+          } else {
+            returnDateContainer.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+          }
+        }
+        closeAirportDropdown();
+        closeCalendar();
+        closePassengersPopover();
+      });
+    });
+
+    // 2. UNIVERSAL AIRPORT PICKER DROPDOWN SYSTEM
+    const airportDropdown = document.getElementById('luxury-airport-dropdown');
+    const airportSearchInput = document.getElementById('airport-search-input');
+    const airportSearchClear = document.getElementById('airport-search-clear');
+    const airportItemsContainer = document.getElementById('airport-items-container');
+    const airportResultsCount = document.getElementById('airport-results-count');
+
+    let activeAirportAnchor = null;
+
+    function renderAirportList(query = '') {
+      airportItemsContainer.innerHTML = '';
+      const filter = query.trim().toLowerCase();
+      const filtered = AIRPORTS_DATA.filter(a => {
+        return a.code.toLowerCase().includes(filter) ||
+               a.city.toLowerCase().includes(filter) ||
+               a.country.toLowerCase().includes(filter);
+      });
+
+      airportResultsCount.textContent = `${filtered.length} Airfield${filtered.length === 1 ? '' : 's'}`;
+
+      if (filtered.length === 0) {
+        const noResult = document.createElement('div');
+        noResult.className = 'py-6 text-center text-xs text-on-surface-variant';
+        noResult.textContent = 'No matching sovereign gateways found';
+        airportItemsContainer.appendChild(noResult);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'airport-option w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-container transition-colors flex items-center justify-between group';
+        btn.innerHTML = `
+          <div>
+            <div class="font-headline-sm text-sm text-primary font-bold">
+              <span class="tabular-nums font-title-flight-code text-base mr-2 text-secondary">${item.code}</span>
+              ${item.city}
+            </div>
+            <span class="text-xs text-on-surface-variant">${item.country}</span>
+          </div>
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">flight</span>
+        `;
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectAirport(item);
+        });
+
+        airportItemsContainer.appendChild(btn);
+      });
+    }
+
+    function selectAirport(item) {
+      if (!activeAirportAnchor) return;
+
+      const role = activeAirportAnchor.getAttribute('data-field-role');
+
+      if (role === 'origin') {
+        const codeEl = document.getElementById('origin-code');
+        const cityEl = document.getElementById('origin-city');
+        const countryEl = document.getElementById('origin-country');
+        if (codeEl) codeEl.textContent = item.code;
+        if (cityEl) cityEl.textContent = item.city;
+        if (countryEl) countryEl.textContent = item.country;
+      } else if (role === 'destination') {
+        const codeEl = document.getElementById('destination-code');
+        const cityEl = document.getElementById('destination-city');
+        const countryEl = document.getElementById('destination-country');
+        if (codeEl) codeEl.textContent = item.code;
+        if (cityEl) cityEl.textContent = item.city;
+        if (countryEl) countryEl.textContent = item.country;
+      } else if (role === 'multicity-from') {
+        const input = activeAirportAnchor.querySelector('.segment-from-input');
+        if (input) input.value = `${item.city} ${item.code}`;
+      } else if (role === 'multicity-to') {
+        const input = activeAirportAnchor.querySelector('.segment-to-input');
+        if (input) input.value = `${item.city} ${item.code}`;
+      }
+
+      closeAirportDropdown();
+    }
+
+    function openAirportDropdown(anchorElement) {
+      if (!airportDropdown.classList.contains('hidden') && activeAirportAnchor === anchorElement) {
+        closeAirportDropdown();
+        return;
+      }
+
+      activeAirportAnchor = anchorElement;
+      airportSearchInput.value = '';
+      airportSearchClear.classList.add('hidden');
+      renderAirportList('');
+
+      anchorElement.appendChild(airportDropdown);
+      airportDropdown.classList.remove('hidden');
+
+      const rect = anchorElement.getBoundingClientRect();
+      const dropWidth = 380;
+      if (rect.left + dropWidth > window.innerWidth - 16) {
+        airportDropdown.style.left = 'auto';
+        airportDropdown.style.right = '0';
+      } else {
+        airportDropdown.style.left = '0';
+        airportDropdown.style.right = 'auto';
+      }
+      airportDropdown.style.top = '100%';
+
+      setTimeout(() => airportSearchInput.focus(), 50);
+
+      closeCalendar();
+      closePassengersPopover();
+    }
+
+    function closeAirportDropdown() {
+      airportDropdown.classList.add('hidden');
+      activeAirportAnchor = null;
+    }
+
+    airportSearchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val.length > 0) {
+        airportSearchClear.classList.remove('hidden');
+      } else {
+        airportSearchClear.classList.add('hidden');
+      }
+      renderAirportList(val);
+    });
+
+    airportSearchClear.addEventListener('click', (e) => {
+      e.stopPropagation();
+      airportSearchInput.value = '';
+      airportSearchClear.classList.add('hidden');
+      renderAirportList('');
+      airportSearchInput.focus();
+    });
+
+    // Standard swap button
+    const swapBtn = document.getElementById('btn-swap-airports');
+    if (swapBtn) {
+      swapBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        swapBtn.classList.toggle('rotate-180');
+
+        const originCode = document.getElementById('origin-code').textContent;
+        const originCity = document.getElementById('origin-city').textContent;
+        const originCountry = document.getElementById('origin-country').textContent;
+
+        const destCode = document.getElementById('destination-code').textContent;
+        const destCity = document.getElementById('destination-city').textContent;
+        const destCountry = document.getElementById('destination-country').textContent;
+
+        document.getElementById('origin-code').textContent = destCode;
+        document.getElementById('origin-city').textContent = destCity;
+        document.getElementById('origin-country').textContent = destCountry;
+
+        document.getElementById('destination-code').textContent = originCode;
+        document.getElementById('destination-city').textContent = originCity;
+        document.getElementById('destination-country').textContent = originCountry;
+      });
+    }
+
+    // Bind standard mode origin and destination boxes
+    const originBox = document.getElementById('origin-box');
+    const destinationBox = document.getElementById('destination-box');
+
+    if (originBox) {
+      originBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openAirportDropdown(originBox);
+      });
+    }
+
+    if (destinationBox) {
+      destinationBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openAirportDropdown(destinationBox);
+      });
+    }
+
+    // 3. INTERACTIVE LUXURY CALENDAR POPUP SYSTEM
+    const calendarModal = document.getElementById('luxury-calendar-modal');
+    const calTitle = document.getElementById('cal-title');
+    const calDaysGrid = document.getElementById('cal-days-grid');
+    const btnPrevMonth = document.getElementById('btn-prev-month');
+    const btnNextMonth = document.getElementById('btn-next-month');
+    const btnCloseCalendar = document.getElementById('btn-close-calendar');
+
+    const depDateContainer = document.getElementById('departure-date-container');
+    const retDateContainer = document.getElementById('return-date-container');
+    const depDateDisplay = document.getElementById('departure-date-display');
+    const depSubDisplay = document.getElementById('departure-sub-display');
+    const retDateDisplay = document.getElementById('return-date-display');
+    const retSubDisplay = document.getElementById('return-sub-display');
+
+    let activeCalendarTarget = 'departure';
+    let activeMulticityDateBox = null;
+    let activeAnchorElement = null;
+
+    let selectedDepartureDate = new Date(2026, 9, 24);
+    let selectedReturnDate = new Date(2026, 10, 2);
+    let currentCalViewMonth = 9;
+    let currentCalViewYear = 2026;
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    function renderCalendar() {
+      calTitle.textContent = `${monthNames[currentCalViewMonth]} ${currentCalViewYear}`;
+      calDaysGrid.innerHTML = '';
+
+      const firstDayIndex = new Date(currentCalViewYear, currentCalViewMonth, 1).getDay();
+      const totalDays = new Date(currentCalViewYear, currentCalViewMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'h-9 w-9';
+        calDaysGrid.appendChild(emptyCell);
+      }
+
+      const minSelectableDate = new Date(2026, 0, 1);
+
+      for (let day = 1; day <= totalDays; day++) {
+        const thisDate = new Date(currentCalViewYear, currentCalViewMonth, day);
+        const dayBtn = document.createElement('button');
+        dayBtn.type = 'button';
+        dayBtn.textContent = day;
+        dayBtn.className = 'h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all';
+
+        const isPast2026 = thisDate < minSelectableDate;
+
+        if (isPast2026) {
+          dayBtn.className += ' text-on-surface-variant/30 cursor-not-allowed';
+          dayBtn.disabled = true;
+        } else {
+          let isCurrentSelection = false;
+          if (activeCalendarTarget === 'departure' && thisDate.toDateString() === selectedDepartureDate.toDateString()) {
+            isCurrentSelection = true;
+          } else if (activeCalendarTarget === 'return' && thisDate.toDateString() === selectedReturnDate.toDateString()) {
+            isCurrentSelection = true;
+          }
+
+          if (isCurrentSelection) {
+            dayBtn.className += ' bg-[#0B192C] text-white shadow-md font-bold scale-105 ring-2 ring-secondary/50';
+          } else {
+            dayBtn.className += ' text-primary hover:bg-secondary/15 hover:text-secondary';
+          }
+
+          dayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onDateSelected(new Date(thisDate));
+          });
+        }
+        calDaysGrid.appendChild(dayBtn);
+      }
+    }
+
+    function onDateSelected(dateObj) {
+      if (activeCalendarTarget === 'departure') {
+        selectedDepartureDate = dateObj;
+        depDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
+        depSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
+
+        if (selectedReturnDate < selectedDepartureDate) {
+          selectedReturnDate = new Date(selectedDepartureDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+          retDateDisplay.textContent = `${monthShortNames[selectedReturnDate.getMonth()]} ${String(selectedReturnDate.getDate()).padStart(2, '0')}`;
+          retSubDisplay.textContent = `${dayNames[selectedReturnDate.getDay()]}, ${selectedReturnDate.getFullYear()}`;
+        }
+      } else if (activeCalendarTarget === 'return') {
+        selectedReturnDate = dateObj;
+        retDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
+        retSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
+      } else if (activeCalendarTarget === 'multicity' && activeMulticityDateBox) {
+        const valElem = activeMulticityDateBox.querySelector('.segment-date-val');
+        if (valElem) {
+          valElem.textContent = `${String(dateObj.getDate()).padStart(2, '0')} ${monthShortNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+      }
+
+      closeCalendar();
+    }
+
+    btnPrevMonth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCalViewYear === 2026 && currentCalViewMonth === 0) return;
+      if (currentCalViewMonth === 0) {
+        currentCalViewMonth = 11;
+        currentCalViewYear--;
+      } else {
+        currentCalViewMonth--;
+      }
+      renderCalendar();
+    });
+
+    btnNextMonth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCalViewMonth === 11) {
+        currentCalViewMonth = 0;
+        currentCalViewYear++;
+      } else {
+        currentCalViewMonth++;
+      }
+      renderCalendar();
+    });
+
+    function closeCalendar() {
+      calendarModal.classList.add('hidden');
+      activeAnchorElement = null;
+    }
+
+    btnCloseCalendar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeCalendar();
+    });
+
+    function openCalendar(targetType, initialDate, anchorElem) {
+      if (!calendarModal.classList.contains('hidden') && activeAnchorElement === anchorElem) {
+        closeCalendar();
+        return;
+      }
+      activeCalendarTarget = targetType;
+      activeAnchorElement = anchorElem;
+      currentCalViewMonth = initialDate.getMonth();
+      currentCalViewYear = initialDate.getFullYear();
+      renderCalendar();
+
+      anchorElem.appendChild(calendarModal);
+      calendarModal.classList.remove('hidden');
+
+      const rect = anchorElem.getBoundingClientRect();
+      const calWidth = 340;
+      if (rect.left + calWidth > window.innerWidth - 16) {
+        calendarModal.style.left = 'auto';
+        calendarModal.style.right = '0';
+      } else {
+        calendarModal.style.left = '0';
+        calendarModal.style.right = 'auto';
+      }
+      calendarModal.style.top = '100%';
+
+      closeAirportDropdown();
+      closePassengersPopover();
+    }
+
+    depDateContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCalendar('departure', selectedDepartureDate, depDateContainer);
+    });
+
+    retDateContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentTripMode === 'one-way') return;
+      openCalendar('return', selectedReturnDate, retDateContainer);
+    });
+
+    // 4. MULTI-CITY ROWS INTERACTION & DYNAMIC ADDITION
+    const multicityRowsContainer = document.getElementById('multicity-rows-container');
+    const btnAddFlight = document.getElementById('btn-add-flight');
+    let multicityFlightCount = 2;
+
+    function attachSegmentEvents(row) {
+      // From Airport Picker
+      const fromField = row.querySelector('.segment-origin-trigger');
+      if (fromField) {
+        fromField.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openAirportDropdown(fromField);
+        });
+      }
+
+      // To Airport Picker
+      const toField = row.querySelector('.segment-dest-trigger');
+      if (toField) {
+        toField.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openAirportDropdown(toField);
+        });
+      }
+
+      // Date Picker Trigger
+      const dateBox = row.querySelector('.segment-date-box');
+      if (dateBox) {
+        dateBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activeMulticityDateBox = dateBox;
+          openCalendar('multicity', new Date(2026, 8, 11), dateBox);
+        });
+      }
+
+      // Swap button
+      const swap = row.querySelector('.segment-swap-btn');
+      if (swap) {
+        swap.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fromInput = row.querySelector('.segment-from-input');
+          const toInput = row.querySelector('.segment-to-input');
+          if (fromInput && toInput) {
+            const temp = fromInput.value;
+            fromInput.value = toInput.value;
+            toInput.value = temp;
+          }
+        });
+      }
+
+      // Passengers / Class trigger in multi-city
+      const passTrigger = row.querySelector('.multicity-passenger-trigger');
+      if (passTrigger) {
+        passTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openPassengersPopover(passTrigger);
+        });
+      }
+
+      // Remove button
+      const removeBtn = row.querySelector('.btn-remove-segment');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const allRows = multicityRowsContainer.querySelectorAll('.multicity-row');
+          if (allRows.length > 2) {
+            if (row.contains(airportDropdown)) {
+              closeAirportDropdown();
+              document.body.appendChild(airportDropdown);
+            }
+            if (row.contains(calendarModal)) {
+              closeCalendar();
+              document.body.appendChild(calendarModal);
+            }
+            if (row.contains(passengersPopover)) {
+              closePassengersPopover();
+              document.body.appendChild(passengersPopover);
+            }
+            row.remove();
+            btnAddFlight.disabled = false;
+            btnAddFlight.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+        });
+      }
+    }
+
+    document.querySelectorAll('.multicity-row').forEach(r => attachSegmentEvents(r));
+
+    btnAddFlight.addEventListener('click', () => {
+      const currentRows = multicityRowsContainer.querySelectorAll('.multicity-row');
+      if (currentRows.length >= 3) {
+        return;
+      }
+
+      multicityFlightCount++;
+      const lastRow = currentRows[currentRows.length - 1];
+      const lastToVal = lastRow.querySelector('.segment-to-input')?.value || 'Dubai DXB';
+
+      const newRow = document.createElement('div');
+      newRow.className = 'multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group';
+      newRow.setAttribute('data-row-id', multicityFlightCount);
+
+      newRow.innerHTML = `
+        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
+          <div class="flex items-baseline gap-1.5">
+            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin" readonly type="text" value="${lastToVal}"/>
+          </div>
+        </div>
+        <div class="flex items-center justify-center px-1">
+          <button class="w-8 h-8 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center segment-swap-btn" title="Swap cities" type="button">
+            <span class="material-symbols-outlined text-[18px]">sync_alt</span>
+          </button>
+        </div>
+        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
+          <div class="flex items-baseline gap-1.5">
+            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination" readonly type="text" value="Tokyo HND"/>
+          </div>
+        </div>
+        <div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
+        <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-${multicityFlightCount}">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
+          <span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">15 Sep 2026</span>
+        </div>
+        <div class="flex items-center justify-end px-2">
+          <button class="w-8 h-8 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/40 flex items-center justify-center transition-colors btn-remove-segment" title="Remove Flight" type="button">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      `;
+
+      multicityRowsContainer.appendChild(newRow);
+      attachSegmentEvents(newRow);
+      if (multicityRowsContainer.querySelectorAll('.multicity-row').length >= 3) {
+        btnAddFlight.disabled = true;
+        btnAddFlight.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    });
+
+    // 5. UNIFIED PASSENGERS & CLASS SELECTOR SYSTEM
+    const passengersPopover = document.getElementById('universal-passengers-popover');
+    const standardPassengerTrigger = document.querySelector('.passenger-trigger-standard');
+    const btnClosePassengers = document.getElementById('btn-close-passengers');
+    const btnApplyPassengers = document.getElementById('btn-apply-passengers');
+
+    let activePassengerAnchor = null;
+
+    let countAdults = 1;
+    let countChildren = 0;
+    let countInfants = 0;
+    let currentCabinChoice = 'Business Class';
+
+    const valAdults = document.getElementById('val-adults');
+    const valChildren = document.getElementById('val-children');
+    const valInfants = document.getElementById('val-infants');
+    const btnDecAdults = document.getElementById('btn-dec-adults');
+    const btnDecChildren = document.getElementById('btn-dec-children');
+    const btnDecInfants = document.getElementById('btn-dec-infants');
+
+    function updateCountersDisplay() {
+      valAdults.textContent = countAdults;
+      valChildren.textContent = countChildren;
+      valInfants.textContent = countInfants;
+      btnDecAdults.disabled = countAdults <= 1;
+      btnDecChildren.disabled = countChildren <= 0;
+      btnDecInfants.disabled = countInfants <= 0;
+    }
+
+    document.getElementById('btn-inc-adults').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countAdults < 9) countAdults++;
+      updateCountersDisplay();
+    });
+    btnDecAdults.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countAdults > 1) countAdults--;
+      updateCountersDisplay();
+    });
+
+    document.getElementById('btn-inc-children').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countChildren < 9) countChildren++;
+      updateCountersDisplay();
+    });
+    btnDecChildren.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countChildren > 0) countChildren--;
+      updateCountersDisplay();
+    });
+
+    document.getElementById('btn-inc-infants').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countInfants < 4) countInfants++;
+      updateCountersDisplay();
+    });
+    btnDecInfants.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countInfants > 0) countInfants--;
+      updateCountersDisplay();
+    });
+
+    document.querySelectorAll('input[name="cabin-class-choice"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        currentCabinChoice = e.target.value;
+      });
+    });
+
+    function getPassengerSummaryText() {
+      const total = countAdults + countChildren + countInfants;
+      const passWord = total === 1 ? '1 Passenger' : `${total} Passengers`;
+      return `${passWord}, ${currentCabinChoice}`;
+    }
+
+    function applyPassengerSelection() {
+      const summary = getPassengerSummaryText();
+
+      // Standard mode trigger update
+      const guestsDisplay = document.getElementById('guests-display');
+      const cabinDisplay = document.getElementById('cabin-display');
+      if (guestsDisplay) guestsDisplay.textContent = summary;
+      if (cabinDisplay) cabinDisplay.textContent = currentCabinChoice.toUpperCase();
+
+      // Multi-city triggers update
+      document.querySelectorAll('.mc-passenger-label').forEach(label => {
+        label.textContent = summary;
+      });
+
+      closePassengersPopover();
+    }
+
+    function openPassengersPopover(anchor) {
+      if (!passengersPopover.classList.contains('hidden') && activePassengerAnchor === anchor) {
+        closePassengersPopover();
+        return;
+      }
+
+      activePassengerAnchor = anchor;
+      updateCountersDisplay();
+
+      anchor.appendChild(passengersPopover);
+      passengersPopover.classList.remove('hidden');
+
+      const rect = anchor.getBoundingClientRect();
+      const popWidth = 380;
+      if (rect.left + popWidth > window.innerWidth - 16) {
+        passengersPopover.style.left = 'auto';
+        passengersPopover.style.right = '0';
+      } else {
+        passengersPopover.style.left = '0';
+        passengersPopover.style.right = 'auto';
+      }
+      passengersPopover.style.top = '100%';
+
+      closeAirportDropdown();
+      closeCalendar();
+    }
+
+    function closePassengersPopover() {
+      passengersPopover.classList.add('hidden');
+      activePassengerAnchor = null;
+    }
+
+    if (standardPassengerTrigger) {
+      standardPassengerTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPassengersPopover(standardPassengerTrigger);
+      });
+    }
+
+    btnClosePassengers.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closePassengersPopover();
+    });
+
+    btnApplyPassengers.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyPassengerSelection();
+    });
+
+    // Close popovers on click outside
+    document.addEventListener('click', (e) => {
+      if (airportDropdown && !airportDropdown.contains(e.target) && !e.target.closest('.airport-field')) {
+        closeAirportDropdown();
+      }
+      if (passengersPopover && !passengersPopover.contains(e.target) && !e.target.closest('.passenger-trigger-standard') && !e.target.closest('.multicity-passenger-trigger')) {
+        closePassengersPopover();
+      }
+      if (calendarModal && !calendarModal.contains(e.target) && !depDateContainer?.contains(e.target) && !retDateContainer?.contains(e.target) && !e.target.closest('.segment-date-box')) {
+        closeCalendar();
+      }
+    });
+
+    // ESC key closes any open dropdown
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAirportDropdown();
+        closeCalendar();
+        closePassengersPopover();
+      }
+    });
+
+    // Search Flights Button Feedback
+    const searchBtn = document.getElementById('btn-search-flights');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', () => {
+        sessionStorage.setItem('skybook-search-context', JSON.stringify({
+          mode: currentTripMode,
+          originCode: document.getElementById('origin-code')?.textContent.trim(),
+          originCity: document.getElementById('origin-city')?.textContent.trim(),
+          destinationCode: document.getElementById('destination-code')?.textContent.trim(),
+          destinationCity: document.getElementById('destination-city')?.textContent.trim(),
+          departure: document.getElementById('departure-date-display')?.textContent.trim(),
+          returnDate: document.getElementById('return-date-display')?.textContent.trim(),
+          passengers: document.getElementById('guests-display')?.textContent.trim(),
+          cabin: currentCabinChoice
+        }));
+        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
+        searchBtn.classList.add('scale-95');
+        setTimeout(() => {
+          searchBtn.classList.remove('scale-95');
+          window.location.href = '/Flight/Results';
+        }, 150);
+      });
+    }
+
+    const skyClubButton = [...document.querySelectorAll('button')].find(button => button.textContent.includes('Explore SkyClub Tiers'));
+    if (skyClubButton) {
+      skyClubButton.addEventListener('click', () => {
+                    window.location.href = '/Home/SkyClub';
+      });
+    }
+
+    const featuredFlightButton = document.getElementById('featured-flight-btn');
+    if (featuredFlightButton) {
+      featuredFlightButton.addEventListener('click', () => {
+                    window.location.href = '/Flight/Results';
+      });
+    }
+
+    // Initialize displays
+    updateCountersDisplay();
+  });
+</script>
+
+@section Scripts {
+<script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-low":"#f3f4f5","on-secondary":"#ffffff","on-secondary-fixed":"#281800","surface-bright":"#f8f9fa","secondary-container":"#fedeb2","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3a475c","on-secondary-fixed-variant":"#584323","primary-fixed-dim":"#bac7e1","inverse-primary":"#bac7e1","primary-container":"#0e1c2f","on-background":"#191c1d","error-container":"#ffdad6","primary-fixed":"#d6e3fe","on-tertiary-fixed":"#001c38","on-tertiary-fixed-variant":"#29486d","tertiary-fixed":"#d3e4ff","outline-variant":"#c5c6cd","surface":"#f8f9fa","secondary":"#725b38","surface-container-high":"#e7e8e9","on-tertiary":"#ffffff","on-surface":"#191c1d","tertiary-fixed-dim":"#aac9f4","on-error-container":"#93000a","surface-container-highest":"#e1e3e4","primary":"#000000","on-primary":"#ffffff","on-primary-fixed":"#0e1c2f","surface-variant":"#e1e3e4","on-error":"#ffffff","on-primary-container":"#77849c","inverse-on-surface":"#f0f1f2","surface-container-lowest":"#ffffff","tertiary-container":"#001c38","error":"#ba1a1a","outline":"#75777d","background":"#f8f9fa","tertiary":"#000000","on-secondary-container":"#78603e","inverse-surface":"#2e3132","surface-dim":"#d9dadb","secondary-fixed":"#fedeb2","surface-tint":"#525f75","surface-container":"#edeeef","on-tertiary-container":"#6886ae","secondary-fixed-dim":"#e0c298"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-sm":"0.5rem","space-md":"1rem","space-xs":"0.25rem",margin:"3rem","margin-mobile":"1.25rem","gutter-mobile":"1rem",gutter:"1.5rem","space-xl":"2.5rem"},fontFamily:{"display-hero":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"title-flight-code":["Space Grotesk"],"headline-lg":["Plus Jakarta Sans"],"label-caps":["Space Grotesk"],"body-sm":["Plus Jakarta Sans"],"price-lg":["Space Grotesk"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},fontSize:{"display-hero":["56px",{lineHeight:"64px",letterSpacing:"-0.03em",fontWeight:"700"}],"body-lg":["18px",{lineHeight:"28px",fontWeight:"400"}],"display-hero-mobile":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"title-flight-code":["28px",{lineHeight:"32px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-lg":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"600"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"price-lg":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],"body-md":["15px",{lineHeight:"22px",fontWeight:"400"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.015em",fontWeight:"600"}]}}}};</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // LUXURY AIRPORT DATA REPOSITORY
+    const AIRPORTS_DATA = [
+      { code: 'DXB', city: 'Dubai Intl', country: 'United Arab Emirates' },
+      { code: 'LHR', city: 'London Heathrow', country: 'United Kingdom' },
+      { code: 'JFK', city: 'New York JFK', country: 'United States' },
+      { code: 'HND', city: 'Tokyo Haneda', country: 'Japan' },
+      { code: 'SIN', city: 'Singapore Changi', country: 'Singapore' },
+      { code: 'CAI', city: 'Cairo Intl', country: 'Egypt' },
+      { code: 'YJC', city: 'A Coruña', country: 'Spain' },
+      { code: 'CDG', city: 'Paris Charles de Gaulle', country: 'France' },
+      { code: 'SYD', city: 'Sydney Kingsford Smith', country: 'Australia' },
+      { code: 'FRA', city: 'Frankfurt am Main', country: 'Germany' },
+      { code: 'ZRH', city: 'Zurich Airport', country: 'Switzerland' }
+    ];
+
+    // 1. TRIP TABS & SWITCHING MODES
+    const tripTabButtons = document.querySelectorAll('#trip-tabs button');
+    const returnDateContainer = document.getElementById('return-date-container');
+    const standardContainer = document.getElementById('standard-search-container');
+    const multicityContainer = document.getElementById('multicity-search-container');
+    let currentTripMode = 'round-trip';
+
+    tripTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tripTabButtons.forEach(b => {
+          b.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all text-on-surface-variant hover:text-on-surface';
+        });
+        btn.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all bg-[#0B192C] text-white shadow-sm';
+
+        currentTripMode = btn.getAttribute('data-trip');
+        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
+
+        if (currentTripMode === 'multi-city') {
+          standardContainer.classList.add('hidden');
+          multicityContainer.classList.remove('hidden');
+        } else {
+          multicityContainer.classList.add('hidden');
+          standardContainer.classList.remove('hidden');
+
+          if (currentTripMode === 'one-way') {
+            returnDateContainer.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+          } else {
+            returnDateContainer.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+          }
+        }
+        closeAirportDropdown();
+        closeCalendar();
+        closePassengersPopover();
+      });
+    });
+
+    // 2. UNIVERSAL AIRPORT PICKER DROPDOWN SYSTEM
+    const airportDropdown = document.getElementById('luxury-airport-dropdown');
+    const airportSearchInput = document.getElementById('airport-search-input');
+    const airportSearchClear = document.getElementById('airport-search-clear');
+    const airportItemsContainer = document.getElementById('airport-items-container');
+    const airportResultsCount = document.getElementById('airport-results-count');
+
+    let activeAirportAnchor = null;
+
+    function renderAirportList(query = '') {
+      airportItemsContainer.innerHTML = '';
+      const filter = query.trim().toLowerCase();
+      const filtered = AIRPORTS_DATA.filter(a => {
+        return a.code.toLowerCase().includes(filter) ||
+               a.city.toLowerCase().includes(filter) ||
+               a.country.toLowerCase().includes(filter);
+      });
+
+      airportResultsCount.textContent = `${filtered.length} Airfield${filtered.length === 1 ? '' : 's'}`;
+
+      if (filtered.length === 0) {
+        const noResult = document.createElement('div');
+        noResult.className = 'py-6 text-center text-xs text-on-surface-variant';
+        noResult.textContent = 'No matching sovereign gateways found';
+        airportItemsContainer.appendChild(noResult);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'airport-option w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-container transition-colors flex items-center justify-between group';
+        btn.innerHTML = `
+          <div>
+            <div class="font-headline-sm text-sm text-primary font-bold">
+              <span class="tabular-nums font-title-flight-code text-base mr-2 text-secondary">${item.code}</span>
+              ${item.city}
+            </div>
+            <span class="text-xs text-on-surface-variant">${item.country}</span>
+          </div>
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">flight</span>
+        `;
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectAirport(item);
+        });
+
+        airportItemsContainer.appendChild(btn);
+      });
+    }
+
+    function selectAirport(item) {
+      if (!activeAirportAnchor) return;
+
+      const role = activeAirportAnchor.getAttribute('data-field-role');
+
+      if (role === 'origin') {
+        const codeEl = document.getElementById('origin-code');
+        const cityEl = document.getElementById('origin-city');
+        const countryEl = document.getElementById('origin-country');
+        if (codeEl) codeEl.textContent = item.code;
+        if (cityEl) cityEl.textContent = item.city;
+        if (countryEl) countryEl.textContent = item.country;
+      } else if (role === 'destination') {
+        const codeEl = document.getElementById('destination-code');
+        const cityEl = document.getElementById('destination-city');
+        const countryEl = document.getElementById('destination-country');
+        if (codeEl) codeEl.textContent = item.code;
+        if (cityEl) cityEl.textContent = item.city;
+        if (countryEl) countryEl.textContent = item.country;
+      } else if (role === 'multicity-from') {
+        const input = activeAirportAnchor.querySelector('.segment-from-input');
+        if (input) input.value = `${item.city} ${item.code}`;
+      } else if (role === 'multicity-to') {
+        const input = activeAirportAnchor.querySelector('.segment-to-input');
+        if (input) input.value = `${item.city} ${item.code}`;
+      }
+
+      closeAirportDropdown();
+    }
+
+    function openAirportDropdown(anchorElement) {
+      if (!airportDropdown.classList.contains('hidden') && activeAirportAnchor === anchorElement) {
+        closeAirportDropdown();
+        return;
+      }
+
+      activeAirportAnchor = anchorElement;
+      airportSearchInput.value = '';
+      airportSearchClear.classList.add('hidden');
+      renderAirportList('');
+
+      anchorElement.appendChild(airportDropdown);
+      airportDropdown.classList.remove('hidden');
+
+      const rect = anchorElement.getBoundingClientRect();
+      const dropWidth = 380;
+      if (rect.left + dropWidth > window.innerWidth - 16) {
+        airportDropdown.style.left = 'auto';
+        airportDropdown.style.right = '0';
+      } else {
+        airportDropdown.style.left = '0';
+        airportDropdown.style.right = 'auto';
+      }
+      airportDropdown.style.top = '100%';
+
+      setTimeout(() => airportSearchInput.focus(), 50);
+
+      closeCalendar();
+      closePassengersPopover();
+    }
+
+    function closeAirportDropdown() {
+      airportDropdown.classList.add('hidden');
+      activeAirportAnchor = null;
+    }
+
+    airportSearchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val.length > 0) {
+        airportSearchClear.classList.remove('hidden');
+      } else {
+        airportSearchClear.classList.add('hidden');
+      }
+      renderAirportList(val);
+    });
+
+    airportSearchClear.addEventListener('click', (e) => {
+      e.stopPropagation();
+      airportSearchInput.value = '';
+      airportSearchClear.classList.add('hidden');
+      renderAirportList('');
+      airportSearchInput.focus();
+    });
+
+    // Standard swap button
+    const swapBtn = document.getElementById('btn-swap-airports');
+    if (swapBtn) {
+      swapBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        swapBtn.classList.toggle('rotate-180');
+
+        const originCode = document.getElementById('origin-code').textContent;
+        const originCity = document.getElementById('origin-city').textContent;
+        const originCountry = document.getElementById('origin-country').textContent;
+
+        const destCode = document.getElementById('destination-code').textContent;
+        const destCity = document.getElementById('destination-city').textContent;
+        const destCountry = document.getElementById('destination-country').textContent;
+
+        document.getElementById('origin-code').textContent = destCode;
+        document.getElementById('origin-city').textContent = destCity;
+        document.getElementById('origin-country').textContent = destCountry;
+
+        document.getElementById('destination-code').textContent = originCode;
+        document.getElementById('destination-city').textContent = originCity;
+        document.getElementById('destination-country').textContent = originCountry;
+      });
+    }
+
+    // Bind standard mode origin and destination boxes
+    const originBox = document.getElementById('origin-box');
+    const destinationBox = document.getElementById('destination-box');
+
+    if (originBox) {
+      originBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openAirportDropdown(originBox);
+      });
+    }
+
+    if (destinationBox) {
+      destinationBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openAirportDropdown(destinationBox);
+      });
+    }
+
+    // 3. INTERACTIVE LUXURY CALENDAR POPUP SYSTEM
+    const calendarModal = document.getElementById('luxury-calendar-modal');
+    const calTitle = document.getElementById('cal-title');
+    const calDaysGrid = document.getElementById('cal-days-grid');
+    const btnPrevMonth = document.getElementById('btn-prev-month');
+    const btnNextMonth = document.getElementById('btn-next-month');
+    const btnCloseCalendar = document.getElementById('btn-close-calendar');
+
+    const depDateContainer = document.getElementById('departure-date-container');
+    const retDateContainer = document.getElementById('return-date-container');
+    const depDateDisplay = document.getElementById('departure-date-display');
+    const depSubDisplay = document.getElementById('departure-sub-display');
+    const retDateDisplay = document.getElementById('return-date-display');
+    const retSubDisplay = document.getElementById('return-sub-display');
+
+    let activeCalendarTarget = 'departure';
+    let activeMulticityDateBox = null;
+    let activeAnchorElement = null;
+
+    let selectedDepartureDate = new Date(2026, 9, 24);
+    let selectedReturnDate = new Date(2026, 10, 2);
+    let currentCalViewMonth = 9;
+    let currentCalViewYear = 2026;
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    function renderCalendar() {
+      calTitle.textContent = `${monthNames[currentCalViewMonth]} ${currentCalViewYear}`;
+      calDaysGrid.innerHTML = '';
+
+      const firstDayIndex = new Date(currentCalViewYear, currentCalViewMonth, 1).getDay();
+      const totalDays = new Date(currentCalViewYear, currentCalViewMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'h-9 w-9';
+        calDaysGrid.appendChild(emptyCell);
+      }
+
+      const minSelectableDate = new Date(2026, 0, 1);
+
+      for (let day = 1; day <= totalDays; day++) {
+        const thisDate = new Date(currentCalViewYear, currentCalViewMonth, day);
+        const dayBtn = document.createElement('button');
+        dayBtn.type = 'button';
+        dayBtn.textContent = day;
+        dayBtn.className = 'h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all';
+
+        const isPast2026 = thisDate < minSelectableDate;
+
+        if (isPast2026) {
+          dayBtn.className += ' text-on-surface-variant/30 cursor-not-allowed';
+          dayBtn.disabled = true;
+        } else {
+          let isCurrentSelection = false;
+          if (activeCalendarTarget === 'departure' && thisDate.toDateString() === selectedDepartureDate.toDateString()) {
+            isCurrentSelection = true;
+          } else if (activeCalendarTarget === 'return' && thisDate.toDateString() === selectedReturnDate.toDateString()) {
+            isCurrentSelection = true;
+          }
+
+          if (isCurrentSelection) {
+            dayBtn.className += ' bg-[#0B192C] text-white shadow-md font-bold scale-105 ring-2 ring-secondary/50';
+          } else {
+            dayBtn.className += ' text-primary hover:bg-secondary/15 hover:text-secondary';
+          }
+
+          dayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onDateSelected(new Date(thisDate));
+          });
+        }
+        calDaysGrid.appendChild(dayBtn);
+      }
+    }
+
+    function onDateSelected(dateObj) {
+      if (activeCalendarTarget === 'departure') {
+        selectedDepartureDate = dateObj;
+        depDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
+        depSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
+
+        if (selectedReturnDate < selectedDepartureDate) {
+          selectedReturnDate = new Date(selectedDepartureDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+          retDateDisplay.textContent = `${monthShortNames[selectedReturnDate.getMonth()]} ${String(selectedReturnDate.getDate()).padStart(2, '0')}`;
+          retSubDisplay.textContent = `${dayNames[selectedReturnDate.getDay()]}, ${selectedReturnDate.getFullYear()}`;
+        }
+      } else if (activeCalendarTarget === 'return') {
+        selectedReturnDate = dateObj;
+        retDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
+        retSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
+      } else if (activeCalendarTarget === 'multicity' && activeMulticityDateBox) {
+        const valElem = activeMulticityDateBox.querySelector('.segment-date-val');
+        if (valElem) {
+          valElem.textContent = `${String(dateObj.getDate()).padStart(2, '0')} ${monthShortNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+      }
+
+      closeCalendar();
+    }
+
+    btnPrevMonth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCalViewYear === 2026 && currentCalViewMonth === 0) return;
+      if (currentCalViewMonth === 0) {
+        currentCalViewMonth = 11;
+        currentCalViewYear--;
+      } else {
+        currentCalViewMonth--;
+      }
+      renderCalendar();
+    });
+
+    btnNextMonth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCalViewMonth === 11) {
+        currentCalViewMonth = 0;
+        currentCalViewYear++;
+      } else {
+        currentCalViewMonth++;
+      }
+      renderCalendar();
+    });
+
+    function closeCalendar() {
+      calendarModal.classList.add('hidden');
+      activeAnchorElement = null;
+    }
+
+    btnCloseCalendar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeCalendar();
+    });
+
+    function openCalendar(targetType, initialDate, anchorElem) {
+      if (!calendarModal.classList.contains('hidden') && activeAnchorElement === anchorElem) {
+        closeCalendar();
+        return;
+      }
+      activeCalendarTarget = targetType;
+      activeAnchorElement = anchorElem;
+      currentCalViewMonth = initialDate.getMonth();
+      currentCalViewYear = initialDate.getFullYear();
+      renderCalendar();
+
+      anchorElem.appendChild(calendarModal);
+      calendarModal.classList.remove('hidden');
+
+      const rect = anchorElem.getBoundingClientRect();
+      const calWidth = 340;
+      if (rect.left + calWidth > window.innerWidth - 16) {
+        calendarModal.style.left = 'auto';
+        calendarModal.style.right = '0';
+      } else {
+        calendarModal.style.left = '0';
+        calendarModal.style.right = 'auto';
+      }
+      calendarModal.style.top = '100%';
+
+      closeAirportDropdown();
+      closePassengersPopover();
+    }
+
+    depDateContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCalendar('departure', selectedDepartureDate, depDateContainer);
+    });
+
+    retDateContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentTripMode === 'one-way') return;
+      openCalendar('return', selectedReturnDate, retDateContainer);
+    });
+
+    // 4. MULTI-CITY ROWS INTERACTION & DYNAMIC ADDITION
+    const multicityRowsContainer = document.getElementById('multicity-rows-container');
+    const btnAddFlight = document.getElementById('btn-add-flight');
+    let multicityFlightCount = 2;
+
+    function attachSegmentEvents(row) {
+      // From Airport Picker
+      const fromField = row.querySelector('.segment-origin-trigger');
+      if (fromField) {
+        fromField.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openAirportDropdown(fromField);
+        });
+      }
+
+      // To Airport Picker
+      const toField = row.querySelector('.segment-dest-trigger');
+      if (toField) {
+        toField.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openAirportDropdown(toField);
+        });
+      }
+
+      // Date Picker Trigger
+      const dateBox = row.querySelector('.segment-date-box');
+      if (dateBox) {
+        dateBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activeMulticityDateBox = dateBox;
+          openCalendar('multicity', new Date(2026, 8, 11), dateBox);
+        });
+      }
+
+      // Swap button
+      const swap = row.querySelector('.segment-swap-btn');
+      if (swap) {
+        swap.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fromInput = row.querySelector('.segment-from-input');
+          const toInput = row.querySelector('.segment-to-input');
+          if (fromInput && toInput) {
+            const temp = fromInput.value;
+            fromInput.value = toInput.value;
+            toInput.value = temp;
+          }
+        });
+      }
+
+      // Passengers / Class trigger in multi-city
+      const passTrigger = row.querySelector('.multicity-passenger-trigger');
+      if (passTrigger) {
+        passTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openPassengersPopover(passTrigger);
+        });
+      }
+
+      // Remove button
+      const removeBtn = row.querySelector('.btn-remove-segment');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const allRows = multicityRowsContainer.querySelectorAll('.multicity-row');
+          if (allRows.length > 2) {
+            if (row.contains(airportDropdown)) {
+              closeAirportDropdown();
+              document.body.appendChild(airportDropdown);
+            }
+            if (row.contains(calendarModal)) {
+              closeCalendar();
+              document.body.appendChild(calendarModal);
+            }
+            if (row.contains(passengersPopover)) {
+              closePassengersPopover();
+              document.body.appendChild(passengersPopover);
+            }
+            row.remove();
+            btnAddFlight.disabled = false;
+            btnAddFlight.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+        });
+      }
+    }
+
+    document.querySelectorAll('.multicity-row').forEach(r => attachSegmentEvents(r));
+
+    btnAddFlight.addEventListener('click', () => {
+      const currentRows = multicityRowsContainer.querySelectorAll('.multicity-row');
+      if (currentRows.length >= 3) {
+        return;
+      }
+
+      multicityFlightCount++;
+      const lastRow = currentRows[currentRows.length - 1];
+      const lastToVal = lastRow.querySelector('.segment-to-input')?.value || 'Dubai DXB';
+
+      const newRow = document.createElement('div');
+      newRow.className = 'multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group';
+      newRow.setAttribute('data-row-id', multicityFlightCount);
+
+      newRow.innerHTML = `
+        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
+          <div class="flex items-baseline gap-1.5">
+            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin" readonly type="text" value="${lastToVal}"/>
+          </div>
+        </div>
+        <div class="flex items-center justify-center px-1">
+          <button class="w-8 h-8 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center segment-swap-btn" title="Swap cities" type="button">
+            <span class="material-symbols-outlined text-[18px]">sync_alt</span>
+          </button>
+        </div>
+        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
+          <div class="flex items-baseline gap-1.5">
+            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination" readonly type="text" value="Tokyo HND"/>
+          </div>
+        </div>
+        <div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
+        <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-${multicityFlightCount}">
+          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
+          <span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">15 Sep 2026</span>
+        </div>
+        <div class="flex items-center justify-end px-2">
+          <button class="w-8 h-8 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/40 flex items-center justify-center transition-colors btn-remove-segment" title="Remove Flight" type="button">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      `;
+
+      multicityRowsContainer.appendChild(newRow);
+      attachSegmentEvents(newRow);
+      if (multicityRowsContainer.querySelectorAll('.multicity-row').length >= 3) {
+        btnAddFlight.disabled = true;
+        btnAddFlight.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    });
+
+    // 5. UNIFIED PASSENGERS & CLASS SELECTOR SYSTEM
+    const passengersPopover = document.getElementById('universal-passengers-popover');
+    const standardPassengerTrigger = document.querySelector('.passenger-trigger-standard');
+    const btnClosePassengers = document.getElementById('btn-close-passengers');
+    const btnApplyPassengers = document.getElementById('btn-apply-passengers');
+
+    let activePassengerAnchor = null;
+
+    let countAdults = 1;
+    let countChildren = 0;
+    let countInfants = 0;
+    let currentCabinChoice = 'Business Class';
+
+    const valAdults = document.getElementById('val-adults');
+    const valChildren = document.getElementById('val-children');
+    const valInfants = document.getElementById('val-infants');
+    const btnDecAdults = document.getElementById('btn-dec-adults');
+    const btnDecChildren = document.getElementById('btn-dec-children');
+    const btnDecInfants = document.getElementById('btn-dec-infants');
+
+    function updateCountersDisplay() {
+      valAdults.textContent = countAdults;
+      valChildren.textContent = countChildren;
+      valInfants.textContent = countInfants;
+      btnDecAdults.disabled = countAdults <= 1;
+      btnDecChildren.disabled = countChildren <= 0;
+      btnDecInfants.disabled = countInfants <= 0;
+    }
+
+    document.getElementById('btn-inc-adults').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countAdults < 9) countAdults++;
+      updateCountersDisplay();
+    });
+    btnDecAdults.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countAdults > 1) countAdults--;
+      updateCountersDisplay();
+    });
+
+    document.getElementById('btn-inc-children').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countChildren < 9) countChildren++;
+      updateCountersDisplay();
+    });
+    btnDecChildren.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countChildren > 0) countChildren--;
+      updateCountersDisplay();
+    });
+
+    document.getElementById('btn-inc-infants').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countInfants < 4) countInfants++;
+      updateCountersDisplay();
+    });
+    btnDecInfants.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (countInfants > 0) countInfants--;
+      updateCountersDisplay();
+    });
+
+    document.querySelectorAll('input[name="cabin-class-choice"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        currentCabinChoice = e.target.value;
+      });
+    });
+
+    function getPassengerSummaryText() {
+      const total = countAdults + countChildren + countInfants;
+      const passWord = total === 1 ? '1 Passenger' : `${total} Passengers`;
+      return `${passWord}, ${currentCabinChoice}`;
+    }
+
+    function applyPassengerSelection() {
+      const summary = getPassengerSummaryText();
+
+      // Standard mode trigger update
+      const guestsDisplay = document.getElementById('guests-display');
+      const cabinDisplay = document.getElementById('cabin-display');
+      if (guestsDisplay) guestsDisplay.textContent = summary;
+      if (cabinDisplay) cabinDisplay.textContent = currentCabinChoice.toUpperCase();
+
+      // Multi-city triggers update
+      document.querySelectorAll('.mc-passenger-label').forEach(label => {
+        label.textContent = summary;
+      });
+
+      closePassengersPopover();
+    }
+
+    function openPassengersPopover(anchor) {
+      if (!passengersPopover.classList.contains('hidden') && activePassengerAnchor === anchor) {
+        closePassengersPopover();
+        return;
+      }
+
+      activePassengerAnchor = anchor;
+      updateCountersDisplay();
+
+      anchor.appendChild(passengersPopover);
+      passengersPopover.classList.remove('hidden');
+
+      const rect = anchor.getBoundingClientRect();
+      const popWidth = 380;
+      if (rect.left + popWidth > window.innerWidth - 16) {
+        passengersPopover.style.left = 'auto';
+        passengersPopover.style.right = '0';
+      } else {
+        passengersPopover.style.left = '0';
+        passengersPopover.style.right = 'auto';
+      }
+      passengersPopover.style.top = '100%';
+
+      closeAirportDropdown();
+      closeCalendar();
+    }
+
+    function closePassengersPopover() {
+      passengersPopover.classList.add('hidden');
+      activePassengerAnchor = null;
+    }
+
+    if (standardPassengerTrigger) {
+      standardPassengerTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPassengersPopover(standardPassengerTrigger);
+      });
+    }
+
+    btnClosePassengers.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closePassengersPopover();
+    });
+
+    btnApplyPassengers.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyPassengerSelection();
+    });
+
+    // Close popovers on click outside
+    document.addEventListener('click', (e) => {
+      if (airportDropdown && !airportDropdown.contains(e.target) && !e.target.closest('.airport-field')) {
+        closeAirportDropdown();
+      }
+      if (passengersPopover && !passengersPopover.contains(e.target) && !e.target.closest('.passenger-trigger-standard') && !e.target.closest('.multicity-passenger-trigger')) {
+        closePassengersPopover();
+      }
+      if (calendarModal && !calendarModal.contains(e.target) && !depDateContainer?.contains(e.target) && !retDateContainer?.contains(e.target) && !e.target.closest('.segment-date-box')) {
+        closeCalendar();
+      }
+    });
+
+    // ESC key closes any open dropdown
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAirportDropdown();
+        closeCalendar();
+        closePassengersPopover();
+      }
+    });
+
+    // Search Flights Button Feedback
+    const searchBtn = document.getElementById('btn-search-flights');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', () => {
+        sessionStorage.setItem('skybook-search-context', JSON.stringify({
+          mode: currentTripMode,
+          originCode: document.getElementById('origin-code')?.textContent.trim(),
+          originCity: document.getElementById('origin-city')?.textContent.trim(),
+          destinationCode: document.getElementById('destination-code')?.textContent.trim(),
+          destinationCity: document.getElementById('destination-city')?.textContent.trim(),
+          departure: document.getElementById('departure-date-display')?.textContent.trim(),
+          returnDate: document.getElementById('return-date-display')?.textContent.trim(),
+          passengers: document.getElementById('guests-display')?.textContent.trim(),
+          cabin: currentCabinChoice
+        }));
+        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
+        searchBtn.classList.add('scale-95');
+        setTimeout(() => {
+          searchBtn.classList.remove('scale-95');
+          window.location.href = '/Flight/Results';
+        }, 150);
+      });
+    }
+
+    const skyClubButton = [...document.querySelectorAll('button')].find(button => button.textContent.includes('Explore SkyClub Tiers'));
+    if (skyClubButton) {
+      skyClubButton.addEventListener('click', () => {
+        window.location.href = '/Home/SkyClub';
+      });
+    }
+
+    const featuredFlightButton = document.getElementById('featured-flight-btn');
+    if (featuredFlightButton) {
+      featuredFlightButton.addEventListener('click', () => {
+        window.location.href = '/Flight/Results';
+      });
+    }
+
+    // Initialize displays
+    updateCountersDisplay();
+  });
+</script>
+}

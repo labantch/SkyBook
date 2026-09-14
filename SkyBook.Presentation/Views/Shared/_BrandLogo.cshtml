@@ -1,0 +1,20 @@
+@* Official SkyBook logo *@
+@{
+    var variant = ViewData["LogoVariant"] as string ?? "light"; // light | dark | mark
+    var height = ViewData["LogoHeight"] as string ?? "40";
+    var href = ViewData["LogoHref"] as string ?? Url.Action("Index", "Home");
+}
+<a href="@href" class="inline-flex items-center gap-2 no-underline" aria-label="SkyBook Luxury Airways home">
+@if (variant == "mark")
+{
+    <img src="~/images/skybook-mark.svg" alt="" class="h-8 w-8 object-contain" />
+}
+else if (variant == "dark")
+{
+    <img src="~/images/skybook-logo-on-dark.svg" alt="SkyBook Luxury Airways" class="object-contain" style="height:@(height)px" />
+}
+else
+{
+    <img src="~/images/skybook-logo.png" alt="SkyBook Luxury Airways" class="object-contain" style="height:@(height)px" />
+}
+</a>

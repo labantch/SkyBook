@@ -1,0 +1,17 @@
+/* Small-screen refinements for the passenger details form. */
+@media (max-width:639px){
+  main>.max-w-7xl{padding:1.5rem 1rem!important}
+  main h1{font-size:1.9rem!important;line-height:2.3rem!important}
+  #passenger-form{gap:1rem}
+  #card-p1>button,#card-p2>button{padding:1rem!important;align-items:flex-start}
+  #p1-body,#p2-body{padding:1rem!important;padding-top:.75rem!important;gap:1rem!important}
+  #card-p1 [class*="text-[11px]"],#card-p2 [class*="text-[11px]"]{letter-spacing:.045em}
+  #card-p1 input,#card-p1 select,#card-p2 input,#card-p2 select{font-size:16px!important}
+  #card-p1 .grid,#card-p2 .grid{min-width:0}
+  footer{padding:2rem 1rem!important;margin-top:2rem!important}
+  footer>.max-w-7xl{padding-left:0!important;padding-right:0!important}
+}
+@media (max-width:390px){
+  #card-p1>button,#card-p2>button{gap:.75rem!important}
+  #p1-status-badge,#p2-status-badge{padding:.35rem .55rem!important}
+}

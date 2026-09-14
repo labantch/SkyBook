@@ -1,0 +1,40 @@
+/* scroll unlock */
+html,body{height:auto!important;min-height:100%;}
+body{overflow-y:auto!important;overflow-x:hidden;}
+#skybook-global-header{background:#fff;border-bottom:1px solid #e2e8f0;box-shadow:0 2px 10px rgba(11,25,44,.06);color:#0b192c;font-family:'Plus Jakarta Sans',sans-serif;position:sticky;top:0;z-index:100;height:80px}
+#skybook-global-header *{box-sizing:border-box}
+#skybook-global-header .skybook-header-inner{height:80px;max-width:1280px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+#skybook-global-header .skybook-brand{display:inline-flex;align-items:center;gap:10px;color:#0b192c;text-decoration:none;flex-shrink:0}
+#skybook-global-header .skybook-brand-mark{width:34px;height:34px;display:block}
+#skybook-global-header .skybook-wordmark{display:flex;flex-direction:column;line-height:1}
+#skybook-global-header .skybook-name{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:.08em}
+#skybook-global-header .skybook-name{color:#5C6B7A}#skybook-global-header .skybook-name span{color:#D4A017}
+#skybook-global-header .skybook-tagline{color:#a0825b;font-size:9px;font-weight:700;letter-spacing:.2em;margin-top:4px;text-transform:uppercase}
+#skybook-global-header .skybook-nav{display:flex;align-items:center;gap:28px;margin-left:32px}
+#skybook-global-header .skybook-nav a{border-bottom:2px solid transparent;color:#667085;font-size:13px;font-weight:600;padding:30px 0 27px;text-decoration:none;white-space:nowrap}
+#skybook-global-header .skybook-nav a:hover,#skybook-global-header .skybook-nav a.skybook-active{border-bottom-color:#c5a880;color:#0b192c}
+#skybook-global-header .skybook-account{align-items:center;display:flex;gap:12px;margin-left:auto;white-space:nowrap}
+#skybook-global-header .skybook-login{color:#0b192c;font-size:13px;font-weight:600;text-decoration:none}
+#skybook-global-header .skybook-signup{background:#0b192c;border:1px solid #0b192c;border-radius:8px;color:#fff;font-size:13px;font-weight:700;padding:10px 16px;text-decoration:none}
+#skybook-global-header .skybook-signup:hover{background:#162840}
+#skybook-global-header .skybook-profile{align-items:center;border-left:1px solid #e2e8f0;color:#0b192c;display:flex;gap:9px;padding-left:16px;text-decoration:none}
+#skybook-global-header .skybook-avatar{align-items:center;background:#0b192c;border:2px solid rgba(197,168,128,.55);border-radius:50%;color:#c5a880;display:flex;font-size:11px;font-weight:800;height:34px;justify-content:center;width:34px}
+#skybook-global-header .skybook-profile-name{font-size:12px;font-weight:700;line-height:1.2}
+#skybook-global-header .skybook-profile-tier{color:#a0825b;font-size:9px;font-weight:700;letter-spacing:.08em;margin-top:3px;text-transform:uppercase}
+#skybook-global-header .skybook-menu{background:none;border:0;color:#667085;cursor:pointer;display:none;font-size:24px;padding:6px}
+#skybook-booking-progress{background:#f8f9fa;border-bottom:1px solid #e2e8f0;font-family:'Plus Jakarta Sans',sans-serif;overflow-x:auto}
+#skybook-booking-progress .skybook-progress-inner{align-items:center;display:flex;gap:12px;justify-content:center;margin:0 auto;max-width:1280px;min-height:54px;padding:8px 24px;white-space:nowrap}
+#skybook-booking-progress .skybook-step{align-items:center;color:#98a2b3;display:flex;font-size:11px;font-weight:700;gap:7px;letter-spacing:.06em;padding:7px 10px;text-decoration:none}
+#skybook-booking-progress .skybook-step-number{align-items:center;background:#e9edf2;border-radius:50%;display:flex;font-size:11px;height:24px;justify-content:center;width:24px}
+#skybook-booking-progress .skybook-step.skybook-current{background:#fff8e7;border:1px solid rgba(197,168,128,.6);border-radius:999px;color:#0b192c}
+#skybook-booking-progress .skybook-step.skybook-current .skybook-step-number{background:#0b192c;color:#fff}
+#skybook-booking-progress .skybook-separator{color:#cbd5e1;font-size:18px}
+body>header:not(#skybook-global-header){display:none!important}
+@media (max-width:900px){#skybook-global-header .skybook-header-inner{padding:0 16px}#skybook-global-header .skybook-nav{gap:16px}#skybook-global-header .skybook-nav a{font-size:12px}#skybook-global-header .skybook-profile-name,#skybook-global-header .skybook-profile-tier{display:none}}
+@media (max-width:680px){#skybook-global-header{height:64px}#skybook-global-header .skybook-header-inner{height:64px}#skybook-global-header .skybook-brand-mark{height:30px;width:30px}#skybook-global-header .skybook-name{font-size:16px}#skybook-global-header .skybook-tagline{font-size:8px}#skybook-global-header .skybook-menu{display:block}#skybook-global-header .skybook-nav{background:#fff;border-bottom:1px solid #e2e8f0;box-shadow:0 8px 16px rgba(11,25,44,.08);display:none;left:0;margin:0;padding:10px 16px;position:absolute;right:0;top:64px}#skybook-global-header.skybook-open .skybook-nav{display:flex;flex-direction:column;align-items:stretch;gap:0}#skybook-global-header .skybook-nav a{border-bottom:0;padding:12px 4px}#skybook-global-header .skybook-account{gap:8px;margin-left:auto}#skybook-global-header .skybook-login{font-size:12px}#skybook-global-header .skybook-signup{font-size:12px;padding:8px 10px}#skybook-global-header .skybook-profile{border-left:0;padding-left:0}#skybook-booking-progress .skybook-progress-inner{justify-content:flex-start;padding:7px 16px}#skybook-booking-progress .skybook-step{font-size:10px;padding:6px 7px}#skybook-booking-progress .skybook-step-number{height:22px;width:22px}}
+
+@media (max-width:480px){
+  #skybook-global-header .skybook-account{flex-wrap:wrap;justify-content:flex-end}
+  #skybook-global-header .skybook-signup{padding:6px 8px}
+  #skybook-booking-progress .skybook-step span:last-child{max-width:4.5rem;overflow:hidden;text-overflow:ellipsis}
+}

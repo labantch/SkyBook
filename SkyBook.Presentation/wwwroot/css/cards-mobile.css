@@ -1,0 +1,13 @@
+/* Responsive layouts for the featured-flight and SkyClub inquiry cards. */
+@media (max-width:639px){
+  #featured-flight-card{padding:1.25rem}
+  #featured-flight-card>div.relative.z-10{gap:1.5rem}
+  #featured-route-panel{padding:1rem}
+  #featured-route-panel>div:first-child{flex-wrap:wrap;gap:1rem;padding-bottom:1.25rem}
+  #featured-route-panel>div:first-child>div:nth-child(2){order:3;flex-basis:100%;margin:0}
+  #featured-route-panel>div:first-child>div:last-child{margin-left:auto}
+  #featured-route-panel button{width:100%}
+  #inquiry{padding:1.5rem!important}
+  #inquiry .max-w-md>div.flex{flex-direction:column}
+  #inquiry .max-w-md input,#inquiry .max-w-md button{width:100%;min-width:0}
+}

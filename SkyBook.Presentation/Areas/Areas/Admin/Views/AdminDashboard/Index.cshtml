@@ -1,0 +1,1463 @@
+@{
+    ViewData["Title"] = "Operations Dashboard";
+    Layout = "_AdminLayout";
+}
+
+@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.FormTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
+@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
+<!-- BEGIN: Main Work Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden">
+  
+  <!-- Top Header -->
+  <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 flex-shrink-0" data-purpose="top-header">
+    <div class="flex items-center space-x-4"></div>
+    <div class="flex items-center space-x-4">
+      <div class="hidden xl:flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-semibold text-slate-900">SYSTEM NOMINAL</span>
+        <span class="text-slate-300">•</span>
+        <span class="font-mono text-slate-600">UTC <span id="live-utc-clock" class="">17:14:03</span></span>
+        <span class="text-slate-300">•</span>
+        <span class="text-emerald-700 bg-emerald-50 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Live Sync Active</span>
+      </div>
+      <div class="relative w-64 md:w-80">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <input class="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-xs text-slate-800 rounded-lg pl-9 pr-14 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500 focus:border-champagne-500 transition-all shadow-sm" id="globalSearchInput" oninput="handleGlobalSearch(this.value)" placeholder="Search flight code, tail, passenger..." type="text">
+        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">⌘K</span>
+      </div>
+      <button class="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" onclick="refreshDashboardData()" title="Force Refresh">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Dynamic Viewport Area -->
+  <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
+    
+    <!-- ============================================== -->
+    <!-- VIEW 1: OPERATIONS DASHBOARD (Default) -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6 active" data-purpose="dashboard-view" id="view-dashboard">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 hover:bg-midnight-900 text-white text-xs font-semibold shadow-sm hover:shadow transition-all" onclick="openModal('modal-add-flight')">
+            <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+            <span class="">Add Flight</span>
+          </button>
+          <button class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition-colors" onclick="openModal('modal-add-airport')">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span class="">Add Airport</span>
+          </button>
+          <button class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition-colors" onclick="openModal('modal-add-aircraft')">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span class="">Add Aircraft</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-3 text-xs text-slate-500 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-champagne-500"></span>
+          <span class="font-semibold text-slate-700">Operational Period:</span>
+          <span class="">Today, 11 Sep 2026</span>
+          <span class="text-slate-300">|</span>
+          <span class="text-emerald-600 font-medium">Live Sync Active</span>
+        </div>
+      </div>
+
+      <!-- 5 Primary Metric KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-champagne-100 flex items-center justify-center text-champagne-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">↑ +12% <span class="font-normal text-slate-400">vs lw</span></span>
+          </div>
+          <div class="mt-3">
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">142</h3>
+            <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Flights</p>
+            <p class="text-[11px] text-slate-500 mt-1">86 In-Flight • 48 Sched • 8 Ground</p>
+          </div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-champagne-500 h-full rounded-full" style="width: 68%"></div></div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">Active Network</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">48</h3>
+            <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Airports</p>
+            <p class="text-[11px] text-slate-500 mt-1">28 Global Hubs • 20 Concierge FBOs</p>
+          </div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-amber-600 h-full rounded-full" style="width: 82%"></div></div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">97.2% Ready</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight" id="kpi-total-aircraft">4</h3>
+            <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Aircraft</p>
+            <p class="text-[11px] text-slate-500 mt-1" id="kpi-aircraft-breakdown">18 B787-9 • 12 A350 • 6 G700</p>
+          </div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-midnight-800 h-full rounded-full" style="width: 94%"></div></div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">↑ +8.4% MoM</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">28,450</h3>
+            <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Customers</p>
+            <p class="text-[11px] text-slate-500 mt-1">3,840 Sovereign • 24,610 Elite</p>
+          </div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-champagne-600 h-full rounded-full" style="width: 76%"></div></div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <span class="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">High Demand</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">12,890</h3>
+            <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Bookings</p>
+            <p class="text-[11px] text-slate-500 mt-1">$34.8M Gross • 94.2% Load</p>
+          </div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-midnight-900 h-full rounded-full" style="width: 88%"></div></div>
+        </div>
+      </div>
+
+      <!-- Recent Bookings Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden mt-6">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div><h3 class="text-sm font-bold text-midnight-900">Recent Bookings</h3><p class="text-xs text-slate-500">Showing latest 6 of 1,248 today</p></div>
+          <button class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1" onclick="switchView('bookings')"><span class="">View All Bookings</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-bookings-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Flights Operations Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden mt-6">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <h3 class="text-sm font-bold text-midnight-900">Recent Flights</h3>
+            <div class="flex items-center space-x-1 text-[11px] bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button class="dash-flight-filter-pill px-2 py-0.5 rounded bg-white text-midnight-900 font-semibold shadow-2xs" onclick="setDashboardFlightFilter('ALL', this)">All Flights</button>
+              <button class="dash-flight-filter-pill px-2 py-0.5 rounded text-slate-500 hover:text-slate-800" onclick="setDashboardFlightFilter('IN_FLIGHT', this)">In Flight</button>
+              <button class="dash-flight-filter-pill px-2 py-0.5 rounded text-slate-500 hover:text-slate-800" onclick="setDashboardFlightFilter('SCHEDULED', this)">Scheduled</button>
+              <button class="dash-flight-filter-pill px-2 py-0.5 rounded text-slate-500 hover:text-slate-800" onclick="setDashboardFlightFilter('DELAYED', this)">Delayed</button>
+            </div>
+          </div>
+          <button class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1" onclick="switchView('flights')"><span class="">Full Flight Schedule</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+              <tr><th class="py-3 px-4">Flight No.</th><th class="py-3 px-4">Route</th><th class="py-3 px-4">Departure</th><th class="py-3 px-4">Arrival</th><th class="py-3 px-4">Aircraft</th><th class="py-3 px-4">Base Fare</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Details</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-flights-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: FLIGHTS MANAGEMENT -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="flights-management" id="view-flights">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+          <div class="relative w-72">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="flights-search" oninput="filterFlightsTable(this.value)" placeholder="Search flight code or destination..." type="text">
+          </div>
+          <div class="flex items-center space-x-1 text-xs">
+            <button class="flight-filter-pill active px-3 py-1.5 rounded-lg bg-midnight-800 text-white font-medium" onclick="setFlightFilter('ALL')">All (6)</button>
+            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('IN_FLIGHT')">In Flight</button>
+            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('SCHEDULED')">Scheduled</button>
+            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('DELAYED')">Delayed</button>
+          </div>
+        </div>
+        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all self-start sm:self-auto" onclick="openModal('modal-add-flight')">
+          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+          <span class="">+ Create Flight</span>
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+              <tr><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Origin / Destination</th><th class="py-3 px-4">Departure Time</th><th class="py-3 px-4">Arrival Time</th><th class="py-3 px-4">Assigned Aircraft</th><th class="py-3 px-4">Base Fare</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="all-flights-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 3: AIRPORTS MANAGEMENT -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="airports-management" id="view-airports">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="relative w-72">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="airport-search-input" oninput="filterAirports(this.value)" placeholder="Search IATA or airport name..." type="text">
+          </div>
+          <span class="text-xs text-slate-500">6 Major Hubs Listed</span>
+        </div>
+        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-airport')">
+          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+          <span class="">+ Add Airport Station</span>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="airports-grid"></div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 4: AIRCRAFT & FLEET MANAGEMENT -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="aircraft-fleet" id="view-aircraft">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div>
+          <h2 class="text-sm font-bold text-midnight-900">Sovereign Flagship Fleet</h2>
+          <p class="text-xs text-slate-500" id="fleet-roster-count">Total 4 aircraft active in dispatch roster</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors" onclick="showToast('Fleet telematics synchronized with OEM avionics', 'success')">Run Avionics Diagnostics</button>
+          <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1.5" onclick="openManageSeatsModal('A6-SKB', 'Boeing 787-9 Dreamliner')">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span class="">Default Seat Configuration</span>
+          </button>
+          <button class="px-3.5 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg transition-colors flex items-center gap-1.5" onclick="openModal('modal-add-aircraft')">
+            <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+            <span class="">Add Aircraft</span>
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fleet-card-container"></div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 5: BOOKINGS MANAGEMENT -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="bookings-management" id="view-bookings">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative w-72">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="bookings-search-input" oninput="filterBookingsTable(this.value)" placeholder="Search PNR reference or passenger..." type="text">
+          </div>
+          <select class="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-200 text-slate-700" id="booking-status-filter" onchange="filterBookingsByStatus(this.value)">
+            <option value="ALL">All Statuses</option>
+            <option value="Confirmed">Confirmed Only</option>
+            <option value="Pending">Pending Payment</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center space-x-1.5 self-start sm:self-auto" onclick="showToast('Exporting bookings to Sovereign Ledger CSV...', 'info')">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <span class="">Export CSV</span>
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="all-bookings-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 6: CUSTOMERS & SOVEREIGN MEMBERS -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="customer-management" id="view-customers">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="relative w-80">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="customer-search-input" oninput="filterCustomerTable(this.value)" placeholder="Search passenger name, email, or tier..." type="text">
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="">All Sovereign Members IATA Validated</span>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+              <tr><th class="py-3 px-4">Member</th><th class="py-3 px-4">Contact Info</th><th class="py-3 px-4">Country</th><th class="py-3 px-4">SkyMiles Balance</th><th class="py-3 px-4">Trips Completed</th><th class="py-3 px-4">Role</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="customers-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 7: OPERATIONS SETTINGS -->
+    <!-- ============================================== -->
+    <section class="view-container space-y-6" data-purpose="settings-panel" id="view-settings">
+      <div class="bg-white rounded-xl border border-slate-200 p-6 max-w-4xl space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h3 class="text-base font-bold text-midnight-900">Console Dispatch Configuration</h3>
+          <p class="text-xs text-slate-500">Manage automated airspace telemetry, sovereign corridor routing, and fallback failovers.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Operational Base Currency</label>
+            <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2">
+              <option selected="">USD ($) - United States Dollar</option>
+              <option>EUR (€) - Eurozone</option>
+              <option>AED (د.إ) - UAE Dirham</option>
+              <option>GBP (£) - British Pound</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Automated ETOPS Calculation</label>
+            <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2">
+              <option selected="">ETOPS 330 (Ultra Long Range Transpacific)</option>
+              <option>ETOPS 240 (Standard Transatlantic)</option>
+              <option>ETOPS 180 (Direct Regional)</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Flight Telemetry API Gateway</label>
+            <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 py-2 text-slate-600" type="text" value="https://telemetry.sovereign-skybook.aero/v3/feed">
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Dispatch Emergency Override Pin</label>
+            <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2" type="password" value="••••••••••••">
+          </div>
+        </div>
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <input checked="" class="rounded text-midnight-800 focus:ring-champagne-500" id="auto-sync-check" type="checkbox">
+            <label class="text-xs text-slate-700 font-medium" for="auto-sync-check">Broadcast flight deviations to Sovereign VIP Mobile Concourse instantly</label>
+          </div>
+          <button class="px-4 py-2 bg-midnight-800 text-white text-xs font-semibold rounded-lg hover:bg-midnight-900 transition-colors" onclick="showToast('Operational settings saved successfully', 'success')">Save Changes</button>
+        </div>
+      </div>
+    </section>
+  </main>
+<div class="fixed inset-0 z-40 overflow-hidden hidden" data-purpose="flight-details-drawer" id="drawer-flight-details">
+  <div class="drawer-backdrop absolute inset-0 bg-midnight-900/60 backdrop-blur-xs opacity-0 transition-opacity duration-200" onclick="closeDrawer('drawer-flight-details')"></div>
+  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+    <div class="drawer-content w-screen max-w-md bg-white shadow-2xl flex flex-col translate-x-full transition-transform duration-300">
+      <div class="h-16 px-6 bg-midnight-800 text-white flex items-center justify-between border-b border-midnight-700">
+        <div class="flex items-center space-x-3">
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-champagne-500/20 text-champagne-400 border border-champagne-500/40" id="df-code">SB 918</span>
+          <span class="text-xs font-semibold" id="df-status-pill">In Flight</span>
+        </div>
+        <button class="text-slate-400 hover:text-white p-1" onclick="closeDrawer('drawer-flight-details')">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
+        <!-- Route Visual -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-2xl font-extrabold text-midnight-900 block font-mono" id="df-origin-iata">CAI</span>
+              <span class="text-[11px] text-slate-500" id="df-origin-city">Cairo Intl</span>
+              <span class="text-xs font-bold text-slate-700 mt-1 block font-mono" id="df-dept-time">20:05</span>
+              <span class="text-[10px] text-slate-400" id="df-origin-gate">Terminal 2 • Gate 14</span>
+            </div>
+            <div class="flex flex-col items-center px-4 flex-1">
+              <span class="text-[10px] font-mono text-champagne-600 font-semibold mb-1">3h 40m nonstop</span>
+              <div class="w-full flex items-center">
+                <div class="w-2 h-2 rounded-full bg-champagne-500"></div>
+                <div class="flex-1 border-t-2 border-dashed border-champagne-400 mx-1"></div>
+                <svg class="w-4 h-4 text-midnight-800 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                <div class="flex-1 border-t-2 border-dashed border-champagne-400 mx-1"></div>
+                <div class="w-2 h-2 rounded-full bg-midnight-800"></div>
+              </div>
+              <span class="text-[10px] text-emerald-600 font-semibold mt-1">Airborne 38,000 ft</span>
+            </div>
+            <div class="text-right">
+              <span class="text-2xl font-extrabold text-midnight-900 block font-mono" id="df-dest-iata">DXB</span>
+              <span class="text-[11px] text-slate-500" id="df-dest-city">Dubai Intl</span>
+              <span class="text-xs font-bold text-slate-700 mt-1 block font-mono" id="df-arr-time">01:45</span>
+              <span class="text-[10px] text-slate-400" id="df-dest-gate">Terminal 3 • Gate B12</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white p-3 rounded-lg border border-slate-200">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Assigned Aircraft</span>
+            <span class="text-xs font-bold text-midnight-900 mt-0.5 block" id="df-aircraft-name">Boeing 787-9</span>
+            <span class="text-[10px] font-mono text-champagne-600" id="df-tail-no">Tail: A6-SKB</span>
+          </div>
+          <div class="bg-white p-3 rounded-lg border border-slate-200">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Base Fare</span>
+            <span class="text-xs font-bold text-midnight-900 mt-0.5 block font-mono" id="df-fare">$1,290.00</span>
+            <span class="text-[10px] text-slate-500">IATA Zone 2 Pricing</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end space-x-2">
+        <button class="px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 rounded-lg" onclick="closeDrawer('drawer-flight-details')">Close</button>
+        <button class="px-4 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg" onclick="openManageSeatsModal('A6-SKB', 'Boeing 787-9 Dreamliner')">Inspect Seat Map</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="fixed inset-0 z-40 overflow-hidden hidden" data-purpose="customer-drawer" id="drawer-customer-details">
+  <div class="drawer-backdrop absolute inset-0 bg-midnight-900/60 backdrop-blur-xs transition-opacity duration-200 opacity-0" onclick="closeDrawer('drawer-customer-details')"></div>
+  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+    <div class="drawer-content w-screen max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 translate-x-full">
+      <div class="h-16 px-6 bg-midnight-800 text-white flex items-center justify-between border-b border-midnight-700">
+        <span class="text-xs font-semibold uppercase tracking-wider text-champagne-400">Sovereign Guest Dossier</span>
+        <button class="text-slate-400 hover:text-white p-1" onclick="closeDrawer('drawer-customer-details')">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
+        <div class="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div class="w-14 h-14 rounded-full bg-midnight-900 text-champagne-400 font-bold text-lg flex items-center justify-center border-2 border-champagne-500/50" id="cd-initials">JM</div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-base font-bold text-midnight-900" id="cd-name">John Mohamed</h3>
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Verified</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5" id="cd-email">john.mohamed@@sovereign-sky.com</p>
+            <p class="text-[11px] font-medium text-champagne-700 mt-1" id="cd-tier">SkyClub Sovereign Tier • #SK-8829104</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="p-3 bg-white border border-slate-200 rounded-lg">
+            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Total Trips</span>
+            <span class="text-base font-extrabold text-midnight-900" id="cd-trips">18</span>
+          </div>
+          <div class="p-3 bg-white border border-slate-200 rounded-lg">
+            <span class="text-[10px] uppercase text-slate-400 font-semibold block">SkyMiles</span>
+            <span class="text-base font-extrabold text-champagne-600 font-mono" id="cd-miles">142,500</span>
+          </div>
+          <div class="p-3 bg-white border border-slate-200 rounded-lg">
+            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Disruptions</span>
+            <span class="text-base font-extrabold text-emerald-600">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button class="px-4 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg" onclick="closeDrawer('drawer-customer-details')">Close Dossier</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="fixed inset-0 z-50 overflow-hidden hidden" id="drawer-admin-profile">
+  <div class="absolute inset-0 bg-midnight-900/50 backdrop-blur-sm" onclick="closeDrawer('drawer-admin-profile')"></div>
+  <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl border-l-2 border-[#C5A880] flex flex-col">
+    <div class="bg-midnight-800 px-5 py-4 flex items-center justify-between text-white flex-shrink-0">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-champagne-400">Administrator</p>
+        <h2 class="text-base font-extrabold">Admin Profile</h2>
+      </div>
+      <button type="button" onclick="closeDrawer('drawer-admin-profile')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">✕</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50">
+      <div class="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-4">
+        <div class="w-14 h-14 rounded-full bg-midnight-800 text-champagne-300 font-bold text-lg flex items-center justify-center border-2 border-champagne-400/40">JV</div>
+        <div>
+          <p class="text-base font-extrabold text-midnight-900">Capt. Julian Vance</p>
+          <p class="text-xs text-champagne-700 font-semibold">Chief Flight Dispatcher</p>
+          <p class="text-[11px] text-emerald-600 font-medium mt-0.5">● Active · Admin</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="font-semibold text-midnight-900">admin@@skybook.com</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Role</span><span class="font-bold text-champagne-700">ADMIN</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Department</span><span class="font-semibold text-midnight-900">Flight Operations</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Base</span><span class="font-semibold text-midnight-900">DXB Hub</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Employee ID</span><span class="font-mono font-semibold text-midnight-900">SB-OPS-0042</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Access level</span><span class="font-semibold text-midnight-900">Full console</span></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2 text-sm">
+        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Session</p>
+        <div class="flex justify-between"><span class="text-slate-500">Status</span><span class="font-semibold text-emerald-600">Online</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Last login</span><span class="font-semibold text-midnight-900">Today · Ops desk</span></div>
+      </div>
+      <button type="button" onclick="handleLogout()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">Sign Out</button>
+    </div>
+  </div>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center hidden" data-purpose="modal-flight-form" id="modal-add-flight">
+  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs" onclick="closeModal('modal-add-flight')"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden border border-slate-200 z-10 animate-scale">
+    <div class="h-14 bg-midnight-800 px-6 flex items-center justify-between text-white">
+      <h3 class="text-sm font-bold flex items-center gap-2">
+        <svg class="w-4 h-4 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Schedule New Sovereign Flight
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('modal-add-flight')">✕</button>
+    </div>
+    <form class="p-6 space-y-4 text-xs" onsubmit="handleCreateFlight(event)" method="post">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Flight Number</label>
+          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mf-flightno" placeholder="e.g. SB 992" required type="text">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Assigned Aircraft</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-aircraft">
+            <option value="Boeing 787-9 (A6-SKB)">Boeing 787-9 (A6-SKB)</option>
+            <option value="Airbus A350-1000 (A6-SKA)">Airbus A350-1000 (A6-SKA)</option>
+            <option value="Boeing 777-300ER (A6-SKX)">Boeing 777-300ER (A6-SKX)</option>
+            <option value="Gulfstream G700 (A6-G71)">Gulfstream G700 (A6-G71)</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Departure Origin (IATA)</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-origin">
+            <option value="CAI">CAI - Cairo International</option>
+            <option selected value="DXB">DXB - Dubai International</option>
+            <option value="LHR">LHR - London Heathrow</option>
+            <option value="JFK">JFK - New York JFK</option>
+            <option value="HND">HND - Tokyo Haneda</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Destination Arrival (IATA)</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-destination">
+            <option selected value="LHR">LHR - London Heathrow</option>
+            <option value="CAI">CAI - Cairo International</option>
+            <option value="DXB">DXB - Dubai International</option>
+            <option value="JFK">JFK - New York JFK</option>
+            <option value="HND">HND - Tokyo Haneda</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Departure Time (UTC)</label>
+          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-dept-time" required type="text" value="08:30">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Arrival Time (UTC)</label>
+          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-arr-time" required type="text" value="13:15">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Base Sovereign Fare ($ USD)</label>
+          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-fare" required type="text" value="$1,850.00">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Initial Status</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-status">
+            <option selected value="Scheduled">Scheduled</option>
+            <option value="In Flight">In Flight</option>
+            <option value="Delayed">Delayed</option>
+          </select>
+        </div>
+      </div>
+      <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+        <button class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg" onclick="closeModal('modal-add-flight')" type="button">Cancel</button>
+        <button class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm" type="submit">Save &amp; Broadcast Flight</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="fixed inset-0 z-[60] flex items-center justify-center hidden" id="modal-confirm-role">
+  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-sm" onclick="closeModal('modal-confirm-role')"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-slate-200 z-10">
+    <div class="bg-midnight-800 px-6 py-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-champagne-500/20 border border-champagne-400/40 flex items-center justify-center text-champagne-300">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-champagne-400">Access Control</p>
+        <h3 class="text-sm font-bold text-white" id="role-modal-title">Promote to Admin?</h3>
+      </div>
+    </div>
+    <div class="p-6 space-y-5">
+      <p class="text-sm text-slate-600 leading-relaxed" id="role-modal-desc">This user will receive full access to the Operations Console.</p>
+      <div class="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
+        <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <p class="text-xs text-amber-900 leading-relaxed">Please confirm this change carefully. Admin privileges cannot be limited per module in this console.</p>
+      </div>
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition" onclick="window.pendingRoleChange=null; closeModal('modal-confirm-role')">Cancel</button>
+        <button type="button" class="flex-1 py-2.5 text-xs font-bold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg shadow-sm transition" id="role-modal-confirm-btn" onclick="confirmRoleChange()">Yes, Make Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script data-purpose="application-logic">
+    // ============================================================
+    // SEAT-MAP GENERATOR (shared logic with the customer-facing
+    // seats.html). Given a { first, business, economy } seat count —
+    // exactly what the "Add Aircraft" form collects — this lays out
+    // real rows/letters so the "Manage Seats" inspector below always
+    // matches what was actually configured for that aircraft, instead
+    // of showing a fixed hardcoded demo map for every plane.
+    // ============================================================
+    const CABIN_LAYOUTS = {
+      first:    { name: 'FIRST CLASS',    groups: [['A'], ['D', 'G'], ['K']] },
+      business: { name: 'BUSINESS CLASS', groups: [['A'], ['D', 'G'], ['K']] },
+      economy:  { name: 'ECONOMY CLASS',  groups: [['A', 'B', 'C'], ['D', 'E', 'F'], ['H', 'J', 'K']] }
+    };
+    const CABIN_ROW_GAP = 1;
+
+    function buildCabin(typeKey, seatCount, startRow) {
+      const layout = CABIN_LAYOUTS[typeKey];
+      const seatsPerRow = layout.groups.reduce((sum, g) => sum + g.length, 0);
+      const rowCount = Math.max(1, Math.ceil(seatCount / seatsPerRow));
+      const rows = Array.from({ length: rowCount }, (_, i) => startRow + i);
+      return { typeKey, name: layout.name, groups: layout.groups, rows, seatsPerRow };
+    }
+
+    function buildCabinsFromCounts(seats) {
+      const cabinOrder = ['first', 'business', 'economy'];
+      const cabins = [];
+      let nextRow = 1;
+      cabinOrder.forEach(typeKey => {
+        const count = seats[typeKey] || 0;
+        if (count <= 0) return;
+        const cabin = buildCabin(typeKey, count, nextRow);
+        cabins.push(cabin);
+        nextRow = cabin.rows[cabin.rows.length - 1] + 1 + CABIN_ROW_GAP;
+      });
+      return cabins;
+    }
+
+    // Persist the fleet to localStorage so the customer-facing seats.html
+    // page (opened in the same browser) can pick up any aircraft added
+    // here. In the real MVC app this is replaced by both pages reading
+    // the same Aircraft table instead of a shared browser key.
+    const FLEET_STORAGE_KEY = 'skybook_fleet';
+    function saveFleetToStorage() {
+      try { localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(state.fleet)); } catch (e) { /* storage unavailable */ }
+    }
+    function loadFleetFromStorage() {
+      try {
+        const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+        if (raw) state.fleet = JSON.parse(raw);
+      } catch (e) { /* ignore malformed storage */ }
+    }
+
+    const state = {
+      currentView: 'dashboard',
+      sidebarCollapsed: false,
+      cancellationTarget: null,
+      
+      flights: [
+        { code: 'SB 918', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '20:05', deptGate: 'CAI T2 • Gate 14', arr: '01:45 +1', arrGate: 'DXB T3 • Gate B12', aircraft: 'Boeing 787-9', tail: 'A6-SKB • Sovereign Dreamliner', fare: '$1,290.00', status: 'In Flight' },
+        { code: 'SB 928', origin: 'DXB', dest: 'CAI', routeDesc: 'Dubai → Cairo', dept: '08:30', deptGate: 'DXB T3 • Gate B18', arr: '11:15', arrGate: 'CAI T2 • Gate 08', aircraft: 'Airbus A350-1000', tail: 'A6-SKA • Flagship Luxury', fare: '$2,410.00', status: 'Scheduled' },
+        { code: 'SB 501', origin: 'DXB', dest: 'HND', routeDesc: 'Dubai → Tokyo', dept: '03:40', deptGate: 'DXB T3 • Gate A04', arr: '17:50 +1', arrGate: 'HND T3 • Gate 112', aircraft: 'Boeing 777-300ER', tail: 'A6-SKX • Extended Prestige', fare: '$2,150.00', status: 'Delayed' },
+        { code: 'SB 101', origin: 'LHR', dest: 'JFK', routeDesc: 'London → New York', dept: '10:15', deptGate: 'LHR T5 • Gate 22', arr: '13:20', arrGate: 'JFK T7 • Gate 04', aircraft: 'Airbus A350-1000', tail: 'A6-SKC • Sovereign Prime', fare: '$3,470.00', status: 'Scheduled' },
+        { code: 'SB 904', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '16:45', deptGate: 'CAI T2 • Gate 07', arr: '22:10', arrGate: 'DXB T3 • Gate B02', aircraft: 'Boeing 787-9', tail: 'A6-SKD • Oasis Horizon', fare: '$1,450.00', status: 'In Flight' },
+        { code: 'SB 502', origin: 'DXB', dest: 'LHR', routeDesc: 'Dubai → London', dept: '23:55', deptGate: 'DXB T3 • Gate C02', arr: '04:40 +1', arrGate: 'LHR T5 • Gate 18', aircraft: 'Gulfstream G700', tail: 'A6-G71 • SkySovereign Charter', fare: '$5,400.00', status: 'Scheduled' }
+      ],
+
+      bookings: [
+        {
+          pnr: 'SKY-8F42KQ',
+          customerName: 'John Mohamed & Ahmed Ali',
+          initials: '2x',
+          tier: 'Sovereign Tier',
+          flightCode: 'SB 918 / SB 928',
+          routeSummary: 'CAI ↔ DXB',
+          travelDate: '11 Sep 2026',
+          seat: '14A, 14B',
+          price: '$2,560.00',
+          status: 'Confirmed'
+        },
+        {
+          pnr: 'SKY-4M77XP',
+          customerName: 'Eleanor Wright',
+          initials: 'EW',
+          tier: 'First Sovereign',
+          flightCode: 'SB 501',
+          routeSummary: 'DXB → HND',
+          travelDate: '24 Oct 2026',
+          seat: '1A (First Sovereign)',
+          price: '$4,150.00',
+          status: 'Confirmed'
+        },
+        {
+          pnr: 'SKY-2B19LL',
+          customerName: 'Marcus Vance',
+          initials: 'MV',
+          tier: 'Sovereign Tier',
+          flightCode: 'SB 101',
+          routeSummary: 'LHR → JFK',
+          travelDate: '02 Nov 2026',
+          seat: '2D (Business)',
+          price: '$3,840.00',
+          status: 'Confirmed'
+        },
+        {
+          pnr: 'SKY-7D33WQ',
+          customerName: 'Sophia Al-Mansoor',
+          initials: 'SA',
+          tier: 'SkyClub Silver',
+          flightCode: 'SB 904',
+          routeSummary: 'CAI → DXB',
+          travelDate: '14 Nov 2026',
+          seat: '11F (Economy)',
+          price: '$1,290.00',
+          status: 'Cancelled'
+        },
+        {
+          pnr: 'SKY-6J90PL',
+          customerName: 'Tariq Al-Hashimi',
+          initials: 'TA',
+          tier: 'Sovereign VIP',
+          flightCode: 'SB 502',
+          routeSummary: 'DXB → LHR',
+          travelDate: '29 Nov 2026',
+          seat: '1L (First Sovereign)',
+          price: '$5,400.00',
+          status: 'Confirmed'
+        }
+      ],
+
+      airports: [
+        { iata: 'DXB', name: 'Dubai International Airport', city: 'Dubai', country: 'United Arab Emirates', type: 'Primary Global Hub', gates: 182, runways: '2 Active' },
+        { iata: 'CAI', name: 'Cairo International Airport', city: 'Cairo', country: 'Egypt', type: 'North Africa Hub', gates: 64, runways: '3 Active' },
+        { iata: 'LHR', name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom', type: 'European Flagship', gates: 115, runways: '2 Active' },
+        { iata: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'United States', type: 'Transatlantic Terminal', gates: 128, runways: '4 Active' },
+        { iata: 'HND', name: 'Tokyo Haneda Airport', city: 'Tokyo', country: 'Japan', type: 'Asia-Pacific Concourse', gates: 89, runways: '4 Active' },
+        { iata: 'GVA', name: 'Geneva Cointrin Airport', city: 'Geneva', country: 'Switzerland', type: 'Concierge FBO', gates: 42, runways: '1 Active' }
+      ],
+
+      fleet: [
+        { name: 'Boeing 787-9 Dreamliner', tail: 'A6-SKB', cabins: { first: 12, business: 48, economy: 230 }, capacity: '290 Seats', readiness: '98.5%', status: 'Operational (In-Flight)' },
+        { name: 'Airbus A350-1000 Flagship', tail: 'A6-SKA', cabins: { first: 14, business: 62, economy: 290 }, capacity: '366 Seats', readiness: '100%', status: 'Operational (Ready at Gate)' },
+        { name: 'Boeing 777-300ER Prestige', tail: 'A6-SKX', cabins: { first: 8, business: 68, economy: 320 }, capacity: '396 Seats', readiness: '94.2%', status: 'Turnaround Ops' },
+        { name: 'Gulfstream G700 SkySovereign', tail: 'A6-G71', cabins: { first: 19, business: 0, economy: 0 }, capacity: '19 VIP Berths', readiness: '100%', status: 'Ready on Apron' }
+      ],
+
+      customers: [
+        { name: 'John Mohamed', email: 'john.mohamed@@sovereign-sky.com', phone: '+971 50 123 4567', country: 'United Arab Emirates', tier: 'SkyClub Sovereign Tier', trips: 18, miles: '142,500', role: 'user' },
+        { name: 'Ahmed Ali', email: 'ahmed.ali@@emirates-royal.com', phone: '+971 55 987 6543', country: 'United Arab Emirates', tier: 'SkyClub Royal', trips: 24, miles: '210,400', role: 'user' },
+        { name: 'Eleanor Wright', email: 'e.wright@@mayfair-partners.co.uk', phone: '+44 20 7946 0912', country: 'United Kingdom', tier: 'First Sovereign', trips: 31, miles: '389,000', role: 'admin' },
+        { name: 'Tariq Al-Hashimi', email: 'tariq@@hashimi-holdings.qa', phone: '+974 44 123456', country: 'Qatar', tier: 'Sovereign VIP', trips: 45, miles: '612,800', role: 'user' }
+      ]
+    };
+
+    function switchView(viewKey) {
+      state.currentView = viewKey;
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const target = btn.getAttribute('data-nav-target');
+        if (target === viewKey) {
+          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-midnight-700/80 shadow-sm border border-midnight-600/50 group transition-colors';
+          const icon = btn.querySelector('svg');
+          if (icon) icon.className = 'w-4 h-4 text-champagne-400 flex-shrink-0';
+        } else {
+          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-midnight-700/50 group transition-colors';
+          const icon = btn.querySelector('svg');
+          if (icon) icon.className = 'w-4 h-4 text-slate-400 group-hover:text-champagne-400 flex-shrink-0';
+        }
+      });
+
+      document.querySelectorAll('.view-container').forEach(panel => panel.classList.remove('active'));
+      const activePanel = document.getElementById(`view-${viewKey}`);
+      if (activePanel) activePanel.classList.add('active');
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'In Flight' || status === 'Confirmed') return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>${status}</span>`;
+      if (status === 'Scheduled' || status === 'Pending') return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>${status}</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>${status}</span>`;
+    }
+
+    function renderDashboardBookings() {
+      const container = document.getElementById('dashboard-bookings-body');
+      if (!container) return;
+      container.innerHTML = state.bookings.slice(0, 6).map(b => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
+          <td class="py-3 px-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center">${b.initials}</div>
+              <div><span class="block font-semibold text-slate-800">${b.customerName}</span><span class="text-[10px] text-slate-400 font-normal">${b.tier}</span></div>
+            </div>
+          </td>
+          <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
+          <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
+          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
+          <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
+          <td class="py-3 px-4 text-right"><button onclick="openBookingCustomerDrawer('${b.customerName.split(' & ')[0]}')" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDashboardFlights(list = state.flights) {
+      const container = document.getElementById('dashboard-flights-body');
+      if (!container) return;
+      container.innerHTML = list.map(f => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3 px-4 font-mono font-bold text-midnight-900"><span class="w-2 h-2 rounded-full inline-block mr-1.5 ${f.status === 'In Flight' ? 'bg-emerald-500' : f.status === 'Delayed' ? 'bg-amber-500' : 'bg-slate-400'}"></span>${f.code}</td>
+          <td class="py-3 px-4"><span class="font-bold text-midnight-900">${f.origin}</span><span class="text-champagne-500 mx-1">→</span><span class="font-bold text-midnight-900">${f.dest}</span><span class="text-[11px] text-slate-400 ml-1">(${f.routeDesc})</span></td>
+          <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.dept}</span><span class="text-[10px] text-slate-400 block">${f.deptGate}</span></td>
+          <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.arr}</span><span class="text-[10px] text-slate-400 block">${f.arrGate}</span></td>
+          <td class="py-3 px-4"><span class="font-semibold text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
+          <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
+          <td class="py-3 px-4 text-right"><button onclick="openFlightDrawer('${f.code}')" class="text-champagne-600 hover:text-champagne-700 font-semibold">Inspect</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAllFlightsTable(list = state.flights) {
+      const container = document.getElementById('all-flights-body');
+      if (!container) return;
+      container.innerHTML = list.map(f => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${f.code}</td>
+          <td class="py-3 px-4"><span class="font-bold text-midnight-900">${f.origin}</span><span class="text-champagne-500 mx-1">→</span><span class="font-bold text-midnight-900">${f.dest}</span><span class="text-[11px] text-slate-400 block">${f.routeDesc}</span></td>
+          <td class="py-3 px-4"><span class="font-mono font-semibold text-slate-800">${f.dept}</span><span class="text-[10px] text-slate-400 block">${f.deptGate}</span></td>
+          <td class="py-3 px-4"><span class="font-mono font-semibold text-slate-800">${f.arr}</span><span class="text-[10px] text-slate-400 block">${f.arrGate}</span></td>
+          <td class="py-3 px-4"><span class="font-medium text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
+          <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
+          <td class="py-3 px-4 text-right space-x-2"><button onclick="openFlightDrawer('${f.code}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">Drawer</button><button onclick="promptCancel('flight', '${f.code}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Cancel</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAirports() {
+      const container = document.getElementById('airports-grid');
+      if (!container) return;
+      container.innerHTML = state.airports.map(a => `
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
+              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
+            </div>
+            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
+            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFleet() {
+      const container = document.getElementById('fleet-card-container');
+      if (!container) return;
+      container.innerHTML = state.fleet.map(ac => `
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          <div class="flex items-start justify-between">
+            <div><h3 class="text-sm font-bold text-midnight-900">${ac.name}</h3><p class="text-xs font-mono text-champagne-600 mt-0.5">Registration: ${ac.tail}</p></div>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">${ac.status}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 py-2 border-y border-slate-100 text-xs">
+            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Capacity</span><span class="font-bold text-midnight-900">${ac.capacity}</span></div>
+            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Avionics Ready</span><span class="font-bold text-emerald-600">${ac.readiness}</span></div>
+            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Corridor Cleared</span><span class="font-bold text-slate-700">FAA / EASA / GCAA</span></div>
+          </div>
+          ${ac.cabins ? `
+          <div class="flex items-center justify-around p-2 bg-slate-50 rounded-lg border border-slate-200 text-[11px]">
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-champagne-500 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.first} First</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-midnight-700 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.business} Business</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-300 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.economy} Economy</span></div>
+          </div>` : ''}
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="showToast('Avionics health status 100% nominal', 'info')" class="text-xs text-slate-500 hover:text-slate-800">Telemetry History</button>
+            <button onclick="openManageSeatsModal('${ac.tail}', '${ac.name}')" class="px-3 py-1.5 bg-midnight-800 hover:bg-midnight-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <span>Manage Seats</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      updateFleetSummaryLabels();
+    }
+
+    function updateFleetSummaryLabels() {
+      const total = state.fleet.length;
+      const kpi = document.getElementById('kpi-total-aircraft');
+      if (kpi) kpi.innerText = total;
+      const rosterLabel = document.getElementById('fleet-roster-count');
+      if (rosterLabel) rosterLabel.innerText = `Total ${total} aircraft active in dispatch roster`;
+      const breakdown = document.getElementById('kpi-aircraft-breakdown');
+      if (breakdown) breakdown.innerText = state.fleet.map(ac => ac.name.split(' ').slice(0, 2).join(' ')).join(' • ');
+    }
+
+    function updateAircraftSeatTotal() {
+      const first = parseInt(document.getElementById('na-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('na-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('na-seats-economy').value, 10) || 0;
+      document.getElementById('na-seat-total').innerText = first + business + economy;
+    }
+
+    function handleCreateAircraft(e) {
+      e.preventDefault();
+      const name = document.getElementById('na-model').value.trim();
+      const tail = document.getElementById('na-tail').value.trim().toUpperCase();
+      const first = parseInt(document.getElementById('na-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('na-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('na-seats-economy').value, 10) || 0;
+      const readiness = document.getElementById('na-readiness').value;
+      const status = document.getElementById('na-status').value;
+
+      if (!name || !tail) {
+        showToast('Aircraft model and registration are required', 'error');
+        return;
+      }
+      if (first + business + economy <= 0) {
+        showToast('At least one cabin must have seats configured', 'error');
+        return;
+      }
+      if (state.fleet.some(ac => ac.tail.toUpperCase() === tail)) {
+        showToast(`Registration ${tail} is already in the fleet`, 'error');
+        return;
+      }
+
+      const total = first + business + economy;
+      state.fleet.unshift({
+        name, tail,
+        cabins: { first, business, economy },
+        capacity: `${total} Seats`,
+        readiness: `${readiness}%`,
+        status
+      });
+
+      // Keep the Add Flight modal's aircraft picker in sync with the new fleet member
+      const flightAircraftSelect = document.getElementById('mf-aircraft');
+      if (flightAircraftSelect) {
+        const opt = document.createElement('option');
+        opt.value = `${name} (${tail})`;
+        opt.innerText = `${name} (${tail})`;
+        flightAircraftSelect.prepend(opt);
+      }
+
+      renderFleet();
+      saveFleetToStorage();
+      closeModal('modal-add-aircraft');
+      showToast(`${name} (${tail}) onboarded — ${first}F / ${business}J / ${economy}Y`, 'success');
+      e.target.reset();
+      updateAircraftSeatTotal();
+    }
+
+    function renderBookingsTable(list = state.bookings) {
+      const container = document.getElementById('all-bookings-body');
+      if (!container) return;
+      container.innerHTML = list.map(b => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
+          <td class="py-3 px-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center">${b.initials}</div>
+              <div><span class="block font-semibold text-slate-800">${b.customerName}</span><span class="text-[10px] text-slate-400 font-normal">${b.tier}</span></div>
+            </div>
+          </td>
+          <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
+          <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
+          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
+          <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button onclick="openBookingCustomerDrawer('${b.customerName.split(' & ')[0]}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View Details</button>
+            <button onclick="promptCancel('booking', '${b.pnr}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Cancel</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function roleBadge(role) {
+      if (role === 'admin') {
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-midnight-800 text-champagne-300 border border-midnight-600">ADMIN</span>`;
+      }
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">USER</span>`;
+    }
+
+    function renderCustomerRows(list) {
+      return list.map(c => {
+        const role = c.role || 'user';
+        const safeName = c.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+        const roleBtn = role === 'admin'
+          ? `<button type="button" data-name="${safeName}" data-role="user" class="role-action-btn text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition">Demote to User</button>`
+          : `<button type="button" data-name="${safeName}" data-role="admin" class="role-action-btn text-[11px] font-semibold text-champagne-700 hover:text-champagne-600 transition">Make Admin</button>`;
+        return `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3 px-4">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+              <div><span class="block font-bold text-midnight-900">${c.name}</span><span class="text-[10px] font-semibold text-champagne-700">${c.tier}</span></div>
+            </div>
+          </td>
+          <td class="py-3 px-4"><span class="block text-slate-800 font-medium">${c.email}</span><span class="text-[10px] text-slate-400 font-mono">${c.phone}</span></td>
+          <td class="py-3 px-4 text-slate-700">${c.country}</td>
+          <td class="py-3 px-4 font-bold text-champagne-600 font-mono">${c.miles} mi</td>
+          <td class="py-3 px-4 font-bold text-midnight-900">${c.trips} journeys</td>
+          <td class="py-3 px-4">${roleBadge(role)}</td>
+          <td class="py-3 px-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified VIP</span></td>
+          <td class="py-3 px-4 text-right">
+            <div class="flex items-center justify-end gap-3">
+              ${roleBtn}
+              <button onclick="openCustomerDrawerByName('${c.name}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderCustomers() {
+      const container = document.getElementById('customers-table-body');
+      if (!container) return;
+      container.innerHTML = renderCustomerRows(state.customers);
+    }
+
+    window.pendingRoleChange = null;
+
+    window.requestRoleChange = function(customerName, newRole) {
+      window.pendingRoleChange = { name: customerName, role: newRole };
+      const title = document.getElementById('role-modal-title');
+      const desc = document.getElementById('role-modal-desc');
+      const confirmBtn = document.getElementById('role-modal-confirm-btn');
+      if (!title || !desc || !confirmBtn) {
+        console.error('Role modal elements missing');
+        return;
+      }
+      if (newRole === 'admin') {
+        title.textContent = 'Promote to Admin?';
+        desc.textContent = customerName + ' will receive full access to the Operations Console — flights, bookings, fleet, and customer data.';
+        confirmBtn.textContent = 'Yes, Make Admin';
+        confirmBtn.className = 'flex-1 py-2.5 text-xs font-bold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg shadow-sm transition';
+      } else {
+        title.textContent = 'Demote to User?';
+        desc.textContent = customerName + ' will lose admin access to the Operations Console.';
+        confirmBtn.textContent = 'Yes, Demote';
+        confirmBtn.className = 'flex-1 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition';
+      }
+      openModal('modal-confirm-role');
+    };
+
+    window.confirmRoleChange = function() {
+      if (!window.pendingRoleChange) return;
+      const name = window.pendingRoleChange.name;
+      const role = window.pendingRoleChange.role;
+      const cust = state.customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+      if (cust) {
+        cust.role = role;
+        renderCustomers();
+        showToast(role === 'admin' ? (name + ' promoted to Admin') : (name + ' demoted to User'), role === 'admin' ? 'success' : 'info');
+      }
+      window.pendingRoleChange = null;
+      closeModal('modal-confirm-role');
+    };
+
+
+    // role-action-btn-delegation
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.role-action-btn');
+      if (!btn) return;
+      e.preventDefault();
+      const name = btn.getAttribute('data-name');
+      const role = btn.getAttribute('data-role');
+      if (name && role && typeof window.requestRoleChange === 'function') {
+        window.requestRoleChange(name, role);
+      }
+    });
+
+    // Modal & Drawer Interactions
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    
+    function openDrawer(id) {
+      const d = document.getElementById(id);
+      if (!d) return;
+      d.classList.remove('hidden');
+      setTimeout(() => {
+        const b = d.querySelector('.drawer-backdrop');
+        const c = d.querySelector('.drawer-content');
+        if(b) b.classList.remove('opacity-0');
+        if(c) c.classList.remove('translate-x-full');
+      }, 10);
+    }
+    
+    function closeDrawer(id) {
+      const d = document.getElementById(id);
+      if (!d) return;
+      const b = d.querySelector('.drawer-backdrop');
+      const c = d.querySelector('.drawer-content');
+      if(b) b.classList.add('opacity-0');
+      if(c) c.classList.add('translate-x-full');
+      setTimeout(() => d.classList.add('hidden'), 250);
+    }
+
+    function openFlightDrawer(code) {
+      const flight = state.flights.find(f => f.code === code) || state.flights[0];
+      document.getElementById('df-code').innerText = flight.code;
+      document.getElementById('df-status-pill').innerText = flight.status;
+      document.getElementById('df-origin-iata').innerText = flight.origin;
+      document.getElementById('df-dest-iata').innerText = flight.dest;
+      document.getElementById('df-dept-time').innerText = flight.dept;
+      document.getElementById('df-arr-time').innerText = flight.arr;
+      document.getElementById('df-origin-gate').innerText = flight.deptGate;
+      document.getElementById('df-dest-gate').innerText = flight.arrGate;
+      document.getElementById('df-aircraft-name').innerText = flight.aircraft;
+      document.getElementById('df-tail-no').innerText = flight.tail;
+      document.getElementById('df-fare').innerText = flight.fare;
+      openDrawer('drawer-flight-details');
+    }
+
+    function openManageSeatsModal(tail, planeName) {
+      document.getElementById('ms-plane-title').innerText = `${planeName} (${tail})`;
+      const aircraft = state.fleet.find(ac => ac.tail === tail);
+      renderInspectorSeatMap(aircraft);
+      openModal('modal-manage-seats');
+    }
+
+    const ZONE_STYLES = {
+      first:    { label: 'Zone A: First Sovereign Suites', seatClass: 'bg-champagne-500 text-white hover:brightness-110', cols: 4 },
+      business: { label: 'Zone B: Business Class Suites',  seatClass: 'bg-midnight-700 text-white hover:bg-midnight-600', cols: 4 },
+      economy:  { label: 'Zone C: Economy Prestige',       seatClass: 'bg-slate-200 text-slate-700 hover:bg-slate-300', cols: 9 }
+    };
+
+    function renderInspectorSeatMap(aircraft) {
+      const root = document.getElementById('ms-seatmap-root');
+      if (!root) return;
+
+      if (!aircraft || !aircraft.cabins) {
+        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No cabin configuration on file for this aircraft.</p>`;
+        return;
+      }
+
+      const cabins = buildCabinsFromCounts(aircraft.cabins);
+      if (cabins.length === 0) {
+        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">This aircraft has no seats configured yet — edit it from the fleet card to add cabin counts.</p>`;
+        return;
+      }
+
+      root.innerHTML = cabins.map(cabin => {
+        const style = ZONE_STYLES[cabin.typeKey];
+        const seatButtons = cabin.rows.map(rowNum => cabin.groups.flat().map(letter => {
+          const seatId = `${rowNum}${letter}`;
+          // Deterministic demo occupancy so the map isn't 100% empty
+          const isOccupied = (rowNum + letter.charCodeAt(0)) % 7 === 0;
+          if (isOccupied) {
+            return `<button class="p-3 rounded-lg bg-rose-600 text-white font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Occupied — reserved for this flight')">${seatId}<span class="text-[9px] font-normal opacity-90 font-sans">Taken</span></button>`;
+          }
+          return `<button class="p-3 rounded-lg ${style.seatClass} font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Available for assignment')">${seatId}<span class="text-[9px] uppercase font-normal opacity-80 font-sans">Open</span></button>`;
+        }).join('')).join('');
+
+        return `
+          <div class="w-full space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+              <span class="text-[10px] uppercase font-bold text-slate-600 tracking-wider">${style.label}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${cabin.rows.length * cabin.seatsPerRow} seats • Rows ${cabin.rows[0]}–${cabin.rows[cabin.rows.length - 1]}</span>
+            </div>
+            <div class="grid gap-1.5 px-2 py-2 font-mono max-h-56 overflow-y-auto" style="grid-template-columns: repeat(${style.cols}, minmax(0, 1fr));">
+              ${seatButtons}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function inspectSeat(seatId, cabin, statusInfo) {
+      document.getElementById('inspected-seat-id').innerText = `Seat ${seatId} (${cabin})`;
+      document.getElementById('inspected-seat-desc').innerText = statusInfo;
+    }
+
+    function openCustomerDrawerByName(customerName) {
+      const cust = state.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase()) || state.customers[0];
+      document.getElementById('cd-name').innerText = cust.name;
+      document.getElementById('cd-initials').innerText = cust.name.split(' ').map(n=>n[0]).join('');
+      document.getElementById('cd-email').innerText = cust.email;
+      document.getElementById('cd-tier').innerText = `${cust.tier} • #SK-8829104`;
+      document.getElementById('cd-trips').innerText = cust.trips;
+      document.getElementById('cd-miles').innerText = cust.miles;
+      openDrawer('drawer-customer-details');
+    }
+
+    function openBookingCustomerDrawer(customerName) {
+      openCustomerDrawerByName(customerName);
+    }
+
+    function promptCancel(type, identifier) {
+      state.cancellationTarget = { type, identifier };
+      document.getElementById('cancel-modal-title').innerText = `Cancel ${type === 'flight' ? 'Flight' : 'Booking'} ${identifier}?`;
+      openModal('modal-confirm-cancel');
+    }
+
+    function executeCancellation() {
+      if (!state.cancellationTarget) return;
+      const { type, identifier } = state.cancellationTarget;
+      
+      if (type === 'flight') {
+        const item = state.flights.find(f => f.code === identifier);
+        if (item) item.status = 'Cancelled';
+        renderAllFlightsTable();
+        renderDashboardFlights();
+      } else {
+        const item = state.bookings.find(b => b.pnr === identifier);
+        if (item) item.status = 'Cancelled';
+        renderBookingsTable();
+        renderDashboardBookings();
+      }
+
+      closeModal('modal-confirm-cancel');
+      showToast(`${type.toUpperCase()} ${identifier} has been cancelled`, 'error');
+    }
+
+    // Forms
+    function handleCreateFlight(e) {
+      e.preventDefault();
+      const code = document.getElementById('mf-flightno').value.trim();
+      const aircraftStr = document.getElementById('mf-aircraft').value;
+      const origin = document.getElementById('mf-origin').value;
+      const dest = document.getElementById('mf-destination').value;
+      const dept = document.getElementById('mf-dept-time').value;
+      const arr = document.getElementById('mf-arr-time').value;
+      const fare = document.getElementById('mf-fare').value;
+      const status = document.getElementById('mf-status').value;
+
+      state.flights.unshift({
+        code, origin, dest, routeDesc: `${origin} → ${dest}`, dept, deptGate: `${origin} T1 • Gate G04`, arr, arrGate: `${dest} T2 • Gate B02`,
+        aircraft: aircraftStr.split('(')[0].trim(), tail: aircraftStr.includes('(') ? aircraftStr.split('(')[1].replace(')', '') : 'A6-NEW', fare, status
+      });
+
+      renderAllFlightsTable();
+      renderDashboardFlights();
+      closeModal('modal-add-flight');
+      showToast(`Flight ${code} scheduled and added to sovereign dispatch`, 'success');
+      e.target.reset();
+    }
+
+    function handleCreateAirport(e) {
+      e.preventDefault();
+      const iata = document.getElementById('ma-iata').value.trim().toUpperCase();
+      const name = document.getElementById('ma-name').value.trim();
+      const city = document.getElementById('ma-city').value.trim();
+      const country = document.getElementById('ma-country').value.trim();
+
+      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active' });
+      renderAirports();
+      closeModal('modal-add-airport');
+      showToast(`Airport ${iata} - ${name} added to route network`, 'success');
+      e.target.reset();
+    }
+
+    // Filtering
+    function filterFlightsTable(keyword) {
+      const q = keyword.toLowerCase();
+      const filtered = state.flights.filter(f => f.code.toLowerCase().includes(q) || f.origin.toLowerCase().includes(q) || f.dest.toLowerCase().includes(q) || f.aircraft.toLowerCase().includes(q));
+      renderAllFlightsTable(filtered);
+    }
+
+    function setFlightFilter(type) {
+      document.querySelectorAll('.flight-filter-pill').forEach(btn => {
+        btn.classList.remove('bg-midnight-800', 'text-white');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      event.target.classList.remove('bg-slate-100', 'text-slate-700');
+      event.target.classList.add('bg-midnight-800', 'text-white');
+
+      if (type === 'ALL') renderAllFlightsTable(state.flights);
+      else if (type === 'IN_FLIGHT') renderAllFlightsTable(state.flights.filter(f => f.status === 'In Flight'));
+      else if (type === 'SCHEDULED') renderAllFlightsTable(state.flights.filter(f => f.status === 'Scheduled'));
+      else if (type === 'DELAYED') renderAllFlightsTable(state.flights.filter(f => f.status === 'Delayed'));
+    }
+
+    function setDashboardFlightFilter(type, btn) {
+      document.querySelectorAll('.dash-flight-filter-pill').forEach(el => {
+        el.classList.remove('bg-white', 'text-midnight-900', 'font-semibold', 'shadow-2xs');
+        el.classList.add('text-slate-500');
+      });
+      if (btn) {
+        btn.classList.remove('text-slate-500');
+        btn.classList.add('bg-white', 'text-midnight-900', 'font-semibold', 'shadow-2xs');
+      }
+
+      if (type === 'IN_FLIGHT') renderDashboardFlights(state.flights.filter(f => f.status === 'In Flight'));
+      else if (type === 'SCHEDULED') renderDashboardFlights(state.flights.filter(f => f.status === 'Scheduled'));
+      else if (type === 'DELAYED') renderDashboardFlights(state.flights.filter(f => f.status === 'Delayed'));
+      else renderDashboardFlights(state.flights);
+    }
+
+    function filterAirports(query) {
+      const q = query.toLowerCase();
+      const filtered = state.airports.filter(a => a.iata.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q));
+      document.getElementById('airports-grid').innerHTML = filtered.map(a => `
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
+              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
+            </div>
+            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
+            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterBookingsTable(query) {
+      const q = query.toLowerCase();
+      const filtered = state.bookings.filter(b => b.pnr.toLowerCase().includes(q) || b.customerName.toLowerCase().includes(q) || b.flightCode.toLowerCase().includes(q));
+      renderBookingsTable(filtered);
+    }
+
+    function filterBookingsByStatus(status) {
+      if (status === 'ALL') renderBookingsTable(state.bookings);
+      else renderBookingsTable(state.bookings.filter(b => b.status === status));
+    }
+
+    function filterCustomerTable(query) {
+      const q = query.toLowerCase();
+      const filtered = state.customers.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.tier.toLowerCase().includes(q) ||
+        (c.role || '').toLowerCase().includes(q)
+      );
+      const container = document.getElementById('customers-table-body');
+      if (container) container.innerHTML = renderCustomerRows(filtered);
+    }
+
+    function handleGlobalSearch(term) {
+      if (!term) return;
+      const q = term.toLowerCase();
+      if (q.startsWith('sb') || q.includes('918') || q.includes('501')) {
+        switchView('flights');
+        filterFlightsTable(term);
+      } else if (q.startsWith('sky-')) {
+        switchView('bookings');
+        filterBookingsTable(term);
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      const bgColors = { info: 'bg-midnight-900 text-white border-midnight-700', success: 'bg-emerald-800 text-white border-emerald-700', error: 'bg-rose-800 text-white border-rose-700' };
+
+      toast.className = `${bgColors[type] || bgColors.info} border px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-champagne-400'}"></span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openAdminProfile() {
+      openDrawer('drawer-admin-profile');
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('skybook-authenticated');
+      localStorage.removeItem('skybook-role');
+      localStorage.removeItem('skybook-user-name');
+      localStorage.removeItem('skybook-user-email');
+      localStorage.removeItem('skybook-user-initials');
+      window.location.href = 'account.html?mode=login';
+    }
+
+    function refreshDashboardData() {
+      showToast('Refreshing telemetric feed from live sovereign corridor...', 'info');
+      setTimeout(() => showToast('All 142 airborne transponders in sync', 'success'), 800);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Demo-only gate: mirrors the [Authorize(Roles = "Admin")] check the real
+      // MVC controller would enforce server-side on every request to this route.
+      const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
+      const role = localStorage.getItem('skybook-role');
+      if (!isAuthed || role !== 'admin') {
+        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        return;
+      }
+
+      loadFleetFromStorage();
+      saveFleetToStorage(); // seed storage on first run so seats.html has data to read
+      renderDashboardBookings();
+      renderDashboardFlights();
+      renderAllFlightsTable();
+      renderAirports();
+      renderFleet();
+      renderBookingsTable();
+      renderCustomers();
+      
+      const clockEl = document.getElementById('live-utc-clock');
+      setInterval(() => { if (clockEl) clockEl.innerText = new Date().toUTCString().split(' ')[4]; }, 1000);
+
+      const toggleBtn = document.getElementById('sidebar-toggle-btn');
+      const sidebar = document.getElementById('main-sidebar');
+
+      function applySidebarCollapsed(collapsed) {
+        state.sidebarCollapsed = collapsed;
+        sidebar.classList.toggle('w-64', !collapsed);
+        sidebar.classList.toggle('w-20', collapsed);
+        sidebar.classList.toggle('sidebar-collapsed', collapsed);
+
+        document.querySelectorAll('.sidebar-text').forEach(el => {
+          el.classList.toggle('hidden', collapsed);
+        });
+
+        document.querySelectorAll('#main-sidebar .nav-item').forEach(btn => {
+          btn.classList.toggle('justify-center', collapsed);
+          btn.classList.toggle('px-2', collapsed);
+          btn.classList.toggle('px-3', !collapsed);
+          btn.classList.toggle('space-x-3', !collapsed);
+        });
+
+        const brandContainer = document.getElementById('brand-container');
+        if (brandContainer) {
+          brandContainer.classList.toggle('justify-center', collapsed);
+          brandContainer.classList.toggle('w-full', collapsed);
+        }
+
+        const userCard = document.getElementById('sidebar-user-card');
+        if (userCard) {
+          userCard.classList.toggle('justify-center', collapsed);
+          const logoutBtn = userCard.querySelector('.sidebar-logout-btn');
+          if (logoutBtn) logoutBtn.classList.toggle('hidden', collapsed);
+        }
+
+        const topRow = sidebar.querySelector('.h-16');
+        if (topRow) {
+          topRow.classList.toggle('px-2', collapsed);
+        }
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        applySidebarCollapsed(!state.sidebarCollapsed);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleBtn.click(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput').focus(); }
+      });
+    });
+  </script>
+}
