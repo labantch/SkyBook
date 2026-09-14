@@ -1,7 +1,7 @@
 ﻿using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
 
-namespace SkyBook.Presentation.ViewModel
+namespace SkyBook.Business.ViewModel
 {
     public class SeatVM
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SkyBook.Presentation.ViewModels
+namespace SkyBook.Business.ViewModels
 {
     public class AirportVM
     {
@@ -19,5 +19,6 @@ namespace SkyBook.Presentation.ViewModels
         [Required]
         [StringLength(100)]
         public  string Country {  get; set; }
+        public int id { get; internal set; }
     }
 }

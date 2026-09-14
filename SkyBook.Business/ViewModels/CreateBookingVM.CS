@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SkyBook.Presentation.ViewModels
+namespace SkyBook.Business.ViewModels
 {
     public class CreateBookingVM
     {

@@ -1,6 +1,6 @@
 ﻿using SkyBook.Data.Models;
 
-namespace SkyBook.Presentation.ViewModels
+namespace SkyBook.Business.ViewModels
 {
     public class SeatSelectionVM
     {

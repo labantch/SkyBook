@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
 
-namespace SkyBook.Presentation.ViewModels
+namespace SkyBook.Business.ViewModels
 {
     public class FlightCardVM
     {

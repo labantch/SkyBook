@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 
-namespace SkyBook.Presentation.ViewModels
+namespace SkyBook.Business.ViewModels
 {
     public class RegisterVM
     {

@@ -1,4 +1,4 @@
-﻿namespace SkyBook.Presentation.ViewModels
+﻿namespace SkyBook.Business.ViewModels
 {
     public class DashboardVM
     {
