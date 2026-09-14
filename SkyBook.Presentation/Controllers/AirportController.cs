@@ -17,6 +17,7 @@ namespace SkyBook.Presentation.Controllers
             var airports = await _airportService.GetAllAirportAsync();
             return View(airports);
         }
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var airport = await _airportService.GetAirportByIdAsync(id);
@@ -39,6 +40,7 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(airportvm);
         }
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var airport = await _airportService.GetAirportByIdAsync(id);
@@ -46,6 +48,7 @@ namespace SkyBook.Presentation.Controllers
                 return NotFound();
             return View(airport);
         }
+        [HttpPost]
         public async Task<IActionResult> Edit(AirportVM airportvm)
         {
             if (ModelState.IsValid)
@@ -53,8 +56,9 @@ namespace SkyBook.Presentation.Controllers
                 await _airportService.UpdateAirportAsync(airportvm);
                 return RedirectToAction(nameof(Index));
             }
-            return View(nameof(Index));
+            return View(airportvm);
         }
+        [HttpPost]
         public async Task<IActionResult>Delete(int id)
         {
             await _airportService.DeleteAirportAsync(id);
