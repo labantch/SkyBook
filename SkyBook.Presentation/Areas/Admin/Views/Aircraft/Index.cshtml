@@ -297,6 +297,10 @@
       if (!container) return;
       container.innerHTML = state.fleet.map(ac => `
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          ${ac.imageUrl ? `
+          <div class="w-full h-36 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+            <img src="${ac.imageUrl}" alt="${ac.name}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'"/>
+          </div>` : ''}
           <div class="flex items-start justify-between">
             <div><h3 class="text-sm font-bold text-midnight-900">${ac.name}</h3><p class="text-xs font-mono text-champagne-600 mt-0.5">Registration: ${ac.tail}</p></div>
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">${ac.status}</span>
@@ -372,12 +376,14 @@
       }
 
       const total = first + business + economy;
+      const imageUrl = document.getElementById('na-image-url') ? document.getElementById('na-image-url').value.trim() : '';
       state.fleet.unshift({
         name, tail,
         cabins: { first, business, economy },
         capacity: `${total} Seats`,
         readiness: `${readiness}%`,
-        status
+        status,
+        imageUrl
       });
 
       // Keep the Add Flight modal's aircraft picker in sync with the new fleet member
@@ -416,6 +422,8 @@
       document.getElementById('ea-seats-economy').value = ac.cabins ? (ac.cabins.economy || 0) : 0;
       document.getElementById('ea-readiness').value = parseInt(ac.readiness, 10) || 100;
       document.getElementById('ea-status').value = ac.status;
+      const imgInput = document.getElementById('ea-image-url');
+      if (imgInput) imgInput.value = ac.imageUrl || '';
       updateEditAircraftSeatTotal();
       openModal('modal-edit-aircraft');
     }
@@ -430,6 +438,7 @@
       const economy = parseInt(document.getElementById('ea-seats-economy').value, 10) || 0;
       const readiness = document.getElementById('ea-readiness').value;
       const status = document.getElementById('ea-status').value;
+      const imageUrl = document.getElementById('ea-image-url') ? document.getElementById('ea-image-url').value.trim() : '';
 
       const total = first + business + economy;
       const idx = state.fleet.findIndex(a => a.tail === origTail);
@@ -439,22 +448,39 @@
           cabins: { first, business, economy },
           capacity: `${total} Seats`,
           readiness: `${readiness}%`,
-          status
+          status,
+          imageUrl
         };
         renderFleet();
         saveFleetToStorage();
         closeModal('modal-edit-aircraft');
-        showToast(`Aircraft ${tail} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Aircraft Fleet Updated',
+          message: `Aircraft ${tail} (${name}) specifications have been updated.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteAircraft(tail) {
-      if (confirm(`Are you sure you want to remove aircraft ${tail} from active fleet?`)) {
-        state.fleet = state.fleet.filter(a => a.tail !== tail);
-        renderFleet();
-        saveFleetToStorage();
-        showToast(`Aircraft ${tail} decommissioned from fleet`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Decommission Aircraft ${tail}?`,
+        category: 'Fleet Asset Operations',
+        message: `Are you sure you want to remove aircraft <strong>${tail}</strong> from the active fleet? Assigned flights will require reassignment.`,
+        confirmText: 'Yes, Decommission',
+        cancelText: 'Keep Aircraft',
+        type: 'danger',
+        onConfirm: () => {
+          state.fleet = state.fleet.filter(a => a.tail !== tail);
+          renderFleet();
+          saveFleetToStorage();
+          showWebsitePopup({
+            title: 'Aircraft Decommissioned',
+            message: `Aircraft ${tail} has been decommissioned from the active fleet.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function renderBookingsTable(list = state.bookings) {

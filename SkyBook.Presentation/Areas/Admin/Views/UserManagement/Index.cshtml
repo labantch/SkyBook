@@ -448,7 +448,11 @@
         <tr class="hover:bg-slate-50/70 transition-colors">
           <td class="py-3 px-4">
             <div class="flex items-center space-x-2.5">
-              <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+              ${c.imageUrl ? `
+                <img src="${c.imageUrl}" alt="${c.name}" class="w-8 h-8 rounded-full object-cover border border-champagne-500/50" onerror="this.outerHTML='<div class=\\\'w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center\\\'>${c.name.split(' ').map(n=>n[0]).join('')}</div>'"/>
+              ` : `
+                <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+              `}
               <div><span class="block font-bold text-midnight-900">${c.name}</span><span class="text-[10px] font-semibold text-champagne-700">${c.tier}</span></div>
             </div>
           </td>
@@ -541,6 +545,7 @@
       const role = document.getElementById('mc-role').value;
       const trips = parseInt(document.getElementById('mc-trips').value, 10) || 0;
       const miles = document.getElementById('mc-miles').value.trim() || '0';
+      const imageUrl = document.getElementById('mc-image-url') ? document.getElementById('mc-image-url').value.trim() : '';
 
       if (!name || !email) {
         showToast('Name and email are required', 'error');
@@ -548,7 +553,7 @@
       }
 
       state.customers.unshift({
-        name, email, phone, country, tier, trips, miles, role
+        name, email, phone, country, tier, trips, miles, role, imageUrl
       });
 
       renderCustomers();
@@ -570,6 +575,8 @@
       document.getElementById('ec-role').value = c.role || 'user';
       document.getElementById('ec-trips').value = c.trips || 0;
       document.getElementById('ec-miles').value = c.miles || '0';
+      const imgInput = document.getElementById('ec-image-url');
+      if (imgInput) imgInput.value = c.imageUrl || '';
       openModal('modal-edit-customer');
     }
 
@@ -584,24 +591,41 @@
       const role = document.getElementById('ec-role').value;
       const trips = parseInt(document.getElementById('ec-trips').value, 10) || 0;
       const miles = document.getElementById('ec-miles').value.trim();
+      const imageUrl = document.getElementById('ec-image-url') ? document.getElementById('ec-image-url').value.trim() : '';
 
       const idx = state.customers.findIndex(x => x.email === origEmail);
       if (idx !== -1) {
-        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles };
+        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles, imageUrl };
         renderCustomers();
         saveCustomersToStorage();
         closeModal('modal-edit-customer');
-        showToast(`Customer ${name} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Customer Profile Updated',
+          message: `Profile and credentials for "${name}" have been successfully saved to the ledger.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteCustomer(name) {
-      if (confirm(`Are you sure you want to remove customer "${name}" from the sovereign ledger?`)) {
-        state.customers = state.customers.filter(c => c.name !== name);
-        renderCustomers();
-        saveCustomersToStorage();
-        showToast(`Customer ${name} deleted successfully`, 'info');
-      }
+      showWebsiteConfirm({
+        title: 'Delete Customer Profile?',
+        category: 'Guest Ledger Management',
+        message: `Are you sure you want to remove customer <strong>"${name}"</strong> from the sovereign ledger? This action cannot be reversed.`,
+        confirmText: 'Yes, Delete Customer',
+        cancelText: 'Keep Customer',
+        type: 'danger',
+        onConfirm: () => {
+          state.customers = state.customers.filter(c => c.name !== name);
+          renderCustomers();
+          saveCustomersToStorage();
+          showWebsitePopup({
+            title: 'Customer Removed',
+            message: `Customer "${name}" has been deleted from the sovereign ledger.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
 
@@ -720,7 +744,14 @@
     function openCustomerDrawerByName(customerName) {
       const cust = state.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase()) || state.customers[0];
       document.getElementById('cd-name').innerText = cust.name;
-      document.getElementById('cd-initials').innerText = cust.name.split(' ').map(n=>n[0]).join('');
+      const initialsEl = document.getElementById('cd-initials');
+      if (initialsEl) {
+        if (cust.imageUrl) {
+          initialsEl.innerHTML = `<img src="${cust.imageUrl}" alt="${cust.name}" class="w-full h-full rounded-full object-cover" onerror="this.outerHTML='${cust.name.split(' ').map(n=>n[0]).join('')}'"/>`;
+        } else {
+          initialsEl.innerText = cust.name.split(' ').map(n=>n[0]).join('');
+        }
+      }
       document.getElementById('cd-email').innerText = cust.email;
       document.getElementById('cd-tier').innerText = `${cust.tier} • #SK-8829104`;
       document.getElementById('cd-trips').innerText = cust.trips;

@@ -13,7 +13,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block font-semibold text-slate-700 mb-1">Flight Number</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mf-flightno" placeholder="e.g. SB 992" required type="text">
+          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mf-flightno" maxlength="20" placeholder="e.g. SB 992" required type="text">
         </div>
         <div>
           <label class="block font-semibold text-slate-700 mb-1">Assigned Aircraft</label>
@@ -66,8 +66,11 @@
           <label class="block font-semibold text-slate-700 mb-1">Initial Status</label>
           <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-status">
             <option selected value="Scheduled">Scheduled</option>
-            <option value="In Flight">In Flight</option>
+            <option value="Boarding">Boarding</option>
+            <option value="Departed">Departed (In Flight)</option>
             <option value="Delayed">Delayed</option>
+            <option value="Landed">Landed</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
       </div>

@@ -752,18 +752,34 @@
         renderDashboardFlights();
         saveFlightsToStorage();
         closeModal('modal-edit-flight');
-        showToast(`Flight ${code} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Flight Schedule Updated',
+          message: `Flight ${code} (${origin} → ${dest}) has been successfully updated in dispatch.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteFlight(code) {
-      if (confirm(`Are you sure you want to permanently remove flight ${code} from the schedule?`)) {
-        state.flights = state.flights.filter(f => f.code !== code);
-        renderAllFlightsTable();
-        renderDashboardFlights();
-        saveFlightsToStorage();
-        showToast(`Flight ${code} deleted from system`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Remove Flight ${code}?`,
+        category: 'Flight Schedule Dispatch',
+        message: `Are you sure you want to permanently remove flight <strong>${code}</strong> from the schedule? Active bookings may be affected.`,
+        confirmText: 'Yes, Delete Flight',
+        cancelText: 'Keep Flight',
+        type: 'danger',
+        onConfirm: () => {
+          state.flights = state.flights.filter(f => f.code !== code);
+          renderAllFlightsTable();
+          renderDashboardFlights();
+          saveFlightsToStorage();
+          showWebsitePopup({
+            title: 'Flight Removed',
+            message: `Flight ${code} has been deleted from the schedule.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function handleCreateAirport(e) {

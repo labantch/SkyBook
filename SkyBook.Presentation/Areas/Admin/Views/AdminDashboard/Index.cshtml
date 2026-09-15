@@ -643,6 +643,10 @@
       if (!container) return;
       container.innerHTML = state.airports.map(a => `
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
+          ${a.imageUrl ? `
+          <div class="w-full h-32 rounded-lg overflow-hidden mb-3 border border-slate-200 bg-slate-100">
+            <img src="${a.imageUrl}" alt="${a.name}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'"/>
+          </div>` : ''}
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3">
               <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
@@ -667,6 +671,10 @@
       if (!container) return;
       container.innerHTML = state.fleet.map(ac => `
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          ${ac.imageUrl ? `
+          <div class="w-full h-36 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+            <img src="${ac.imageUrl}" alt="${ac.name}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'"/>
+          </div>` : ''}
           <div class="flex items-start justify-between">
             <div><h3 class="text-sm font-bold text-midnight-900">${ac.name}</h3><p class="text-xs font-mono text-champagne-600 mt-0.5">Registration: ${ac.tail}</p></div>
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">${ac.status}</span>
@@ -742,12 +750,14 @@
       }
 
       const total = first + business + economy;
+      const imageUrl = document.getElementById('na-image-url') ? document.getElementById('na-image-url').value.trim() : '';
       state.fleet.unshift({
         name, tail,
         cabins: { first, business, economy },
         capacity: `${total} Seats`,
         readiness: `${readiness}%`,
-        status
+        status,
+        imageUrl
       });
 
       // Keep the Add Flight modal's aircraft picker in sync with the new fleet member
@@ -765,6 +775,86 @@
       showToast(`${name} (${tail}) onboarded — ${first}F / ${business}J / ${economy}Y`, 'success');
       e.target.reset();
       updateAircraftSeatTotal();
+    }
+
+    function updateEditAircraftSeatTotal() {
+      const first = parseInt(document.getElementById('ea-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('ea-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('ea-seats-economy').value, 10) || 0;
+      const el = document.getElementById('ea-seat-total');
+      if (el) el.innerText = first + business + economy;
+    }
+
+    function openEditAircraftModal(tail) {
+      const ac = state.fleet.find(a => a.tail === tail);
+      if (!ac) return;
+      document.getElementById('ea-original-tail').value = ac.tail;
+      document.getElementById('ea-model').value = ac.name;
+      document.getElementById('ea-tail').value = ac.tail;
+      document.getElementById('ea-seats-first').value = ac.cabins ? (ac.cabins.first || 0) : 0;
+      document.getElementById('ea-seats-business').value = ac.cabins ? (ac.cabins.business || 0) : 0;
+      document.getElementById('ea-seats-economy').value = ac.cabins ? (ac.cabins.economy || 0) : 0;
+      document.getElementById('ea-readiness').value = parseInt(ac.readiness, 10) || 100;
+      document.getElementById('ea-status').value = ac.status;
+      const imgInput = document.getElementById('ea-image-url');
+      if (imgInput) imgInput.value = ac.imageUrl || '';
+      updateEditAircraftSeatTotal();
+      openModal('modal-edit-aircraft');
+    }
+
+    function handleEditAircraft(e) {
+      e.preventDefault();
+      const origTail = document.getElementById('ea-original-tail').value;
+      const name = document.getElementById('ea-model').value.trim();
+      const tail = document.getElementById('ea-tail').value.trim().toUpperCase();
+      const first = parseInt(document.getElementById('ea-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('ea-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('ea-seats-economy').value, 10) || 0;
+      const readiness = document.getElementById('ea-readiness').value;
+      const status = document.getElementById('ea-status').value;
+      const imageUrl = document.getElementById('ea-image-url') ? document.getElementById('ea-image-url').value.trim() : '';
+
+      const total = first + business + economy;
+      const idx = state.fleet.findIndex(a => a.tail === origTail);
+      if (idx !== -1) {
+        state.fleet[idx] = {
+          name, tail,
+          cabins: { first, business, economy },
+          capacity: `${total} Seats`,
+          readiness: `${readiness}%`,
+          status,
+          imageUrl
+        };
+        renderFleet();
+        saveFleetToStorage();
+        closeModal('modal-edit-aircraft');
+        showWebsitePopup({
+          title: 'Aircraft Fleet Updated',
+          message: `Aircraft ${tail} (${name}) specifications have been updated.`,
+          type: 'success'
+        });
+      }
+    }
+
+    function handleDeleteAircraft(tail) {
+      showWebsiteConfirm({
+        title: `Decommission Aircraft ${tail}?`,
+        category: 'Fleet Operations Decommissioning',
+        message: `Are you sure you want to decommission aircraft <strong>${tail}</strong>? This will reassign pending flight dispatches to alternate airframes.`,
+        confirmText: 'Yes, Decommission',
+        cancelText: 'Keep Aircraft',
+        type: 'danger',
+        onConfirm: () => {
+          state.fleet = state.fleet.filter(a => a.tail !== tail);
+          renderFleet();
+          saveFleetToStorage();
+          showWebsitePopup({
+            title: 'Aircraft Decommissioned',
+            message: `Aircraft ${tail} has been removed from active dispatch fleet.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function renderBookingsTable(list = state.bookings) {
@@ -810,7 +900,11 @@
         <tr class="hover:bg-slate-50/70 transition-colors">
           <td class="py-3 px-4">
             <div class="flex items-center space-x-2.5">
-              <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+              ${c.imageUrl ? `
+                <img src="${c.imageUrl}" alt="${c.name}" class="w-8 h-8 rounded-full object-cover border border-champagne-500/50" onerror="this.outerHTML='<div class=\\\'w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center\\\'>${c.name.split(' ').map(n=>n[0]).join('')}</div>'"/>
+              ` : `
+                <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+              `}
               <div><span class="block font-bold text-midnight-900">${c.name}</span><span class="text-[10px] font-semibold text-champagne-700">${c.tier}</span></div>
             </div>
           </td>
@@ -888,6 +982,7 @@
       const role = document.getElementById('mc-role').value;
       const trips = parseInt(document.getElementById('mc-trips').value, 10) || 0;
       const miles = document.getElementById('mc-miles').value.trim() || '0';
+      const imageUrl = document.getElementById('mc-image-url') ? document.getElementById('mc-image-url').value.trim() : '';
 
       if (!name || !email) {
         showToast('Name and email are required', 'error');
@@ -895,7 +990,7 @@
       }
 
       state.customers.unshift({
-        name, email, phone, country, tier, trips, miles, role
+        name, email, phone, country, tier, trips, miles, role, imageUrl
       });
 
       renderCustomers();
@@ -917,6 +1012,8 @@
       document.getElementById('ec-role').value = c.role || 'user';
       document.getElementById('ec-trips').value = c.trips || 0;
       document.getElementById('ec-miles').value = c.miles || '0';
+      const imgInput = document.getElementById('ec-image-url');
+      if (imgInput) imgInput.value = c.imageUrl || '';
       openModal('modal-edit-customer');
     }
 
@@ -931,24 +1028,41 @@
       const role = document.getElementById('ec-role').value;
       const trips = parseInt(document.getElementById('ec-trips').value, 10) || 0;
       const miles = document.getElementById('ec-miles').value.trim();
+      const imageUrl = document.getElementById('ec-image-url') ? document.getElementById('ec-image-url').value.trim() : '';
 
       const idx = state.customers.findIndex(x => x.email === origEmail);
       if (idx !== -1) {
-        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles };
+        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles, imageUrl };
         renderCustomers();
         saveCustomersToStorage();
         closeModal('modal-edit-customer');
-        showToast(`Customer ${name} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Customer Profile Updated',
+          message: `Profile and credentials for "${name}" have been saved to the sovereign ledger.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteCustomer(name) {
-      if (confirm(`Are you sure you want to remove customer "${name}" from the sovereign ledger?`)) {
-        state.customers = state.customers.filter(c => c.name !== name);
-        renderCustomers();
-        saveCustomersToStorage();
-        showToast(`Customer ${name} deleted successfully`, 'info');
-      }
+      showWebsiteConfirm({
+        title: 'Delete Customer Profile?',
+        category: 'Guest Ledger Management',
+        message: `Are you sure you want to remove customer <strong>"${name}"</strong> from the sovereign ledger? This action cannot be reversed.`,
+        confirmText: 'Yes, Delete Customer',
+        cancelText: 'Keep Customer',
+        type: 'danger',
+        onConfirm: () => {
+          state.customers = state.customers.filter(c => c.name !== name);
+          renderCustomers();
+          saveCustomersToStorage();
+          showWebsitePopup({
+            title: 'Customer Removed',
+            message: `Customer "${name}" has been deleted from the sovereign ledger.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
 
@@ -1090,7 +1204,14 @@
     function openCustomerDrawerByName(customerName) {
       const cust = state.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase()) || state.customers[0];
       document.getElementById('cd-name').innerText = cust.name;
-      document.getElementById('cd-initials').innerText = cust.name.split(' ').map(n=>n[0]).join('');
+      const initialsEl = document.getElementById('cd-initials');
+      if (initialsEl) {
+        if (cust.imageUrl) {
+          initialsEl.innerHTML = `<img src="${cust.imageUrl}" alt="${cust.name}" class="w-full h-full rounded-full object-cover" onerror="this.outerHTML='${cust.name.split(' ').map(n=>n[0]).join('')}'"/>`;
+        } else {
+          initialsEl.innerText = cust.name.split(' ').map(n=>n[0]).join('');
+        }
+      }
       document.getElementById('cd-email').innerText = cust.email;
       document.getElementById('cd-tier').innerText = `${cust.tier} • #SK-8829104`;
       document.getElementById('cd-trips').innerText = cust.trips;
@@ -1159,8 +1280,9 @@
       const name = document.getElementById('ma-name').value.trim();
       const city = document.getElementById('ma-city').value.trim();
       const country = document.getElementById('ma-country').value.trim();
+      const imageUrl = document.getElementById('ma-image-url') ? document.getElementById('ma-image-url').value.trim() : '';
 
-      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active' });
+      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active', imageUrl });
       renderAirports();
       saveAirportsToStorage();
       closeModal('modal-add-airport');
@@ -1176,6 +1298,8 @@
       document.getElementById('ea-name').value = airport.name;
       document.getElementById('ea-city').value = airport.city;
       document.getElementById('ea-country').value = airport.country;
+      const imgInput = document.getElementById('ea-image-url');
+      if (imgInput) imgInput.value = airport.imageUrl || '';
       openModal('modal-edit-airport');
     }
 
@@ -1186,24 +1310,41 @@
       const name = document.getElementById('ea-name').value.trim();
       const city = document.getElementById('ea-city').value.trim();
       const country = document.getElementById('ea-country').value.trim();
+      const imageUrl = document.getElementById('ea-image-url') ? document.getElementById('ea-image-url').value.trim() : '';
       
       const idx = state.airports.findIndex(a => a.iata === origIata);
       if (idx !== -1) {
-        state.airports[idx] = { ...state.airports[idx], iata, name, city, country };
+        state.airports[idx] = { ...state.airports[idx], iata, name, city, country, imageUrl };
         renderAirports();
         saveAirportsToStorage();
         closeModal('modal-edit-airport');
-        showToast(`Airport ${iata} - ${name} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Airport Details Updated',
+          message: `Airport ${iata} (${name}) has been updated in the sovereign network.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteAirport(iata) {
-      if (confirm(`Are you sure you want to remove airport ${iata} from the network?`)) {
-        state.airports = state.airports.filter(a => a.iata !== iata);
-        renderAirports();
-        saveAirportsToStorage();
-        showToast(`Airport ${iata} removed from network`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Remove Airport ${iata}?`,
+        category: 'Route Network Operations',
+        message: `Are you sure you want to remove airport <strong>${iata}</strong> from the sovereign route network? This will decommission associated dispatch routes.`,
+        confirmText: 'Yes, Remove Airport',
+        cancelText: 'Keep Airport',
+        type: 'danger',
+        onConfirm: () => {
+          state.airports = state.airports.filter(a => a.iata !== iata);
+          renderAirports();
+          saveAirportsToStorage();
+          showWebsitePopup({
+            title: 'Airport Removed',
+            message: `Airport ${iata} has been removed from the network.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function openEditFlightModal(code) {
@@ -1254,18 +1395,34 @@
         renderDashboardFlights();
         saveFlightsToStorage();
         closeModal('modal-edit-flight');
-        showToast(`Flight ${code} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Flight Schedule Updated',
+          message: `Flight ${code} (${origin} → ${dest}) has been updated in dispatch.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteFlight(code) {
-      if (confirm(`Are you sure you want to permanently remove flight ${code} from the schedule?`)) {
-        state.flights = state.flights.filter(f => f.code !== code);
-        renderAllFlightsTable();
-        renderDashboardFlights();
-        saveFlightsToStorage();
-        showToast(`Flight ${code} deleted from system`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Remove Flight ${code}?`,
+        category: 'Flight Schedule Dispatch',
+        message: `Are you sure you want to permanently remove flight <strong>${code}</strong> from the schedule? Active bookings may be affected.`,
+        confirmText: 'Yes, Delete Flight',
+        cancelText: 'Keep Flight',
+        type: 'danger',
+        onConfirm: () => {
+          state.flights = state.flights.filter(f => f.code !== code);
+          renderAllFlightsTable();
+          renderDashboardFlights();
+          saveFlightsToStorage();
+          showWebsitePopup({
+            title: 'Flight Removed',
+            message: `Flight ${code} has been deleted from the schedule.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function updateEditAircraftSeatTotal() {
@@ -1315,17 +1472,33 @@
         renderFleet();
         saveFleetToStorage();
         closeModal('modal-edit-aircraft');
-        showToast(`Aircraft ${tail} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Aircraft Fleet Updated',
+          message: `Aircraft ${tail} (${name}) specifications have been updated.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteAircraft(tail) {
-      if (confirm(`Are you sure you want to remove aircraft ${tail} from active fleet?`)) {
-        state.fleet = state.fleet.filter(a => a.tail !== tail);
-        renderFleet();
-        saveFleetToStorage();
-        showToast(`Aircraft ${tail} decommissioned from fleet`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Decommission Aircraft ${tail}?`,
+        category: 'Fleet Asset Operations',
+        message: `Are you sure you want to remove aircraft <strong>${tail}</strong> from the active fleet? Assigned flights will require reassignment.`,
+        confirmText: 'Yes, Decommission',
+        cancelText: 'Keep Aircraft',
+        type: 'danger',
+        onConfirm: () => {
+          state.fleet = state.fleet.filter(a => a.tail !== tail);
+          renderFleet();
+          saveFleetToStorage();
+          showWebsitePopup({
+            title: 'Aircraft Decommissioned',
+            message: `Aircraft ${tail} has been decommissioned from the active fleet.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     function exportBookingsCsv() {

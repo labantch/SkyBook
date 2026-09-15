@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace SkyBook.Business.ViewModels
 {
@@ -9,9 +10,9 @@ namespace SkyBook.Business.ViewModels
         [Required]
         public int ArrivalAirportId { get; set; }
         [Required]
-        public DateTime TravelDate {  get; set; }
-        [Range(1,10)]
-        public int PassengerCount {  get; set; }
+        public DateTime TravelDate { get; set; }
 
+        [Range(1, 10, ErrorMessage = "Passenger count must be between 1 and 10.")]
+        public int PassengerCount { get; set; } = 1;
     }
 }
