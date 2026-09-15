@@ -1,0 +1,67 @@
+@* Add Customer Modal *@
+<div class="fixed inset-0 z-50 flex items-center justify-center hidden" data-purpose="modal-customer-form" id="modal-add-customer">
+  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs" onclick="closeModal('modal-add-customer')"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden border border-slate-200 z-10 animate-scale">
+    <div class="h-14 bg-midnight-800 px-6 flex items-center justify-between text-white flex-shrink-0">
+      <h3 class="text-sm font-bold flex items-center gap-2">
+        <svg class="w-4 h-4 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Register New Sovereign Customer / VIP
+      </h3>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('modal-add-customer')">✕</button>
+    </div>
+    <form class="p-6 space-y-4 text-xs" id="add-customer-form" onsubmit="handleCreateCustomer(event)" method="post">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Full Name *</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mc-name" placeholder="e.g. Tariq Al-Mansoor" required type="text">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Email Address *</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mc-email" placeholder="e.g. tariq@sovereign.ae" required type="email">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Mobile Phone</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-phone" placeholder="+971 50 998 8776" type="tel">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Country</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-country" placeholder="United Arab Emirates" required type="text">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Membership Tier</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-tier">
+            <option value="Sovereign VIP">Sovereign VIP</option>
+            <option value="SkyClub Royal">SkyClub Royal</option>
+            <option selected value="SkyClub Sovereign Tier">SkyClub Sovereign Tier</option>
+            <option value="First Sovereign">First Sovereign</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Initial Role</label>
+          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-role">
+            <option selected value="user">USER (Standard Member)</option>
+            <option value="admin">ADMIN (Console Access)</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Past Journeys / Trips</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-trips" min="0" type="number" value="1">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">SkyMiles Balance</label>
+          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mc-miles" placeholder="e.g. 50,000" type="text" value="50,000">
+        </div>
+      </div>
+      <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+        <button class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg" onclick="closeModal('modal-add-customer')" type="button">Cancel</button>
+        <button class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm" type="submit">Register Customer</button>
+      </div>
+    </form>
+  </div>
+</div>

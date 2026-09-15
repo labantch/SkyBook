@@ -759,8 +759,9 @@ window.handleProfileSignOut = function () {
     localStorage.removeItem('skybook-user-name');
     localStorage.removeItem('skybook-user-email');
     localStorage.removeItem('skybook-user-initials');
+    localStorage.removeItem('skybook-auth-user');
   } catch (e) {}
-  window.location.href = 'account.html?mode=login';
+  window.location.href = '/Account/Login';
 };
 </script>
 }

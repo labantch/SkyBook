@@ -12,58 +12,38 @@
   <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
 </header>
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" id="view-bookings">
-<section class="view-container space-y-6" data-purpose="bookings-management" id="view-bookings">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="relative w-72">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="bookings-search-input" oninput="filterBookingsTable(this.value)" placeholder="Search PNR reference or passenger..." type="text">
-          </div>
-          <select class="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-200 text-slate-700" id="booking-status-filter" onchange="filterBookingsByStatus(this.value)">
-            <option value="ALL">All Statuses</option>
-            <option value="Confirmed">Confirmed Only</option>
-            <option value="Pending">Pending Payment</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
+  <section class="view-container space-y-6 active" data-purpose="bookings-management" id="view-bookings">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="relative w-72">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="bookings-search-input" oninput="filterBookingsTable(this.value)" placeholder="Search PNR reference or passenger..." type="text">
         </div>
-        <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center space-x-1.5 self-start sm:self-auto" onclick="showToast('Exporting bookings to Sovereign Ledger CSV...', 'info')">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-          <span class="">Export CSV</span>
-        </button>
+        <select class="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-200 text-slate-700" id="booking-status-filter" onchange="filterBookingsByStatus(this.value)">
+          <option value="ALL">All Statuses</option>
+          <option value="Confirmed">Confirmed Only</option>
+          <option value="Pending">Pending Payment</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 font-medium" id="all-bookings-body"></tbody>
-          </table>
-        </div>
+      <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center space-x-1.5 self-start sm:self-auto" onclick="exportBookingsCsv()">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span class="">Export CSV</span>
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+            <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium" id="all-bookings-body"></tbody>
+        </table>
       </div>
-    </section>
+    </div>
   </section>
 </main>
 
-
-@await Html.PartialAsync("_BookingDetailsModal")
-<div class="fixed inset-0 z-50 flex items-center justify-center hidden" data-purpose="destructive-confirm-modal" id="modal-confirm-cancel">
-  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs" onclick="closeModal('modal-confirm-cancel')"></div>
-  <div class="relative bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden border border-slate-200 z-10 p-6 space-y-4">
-    <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-    </div>
-    <div class="text-center">
-      <h3 class="text-sm font-bold text-midnight-900" id="cancel-modal-title">Confirm Cancellation?</h3>
-      <p class="text-xs text-slate-500 mt-1" id="cancel-modal-desc">This action will immediately revoke passenger boarding tokens and trigger charter refund protocol.</p>
-    </div>
-    <div class="flex items-center space-x-2 pt-2">
-      <button class="flex-1 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg" onclick="closeModal('modal-confirm-cancel')">Keep</button>
-      <button class="flex-1 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm" id="confirm-cancel-action-btn" onclick="executeCancellation()">Confirm Cancellation</button>
-    </div>
-  </div>
-</div>
 @section Scripts {
 <script data-purpose="application-logic">
     // ============================================================
@@ -789,6 +769,29 @@
       else renderBookingsTable(state.bookings.filter(b => b.status === status));
     }
 
+    function exportBookingsCsv() {
+      const headers = ['Booking Ref', 'Customer', 'Flight', 'Route', 'Travel Date', 'Seat', 'Price', 'Status'];
+      const rows = state.bookings.map(b => [
+        `"${b.pnr}"`,
+        `"${b.customerName}"`,
+        `"${b.flightCode}"`,
+        `"${b.routeSummary}"`,
+        `"${b.travelDate}"`,
+        `"${b.seat}"`,
+        `"${b.price}"`,
+        `"${b.status}"`
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `SkyBook_Bookings_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Bookings successfully exported to CSV', 'success');
+    }
+
     function filterCustomerTable(query) {
       const q = query.toLowerCase();
       const filtered = state.customers.filter(c =>
@@ -841,7 +844,7 @@
       localStorage.removeItem('skybook-user-name');
       localStorage.removeItem('skybook-user-email');
       localStorage.removeItem('skybook-user-initials');
-      window.location.href = 'account.html?mode=login';
+      window.location.href = '/Account/Login';
     }
 
     function refreshDashboardData() {
@@ -855,7 +858,7 @@
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
       const role = localStorage.getItem('skybook-role');
       if (!isAuthed || role !== 'admin') {
-        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        window.location.href = '/Account/Login?returnTo=/Admin/AdminBooking';
         return;
       }
 

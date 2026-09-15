@@ -65,6 +65,251 @@
   @RenderBody()
 </div>
 </div>
+
+<!-- Admin Profile Drawer -->
+<div class="fixed inset-0 z-50 overflow-hidden hidden" id="drawer-admin-profile">
+  <div class="absolute inset-0 bg-midnight-900/50 backdrop-blur-sm" onclick="closeDrawer('drawer-admin-profile')"></div>
+  <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl border-l-2 border-[#C5A880] flex flex-col">
+    <div class="bg-midnight-800 px-5 py-4 flex items-center justify-between text-white flex-shrink-0">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-champagne-400">Administrator</p>
+        <h2 class="text-base font-extrabold">Admin Profile</h2>
+      </div>
+      <button type="button" onclick="closeDrawer('drawer-admin-profile')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">✕</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50">
+      <div class="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-4">
+        <div class="w-14 h-14 rounded-full bg-midnight-800 text-champagne-300 font-bold text-lg flex items-center justify-center border-2 border-champagne-400/40">JV</div>
+        <div>
+          <p class="text-base font-extrabold text-midnight-900">Capt. Julian Vance</p>
+          <p class="text-xs text-champagne-700 font-semibold">Chief Flight Dispatcher</p>
+          <p class="text-[11px] text-emerald-600 font-medium mt-0.5">● Active · Admin</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="font-semibold text-midnight-900">admin@@skybook.com</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Role</span><span class="font-bold text-champagne-700">ADMIN</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Department</span><span class="font-semibold text-midnight-900">Flight Operations</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Base</span><span class="font-semibold text-midnight-900">DXB Hub</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Employee ID</span><span class="font-mono font-semibold text-midnight-900">SB-OPS-0042</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Access level</span><span class="font-semibold text-midnight-900">Full console</span></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2 text-sm">
+        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Session</p>
+        <div class="flex justify-between"><span class="text-slate-500">Status</span><span class="font-semibold text-emerald-600">Online</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Last login</span><span class="font-semibold text-midnight-900">Today · Ops desk</span></div>
+      </div>
+      <button type="button" onclick="handleLogout()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Universal Confirm Action Modal (Cancel / Delete) -->
+<div class="fixed inset-0 z-[60] flex items-center justify-center hidden" id="modal-confirm-cancel">
+  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-sm" onclick="closeModal('modal-confirm-cancel')"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-slate-200 z-10">
+    <div class="bg-midnight-800 px-6 py-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-rose-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-rose-400">Confirmation</p>
+        <h3 class="text-sm font-bold text-white" id="cancel-modal-title">Confirm Action?</h3>
+      </div>
+    </div>
+    <div class="p-6 space-y-4">
+      <p class="text-sm text-slate-600 leading-relaxed" id="cancel-modal-desc">Are you sure you want to perform this action? This operation will update the system dispatch ledger.</p>
+      <div class="flex items-center gap-2 pt-2">
+        <button type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition" onclick="closeModal('modal-confirm-cancel')">Keep Active</button>
+        <button type="button" class="flex-1 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition" id="cancel-modal-confirm-btn" onclick="typeof executeCancellation === 'function' ? executeCancellation() : closeModal('modal-confirm-cancel')">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@await Html.PartialAsync("_AdminModals")
+
+<script>
+  // Ensure demo admin credentials are initialized
+  if (localStorage.getItem('skybook-authenticated') !== 'true') {
+    localStorage.setItem('skybook-authenticated', 'true');
+    localStorage.setItem('skybook-role', 'admin');
+    localStorage.setItem('skybook-user-name', 'Capt. Julian Vance');
+    localStorage.setItem('skybook-user-email', 'admin@skybook.com');
+    localStorage.setItem('skybook-user-initials', 'JV');
+  }
+
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  }
+
+  function openDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    d.classList.remove('hidden');
+    setTimeout(() => {
+      const b = d.querySelector('.drawer-backdrop');
+      const c = d.querySelector('.drawer-content');
+      if (b) b.classList.remove('opacity-0');
+      if (c) c.classList.remove('translate-x-full');
+    }, 10);
+  }
+
+  function closeDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    const b = d.querySelector('.drawer-backdrop');
+    const c = d.querySelector('.drawer-content');
+    if (b) b.classList.add('opacity-0');
+    if (c) c.classList.add('translate-x-full');
+    setTimeout(() => d.classList.add('hidden'), 250);
+  }
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    const bgColors = {
+      info: 'bg-midnight-900 text-white border-midnight-700',
+      success: 'bg-emerald-800 text-white border-emerald-700',
+      error: 'bg-rose-800 text-white border-rose-700'
+    };
+    toast.className = `${bgColors[type] || bgColors.info} border px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+    toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-champagne-400'}"></span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  function openAdminProfile() {
+    openDrawer('drawer-admin-profile');
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('skybook-authenticated');
+    localStorage.removeItem('skybook-role');
+    localStorage.removeItem('skybook-user-name');
+    localStorage.removeItem('skybook-user-email');
+    localStorage.removeItem('skybook-user-initials');
+    window.location.href = '/Account/Login';
+  }
+
+  function switchView(viewKey) {
+    const activePanel = document.getElementById('view-' + viewKey);
+    if (activePanel) {
+      if (window.state) { window.state.currentView = viewKey; }
+      document.querySelectorAll('.view-container').forEach(panel => panel.classList.remove('active'));
+      activePanel.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const target = btn.getAttribute('data-nav-target');
+        if (target === viewKey) {
+          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-midnight-700/80 shadow-sm border border-midnight-600/50 group transition-colors';
+          const icon = btn.querySelector('svg');
+          if (icon) icon.className = 'w-4 h-4 text-champagne-400 flex-shrink-0';
+        } else {
+          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-midnight-700/50 group transition-colors';
+          const icon = btn.querySelector('svg');
+          if (icon) icon.className = 'w-4 h-4 text-slate-400 group-hover:text-champagne-400 flex-shrink-0';
+        }
+      });
+      try {
+        if (window.location.pathname.toLowerCase().includes('admindashboard')) {
+          history.replaceState(null, '', '/Admin/AdminDashboard?view=' + viewKey);
+        }
+      } catch(e) {}
+    } else {
+      if (viewKey === 'dashboard') window.location.href = '/Admin/AdminDashboard';
+      else if (viewKey === 'flights') window.location.href = '/Admin/AdminFlight';
+      else if (viewKey === 'airports') window.location.href = '/Admin/Airport';
+      else if (viewKey === 'aircraft') window.location.href = '/Admin/Aircraft';
+      else if (viewKey === 'bookings') window.location.href = '/Admin/AdminBooking';
+      else if (viewKey === 'customers') window.location.href = '/Admin/UserManagement';
+      else if (viewKey === 'settings') window.location.href = '/Admin/AdminDashboard?view=settings';
+      else window.location.href = '/Admin/AdminDashboard?view=' + viewKey;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sidebar toggle functionality
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    const sidebar = document.getElementById('main-sidebar');
+    if (toggleBtn && sidebar) {
+      let isCollapsed = false;
+      toggleBtn.addEventListener('click', () => {
+        isCollapsed = !isCollapsed;
+        sidebar.classList.toggle('w-64', !isCollapsed);
+        sidebar.classList.toggle('w-20', isCollapsed);
+        sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
+        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.toggle('hidden', isCollapsed));
+        document.querySelectorAll('#main-sidebar .nav-item').forEach(btn => {
+          btn.classList.toggle('justify-center', isCollapsed);
+          btn.classList.toggle('px-2', isCollapsed);
+          btn.classList.toggle('px-3', !isCollapsed);
+          btn.classList.toggle('space-x-3', !isCollapsed);
+        });
+        const brandContainer = document.getElementById('brand-container');
+        if (brandContainer) {
+          brandContainer.classList.toggle('justify-center', isCollapsed);
+          brandContainer.classList.toggle('w-full', isCollapsed);
+        }
+        const userCard = document.getElementById('sidebar-user-card');
+        if (userCard) {
+          userCard.classList.toggle('justify-center', isCollapsed);
+          const logoutBtn = userCard.querySelector('.sidebar-logout-btn');
+          if (logoutBtn) logoutBtn.classList.toggle('hidden', isCollapsed);
+        }
+      });
+    }
+
+    // Determine and highlight active navigation item from URL if not dashboard
+    const path = window.location.pathname.toLowerCase();
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    let currentNav = 'dashboard';
+    if (viewParam) {
+      currentNav = viewParam;
+    } else if (path.includes('flight')) {
+      currentNav = 'flights';
+    } else if (path.includes('airport')) {
+      currentNav = 'airports';
+    } else if (path.includes('aircraft')) {
+      currentNav = 'aircraft';
+    } else if (path.includes('booking')) {
+      currentNav = 'bookings';
+    } else if (path.includes('user') || path.includes('customer')) {
+      currentNav = 'customers';
+    }
+
+    // Set active button style
+    document.querySelectorAll('#main-sidebar .nav-item').forEach(btn => {
+      const target = btn.getAttribute('data-nav-target');
+      if (target === currentNav) {
+        btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-midnight-700/80 shadow-sm border border-midnight-600/50 group transition-colors';
+        const icon = btn.querySelector('svg');
+        if (icon) icon.className = 'w-4 h-4 text-champagne-400 flex-shrink-0';
+      } else {
+        btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-midnight-700/50 group transition-colors';
+        const icon = btn.querySelector('svg');
+        if (icon) icon.className = 'w-4 h-4 text-slate-400 group-hover:text-champagne-400 flex-shrink-0';
+      }
+    });
+
+    if (viewParam && document.getElementById('view-' + viewParam)) {
+      document.querySelectorAll('.view-container').forEach(p => p.classList.remove('active'));
+      document.getElementById('view-' + viewParam).classList.add('active');
+    }
+  });
+</script>
 @RenderSection("Scripts", required: false)
 </body>
 </html>

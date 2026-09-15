@@ -12,34 +12,28 @@
   <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
 </header>
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" id="view-aircraft">
-<section class="view-container space-y-6" data-purpose="aircraft-fleet" id="view-aircraft">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div>
-          <h2 class="text-sm font-bold text-midnight-900">Sovereign Flagship Fleet</h2>
-          <p class="text-xs text-slate-500" id="fleet-roster-count">Total 4 aircraft active in dispatch roster</p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors" onclick="showToast('Fleet telematics synchronized with OEM avionics', 'success')">Run Avionics Diagnostics</button>
-          <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1.5" onclick="openManageSeatsModal('A6-SKB', 'Boeing 787-9 Dreamliner')">
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span class="">Default Seat Configuration</span>
-          </button>
-          <button class="px-3.5 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg transition-colors flex items-center gap-1.5" onclick="openModal('modal-add-aircraft')">
-            <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-            <span class="">Add Aircraft</span>
-          </button>
-        </div>
+  <section class="view-container space-y-6 active" data-purpose="aircraft-fleet" id="view-aircraft">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div>
+        <h2 class="text-sm font-bold text-midnight-900">Sovereign Flagship Fleet</h2>
+        <p class="text-xs text-slate-500" id="fleet-roster-count">Total 4 aircraft active in dispatch roster</p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fleet-card-container"></div>
-    </section>
+      <div class="flex items-center space-x-2">
+        <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors" onclick="showToast('Fleet telematics synchronized with OEM avionics', 'success')">Run Avionics Diagnostics</button>
+        <button class="px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1.5" onclick="openManageSeatsModal('A6-SKB', 'Boeing 787-9 Dreamliner')">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <span class="">Default Seat Configuration</span>
+        </button>
+        <button class="px-3.5 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg transition-colors flex items-center gap-1.5" onclick="openModal('modal-add-aircraft')">
+          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+          <span class="">Add Aircraft</span>
+        </button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fleet-card-container"></div>
   </section>
 </main>
 
-
-@await Html.PartialAsync("_AddAircraftModal")
-@await Html.PartialAsync("_EditAircraftModal")
-@await Html.PartialAsync("~/Areas/Admin/Views/Seat/_ManageSeatsModal.cshtml")
 @section Scripts {
 <script data-purpose="application-logic">
     // ============================================================
@@ -318,12 +312,18 @@
             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-midnight-700 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.business} Business</span></div>
             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-300 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.economy} Economy</span></div>
           </div>` : ''}
-          <div class="flex items-center justify-between pt-1">
-            <button onclick="showToast('Avionics health status 100% nominal', 'info')" class="text-xs text-slate-500 hover:text-slate-800">Telemetry History</button>
-            <button onclick="openManageSeatsModal('${ac.tail}', '${ac.name}')" class="px-3 py-1.5 bg-midnight-800 hover:bg-midnight-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
-              <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              <span>Manage Seats</span>
-            </button>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div class="flex items-center space-x-2">
+              <button type="button" onclick="openEditAircraftModal('${ac.tail}')" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-midnight-900 hover:bg-slate-100 rounded transition">Edit</button>
+              <button type="button" onclick="handleDeleteAircraft('${ac.tail}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded transition">Delete</button>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="showToast('Avionics health status 100% nominal', 'info')" class="text-xs text-slate-500 hover:text-slate-800">Telemetry</button>
+              <button onclick="openManageSeatsModal('${ac.tail}', '${ac.name}')" class="px-3 py-1.5 bg-midnight-800 hover:bg-midnight-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span>Manage Seats</span>
+              </button>
+            </div>
           </div>
         </div>
       `).join('');
@@ -395,6 +395,66 @@
       showToast(`${name} (${tail}) onboarded — ${first}F / ${business}J / ${economy}Y`, 'success');
       e.target.reset();
       updateAircraftSeatTotal();
+    }
+
+    function updateEditAircraftSeatTotal() {
+      const first = parseInt(document.getElementById('ea-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('ea-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('ea-seats-economy').value, 10) || 0;
+      const el = document.getElementById('ea-seat-total');
+      if (el) el.innerText = first + business + economy;
+    }
+
+    function openEditAircraftModal(tail) {
+      const ac = state.fleet.find(a => a.tail === tail);
+      if (!ac) return;
+      document.getElementById('ea-original-tail').value = ac.tail;
+      document.getElementById('ea-model').value = ac.name;
+      document.getElementById('ea-tail').value = ac.tail;
+      document.getElementById('ea-seats-first').value = ac.cabins ? (ac.cabins.first || 0) : 0;
+      document.getElementById('ea-seats-business').value = ac.cabins ? (ac.cabins.business || 0) : 0;
+      document.getElementById('ea-seats-economy').value = ac.cabins ? (ac.cabins.economy || 0) : 0;
+      document.getElementById('ea-readiness').value = parseInt(ac.readiness, 10) || 100;
+      document.getElementById('ea-status').value = ac.status;
+      updateEditAircraftSeatTotal();
+      openModal('modal-edit-aircraft');
+    }
+
+    function handleEditAircraft(e) {
+      e.preventDefault();
+      const origTail = document.getElementById('ea-original-tail').value;
+      const name = document.getElementById('ea-model').value.trim();
+      const tail = document.getElementById('ea-tail').value.trim().toUpperCase();
+      const first = parseInt(document.getElementById('ea-seats-first').value, 10) || 0;
+      const business = parseInt(document.getElementById('ea-seats-business').value, 10) || 0;
+      const economy = parseInt(document.getElementById('ea-seats-economy').value, 10) || 0;
+      const readiness = document.getElementById('ea-readiness').value;
+      const status = document.getElementById('ea-status').value;
+
+      const total = first + business + economy;
+      const idx = state.fleet.findIndex(a => a.tail === origTail);
+      if (idx !== -1) {
+        state.fleet[idx] = {
+          name, tail,
+          cabins: { first, business, economy },
+          capacity: `${total} Seats`,
+          readiness: `${readiness}%`,
+          status
+        };
+        renderFleet();
+        saveFleetToStorage();
+        closeModal('modal-edit-aircraft');
+        showToast(`Aircraft ${tail} updated successfully`, 'success');
+      }
+    }
+
+    function handleDeleteAircraft(tail) {
+      if (confirm(`Are you sure you want to remove aircraft ${tail} from active fleet?`)) {
+        state.fleet = state.fleet.filter(a => a.tail !== tail);
+        renderFleet();
+        saveFleetToStorage();
+        showToast(`Aircraft ${tail} decommissioned from fleet`, 'info');
+      }
     }
 
     function renderBookingsTable(list = state.bookings) {
@@ -560,11 +620,31 @@
       openDrawer('drawer-flight-details');
     }
 
+    window.currentInspectedSeat = { id: '14A', cabin: 'Horizon Flex', status: 'Occupied' };
+
     function openManageSeatsModal(tail, planeName) {
-      document.getElementById('ms-plane-title').innerText = `${planeName} (${tail})`;
-      const aircraft = state.fleet.find(ac => ac.tail === tail);
+      const planeTitle = document.getElementById('ms-plane-title');
+      if (planeTitle) planeTitle.innerText = `${planeName} (${tail})`;
+      const link = document.getElementById('ms-open-studio-link');
+      if (link) link.href = `/Admin/Seat?tail=${encodeURIComponent(tail)}`;
+
+      const aircraft = state.fleet.find(ac => ac.tail === tail) || {
+        name: planeName,
+        tail: tail,
+        cabins: { first: 12, business: 48, economy: 230 }
+      };
       renderInspectorSeatMap(aircraft);
       openModal('modal-manage-seats');
+    }
+
+    function toggleInspectedSeatStatus() {
+      if (!window.currentInspectedSeat) return;
+      const isOccupied = window.currentInspectedSeat.status.includes('Occupied') || window.currentInspectedSeat.status.includes('Blocked');
+      const newStatus = isOccupied ? 'Available for passenger assignment' : 'Blocked / Reserved by Dispatch';
+      window.currentInspectedSeat.status = newStatus;
+      const elDesc = document.getElementById('inspected-seat-desc');
+      if (elDesc) elDesc.innerText = newStatus;
+      showToast(`Seat ${window.currentInspectedSeat.id} updated: ${newStatus}`, 'info');
     }
 
     const ZONE_STYLES = {
@@ -614,8 +694,11 @@
     }
 
     function inspectSeat(seatId, cabin, statusInfo) {
-      document.getElementById('inspected-seat-id').innerText = `Seat ${seatId} (${cabin})`;
-      document.getElementById('inspected-seat-desc').innerText = statusInfo;
+      window.currentInspectedSeat = { id: seatId, cabin: cabin, status: statusInfo };
+      const elId = document.getElementById('inspected-seat-id');
+      const elDesc = document.getElementById('inspected-seat-desc');
+      if (elId) elId.innerText = `Seat ${seatId} (${cabin})`;
+      if (elDesc) elDesc.innerText = statusInfo;
     }
 
     function openCustomerDrawerByName(customerName) {
@@ -817,7 +900,7 @@
       localStorage.removeItem('skybook-user-name');
       localStorage.removeItem('skybook-user-email');
       localStorage.removeItem('skybook-user-initials');
-      window.location.href = 'account.html?mode=login';
+      window.location.href = '/Account/Login';
     }
 
     function refreshDashboardData() {
@@ -831,7 +914,7 @@
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
       const role = localStorage.getItem('skybook-role');
       if (!isAuthed || role !== 'admin') {
-        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        window.location.href = '/Account/Login?returnTo=/Admin/Aircraft';
         return;
       }
 

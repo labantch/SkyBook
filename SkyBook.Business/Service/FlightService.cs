@@ -6,7 +6,12 @@ namespace SkyBook.Business.Service;
 
 public class FlightService : IFlightService
 {
-    private ApplicationDbContext context = new ApplicationDbContext();
+    private readonly ApplicationDbContext context;
+
+    public FlightService(ApplicationDbContext _context)
+    {
+        context = _context;
+    }
     public void Creat(Flight flight)
     {
         context.Flights.Add(flight);
