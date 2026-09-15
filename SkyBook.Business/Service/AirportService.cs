@@ -33,8 +33,10 @@ public class AirportService: IAirportService
     public async Task CreateAsync(AirportVM model)
     {
      bool codeExists=await _context.Airports.AnyAsync(a=>a.Code==model.Code);
-     if (codeExists)
-          throw new Exception("Airport Code Already Existe");
+        if (codeExists)
+        {
+            throw new Exception("Airport Code Already Existe");
+        }
      var airport = new Airport
      {
             Name = model.Name,
@@ -51,7 +53,9 @@ public class AirportService: IAirportService
     {
         var airport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.id);
         if (airport == null)
+        {
             throw new Exception("Airport Not Found");
+        }
         airport.Name = model.Name;
         airport.Country = model.Country;
         airport.Code = model.Code;
@@ -63,10 +67,14 @@ public class AirportService: IAirportService
     {
         bool hasFlights = await _context.Flights.AnyAsync(f => f.DepartureAirportId == id || f.ArrivalAirportId == id);
         if (hasFlights)
+        {
             throw new Exception("Cannot delete airport becouse it is used in flights");
+        }
         var airport = await _context.Airports.FindAsync(id);
         if (airport == null)
+        {
             throw new Exception("Airport Not Found");
+        }
         _context.Airports.Remove(airport);
         _context.SaveChangesAsync();
     }
