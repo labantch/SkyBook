@@ -60,7 +60,7 @@
       </div>
 
       <!-- Quick Action: New Flight -->
-      <a href="index.html" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#0B192C] text-white text-sm font-semibold hover:bg-[#11223A] transition shadow-sm hover:shadow">
+      <a href="/" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#0B192C] text-white text-sm font-semibold hover:bg-[#11223A] transition shadow-sm hover:shadow">
         <span class="material-symbols-outlined text-lg text-[#C5A880]">add</span>
         <span>Book New Flight</span>
       </a>
@@ -115,7 +115,7 @@
       <h3 id="empty-state-title" class="text-xl font-bold text-[#0B192C]">No upcoming journeys</h3>
       <p id="empty-state-subtitle" class="text-slate-500 mt-2 text-sm leading-relaxed">Your next adventure starts here. Explore our world-class scheduled flights across continents.</p>
       <div class="mt-6">
-        <a href="index.html" id="empty-state-btn" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#0B192C] text-white text-sm font-semibold hover:bg-[#11223A] transition shadow">
+        <a href="/" id="empty-state-btn" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#0B192C] text-white text-sm font-semibold hover:bg-[#11223A] transition shadow">
           <span>Search Flights</span>
           <span class="material-symbols-outlined text-base">arrow_forward</span>
         </a>
@@ -362,17 +362,17 @@
         if (av) av.textContent = initials;
         if (nm) nm.textContent = name;
         if (sub) sub.innerHTML = '<span class="material-symbols-outlined text-[12px]">verified</span> Member';
-        if (link) link.href = 'profile.html';
+        if (link) link.href = '/Profile/Index';
       } else {
         // Not logged in → always go to login (never profile)
         if (av) av.textContent = 'SB';
         if (nm) nm.textContent = 'Log in';
         if (sub) sub.textContent = 'Sign in to continue';
         if (link) {
-          link.href = 'account.html?mode=login';
+          link.href = '/Account/Login';
           link.onclick = function (e) {
             e.preventDefault();
-            window.location.href = 'account.html?mode=login';
+            window.location.href = '/Account/Login';
           };
         }
       }

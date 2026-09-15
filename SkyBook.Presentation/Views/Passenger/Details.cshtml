@@ -5,8 +5,6 @@
     ViewData["BookingStep"] = 3;
 }
 
-@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.FormTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
-@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
 @section Styles {
     <link rel="stylesheet" href="~/css/passenger-mobile.css" />
 <style>@@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior-y:auto;overflow-y:auto;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}</style>
@@ -268,7 +266,6 @@
 <span class="">🔒</span>
 <span class="">Passenger information is used solely to process your booking and travel requirements. Protected by 256-bit encryption.</span>
 </div>
-</div>
 </form>
 </div>
 <!-- RIGHT SECTION (Sticky Trip Details Sidebar - 4 cols) -->
@@ -446,8 +443,13 @@
       btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span><span>Securing Booking Manifest...</span>';
       btn.classList.add('opacity-90');
       setTimeout(() => {
-        sessionStorage.setItem('skybook-return-to', 'confirm-payment.html');
-        window.location.href = 'account.html?returnTo=' + encodeURIComponent('confirm-payment.html');
+        const user = localStorage.getItem('skybook-auth-user') || sessionStorage.getItem('skybook-auth-user');
+        sessionStorage.setItem('skybook-return-to', '/Booking/ConfirmPayment');
+        if (user) {
+          window.location.href = '/Booking/ConfirmPayment';
+        } else {
+          window.location.href = '/Account/Login?returnTo=' + encodeURIComponent('/Booking/ConfirmPayment');
+        }
       }, 600);
     }
   }

@@ -12,105 +12,38 @@
   <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
 </header>
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" id="view-flights">
-<section class="view-container space-y-6" data-purpose="flights-management" id="view-flights">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div class="flex flex-wrap items-center gap-3 flex-1">
-          <div class="relative w-72">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="flights-search" oninput="filterFlightsTable(this.value)" placeholder="Search flight code or destination..." type="text">
-          </div>
-          <div class="flex items-center space-x-1 text-xs">
-            <button class="flight-filter-pill active px-3 py-1.5 rounded-lg bg-midnight-800 text-white font-medium" onclick="setFlightFilter('ALL')">All (6)</button>
-            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('IN_FLIGHT')">In Flight</button>
-            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('SCHEDULED')">Scheduled</button>
-            <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('DELAYED')">Delayed</button>
-          </div>
+  <section class="view-container space-y-6 active" data-purpose="flights-management" id="view-flights">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div class="flex flex-wrap items-center gap-3 flex-1">
+        <div class="relative w-72">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="flights-search" oninput="filterFlightsTable(this.value)" placeholder="Search flight code or destination..." type="text">
         </div>
-        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all self-start sm:self-auto" onclick="openModal('modal-add-flight')">
-          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-          <span class="">+ Create Flight</span>
-        </button>
-      </div>
-      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Origin / Destination</th><th class="py-3 px-4">Departure Time</th><th class="py-3 px-4">Arrival Time</th><th class="py-3 px-4">Assigned Aircraft</th><th class="py-3 px-4">Base Fare</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 font-medium" id="all-flights-body"></tbody>
-          </table>
+        <div class="flex items-center space-x-1 text-xs">
+          <button class="flight-filter-pill active px-3 py-1.5 rounded-lg bg-midnight-800 text-white font-medium" onclick="setFlightFilter('ALL')">All (6)</button>
+          <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('IN_FLIGHT')">In Flight</button>
+          <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('SCHEDULED')">Scheduled</button>
+          <button class="flight-filter-pill px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium" onclick="setFlightFilter('DELAYED')">Delayed</button>
         </div>
       </div>
-    </section>
+      <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all self-start sm:self-auto" onclick="openModal('modal-add-flight')">
+        <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+        <span class="">+ Create Flight</span>
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+            <tr><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Origin / Destination</th><th class="py-3 px-4">Departure Time</th><th class="py-3 px-4">Arrival Time</th><th class="py-3 px-4">Assigned Aircraft</th><th class="py-3 px-4">Base Fare</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium" id="all-flights-body"></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 </main>
 
-
-@await Html.PartialAsync("_AddFlightModal")
-@await Html.PartialAsync("_EditFlightModal")
-<div class="fixed inset-0 z-40 overflow-hidden hidden" data-purpose="flight-details-drawer" id="drawer-flight-details">
-  <div class="drawer-backdrop absolute inset-0 bg-midnight-900/60 backdrop-blur-xs opacity-0 transition-opacity duration-200" onclick="closeDrawer('drawer-flight-details')"></div>
-  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
-    <div class="drawer-content w-screen max-w-md bg-white shadow-2xl flex flex-col translate-x-full transition-transform duration-300">
-      <div class="h-16 px-6 bg-midnight-800 text-white flex items-center justify-between border-b border-midnight-700">
-        <div class="flex items-center space-x-3">
-          <span class="text-xs font-mono px-2 py-0.5 rounded bg-champagne-500/20 text-champagne-400 border border-champagne-500/40" id="df-code">SB 918</span>
-          <span class="text-xs font-semibold" id="df-status-pill">In Flight</span>
-        </div>
-        <button class="text-slate-400 hover:text-white p-1" onclick="closeDrawer('drawer-flight-details')">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        </button>
-      </div>
-      <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
-        <!-- Route Visual -->
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-2xl font-extrabold text-midnight-900 block font-mono" id="df-origin-iata">CAI</span>
-              <span class="text-[11px] text-slate-500" id="df-origin-city">Cairo Intl</span>
-              <span class="text-xs font-bold text-slate-700 mt-1 block font-mono" id="df-dept-time">20:05</span>
-              <span class="text-[10px] text-slate-400" id="df-origin-gate">Terminal 2 • Gate 14</span>
-            </div>
-            <div class="flex flex-col items-center px-4 flex-1">
-              <span class="text-[10px] font-mono text-champagne-600 font-semibold mb-1">3h 40m nonstop</span>
-              <div class="w-full flex items-center">
-                <div class="w-2 h-2 rounded-full bg-champagne-500"></div>
-                <div class="flex-1 border-t-2 border-dashed border-champagne-400 mx-1"></div>
-                <svg class="w-4 h-4 text-midnight-800 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                <div class="flex-1 border-t-2 border-dashed border-champagne-400 mx-1"></div>
-                <div class="w-2 h-2 rounded-full bg-midnight-800"></div>
-              </div>
-              <span class="text-[10px] text-emerald-600 font-semibold mt-1">Airborne 38,000 ft</span>
-            </div>
-            <div class="text-right">
-              <span class="text-2xl font-extrabold text-midnight-900 block font-mono" id="df-dest-iata">DXB</span>
-              <span class="text-[11px] text-slate-500" id="df-dest-city">Dubai Intl</span>
-              <span class="text-xs font-bold text-slate-700 mt-1 block font-mono" id="df-arr-time">01:45</span>
-              <span class="text-[10px] text-slate-400" id="df-dest-gate">Terminal 3 • Gate B12</span>
-            </div>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-white p-3 rounded-lg border border-slate-200">
-            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Assigned Aircraft</span>
-            <span class="text-xs font-bold text-midnight-900 mt-0.5 block" id="df-aircraft-name">Boeing 787-9</span>
-            <span class="text-[10px] font-mono text-champagne-600" id="df-tail-no">Tail: A6-SKB</span>
-          </div>
-          <div class="bg-white p-3 rounded-lg border border-slate-200">
-            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Base Fare</span>
-            <span class="text-xs font-bold text-midnight-900 mt-0.5 block font-mono" id="df-fare">$1,290.00</span>
-            <span class="text-[10px] text-slate-500">IATA Zone 2 Pricing</span>
-          </div>
-        </div>
-      </div>
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end space-x-2">
-        <button class="px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 rounded-lg" onclick="closeDrawer('drawer-flight-details')">Close</button>
-        <button class="px-4 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg" onclick="openManageSeatsModal('A6-SKB', 'Boeing 787-9 Dreamliner')">Inspect Seat Map</button>
-      </div>
-    </div>
-  </div>
-</div>
 @section Scripts {
 <script data-purpose="application-logic">
     // ============================================================
@@ -163,6 +96,17 @@
         const raw = localStorage.getItem(FLEET_STORAGE_KEY);
         if (raw) state.fleet = JSON.parse(raw);
       } catch (e) { /* ignore malformed storage */ }
+    }
+
+    const FLIGHTS_STORAGE_KEY = 'skybook_flights';
+    function saveFlightsToStorage() {
+      try { localStorage.setItem(FLIGHTS_STORAGE_KEY, JSON.stringify(state.flights)); } catch (e) {}
+    }
+    function loadFlightsFromStorage() {
+      try {
+        const raw = localStorage.getItem(FLIGHTS_STORAGE_KEY);
+        if (raw) state.flights = JSON.parse(raw);
+      } catch (e) {}
     }
 
     const state = {
@@ -344,7 +288,12 @@
           <td class="py-3 px-4"><span class="font-medium text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
           <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
-          <td class="py-3 px-4 text-right space-x-2"><button onclick="openFlightDrawer('${f.code}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">Drawer</button><button onclick="promptCancel('flight', '${f.code}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Cancel</button></td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button onclick="openFlightDrawer('${f.code}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">Drawer</button>
+            <button onclick="openEditFlightModal('${f.code}')" class="text-xs text-midnight-800 hover:text-midnight-900 font-semibold">Edit</button>
+            <button onclick="promptCancel('flight', '${f.code}')" class="text-xs text-amber-600 hover:text-amber-700 font-semibold">Cancel</button>
+            <button onclick="handleDeleteFlight('${f.code}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Delete</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -749,9 +698,72 @@
 
       renderAllFlightsTable();
       renderDashboardFlights();
+      saveFlightsToStorage();
       closeModal('modal-add-flight');
       showToast(`Flight ${code} scheduled and added to sovereign dispatch`, 'success');
       e.target.reset();
+    }
+
+    function openEditFlightModal(code) {
+      const flight = state.flights.find(f => f.code === code);
+      if (!flight) return;
+      document.getElementById('ef-original-code').value = flight.code;
+      document.getElementById('ef-flightno').value = flight.code;
+      const acSelect = document.getElementById('ef-aircraft');
+      if (acSelect) {
+        for (let opt of acSelect.options) {
+          if (opt.value.includes(flight.tail) || opt.value.includes(flight.aircraft)) {
+            acSelect.value = opt.value;
+            break;
+          }
+        }
+      }
+      document.getElementById('ef-origin').value = flight.origin;
+      document.getElementById('ef-destination').value = flight.dest;
+      document.getElementById('ef-dept-time').value = flight.dept;
+      document.getElementById('ef-arr-time').value = flight.arr;
+      document.getElementById('ef-fare').value = flight.fare;
+      document.getElementById('ef-status').value = flight.status;
+      openModal('modal-edit-flight');
+    }
+
+    function handleEditFlight(e) {
+      e.preventDefault();
+      const origCode = document.getElementById('ef-original-code').value;
+      const code = document.getElementById('ef-flightno').value.trim();
+      const aircraftStr = document.getElementById('ef-aircraft').value;
+      const origin = document.getElementById('ef-origin').value;
+      const dest = document.getElementById('ef-destination').value;
+      const dept = document.getElementById('ef-dept-time').value;
+      const arr = document.getElementById('ef-arr-time').value;
+      const fare = document.getElementById('ef-fare').value;
+      const status = document.getElementById('ef-status').value;
+
+      const idx = state.flights.findIndex(f => f.code === origCode);
+      if (idx !== -1) {
+        state.flights[idx] = {
+          ...state.flights[idx],
+          code, origin, dest, routeDesc: `${origin} → ${dest}`,
+          dept, arr, fare, status,
+          aircraft: aircraftStr.split('(')[0].trim(),
+          tail: aircraftStr.includes('(') ? aircraftStr.split('(')[1].replace(')', '') : state.flights[idx].tail
+        };
+        renderAllFlightsTable();
+        renderDashboardFlights();
+        saveFlightsToStorage();
+        closeModal('modal-edit-flight');
+        showToast(`Flight ${code} updated successfully`, 'success');
+      }
+    }
+
+    function handleDeleteFlight(code) {
+      if (confirm(`Are you sure you want to permanently remove flight ${code} from the schedule?`)) {
+        state.flights = state.flights.filter(f => f.code !== code);
+        renderAllFlightsTable();
+        renderDashboardFlights();
+        saveFlightsToStorage();
+        showToast(`Flight ${code} deleted from system`, 'info');
+      }
     }
 
     function handleCreateAirport(e) {
@@ -888,7 +900,7 @@
       localStorage.removeItem('skybook-user-name');
       localStorage.removeItem('skybook-user-email');
       localStorage.removeItem('skybook-user-initials');
-      window.location.href = 'account.html?mode=login';
+      window.location.href = '/Account/Login';
     }
 
     function refreshDashboardData() {
@@ -902,12 +914,14 @@
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
       const role = localStorage.getItem('skybook-role');
       if (!isAuthed || role !== 'admin') {
-        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        window.location.href = '/Account/Login?returnTo=/Admin/AdminFlight';
         return;
       }
 
       loadFleetFromStorage();
-      saveFleetToStorage(); // seed storage on first run so seats.html has data to read
+      loadFlightsFromStorage();
+      saveFleetToStorage();
+      saveFlightsToStorage();
       renderDashboardBookings();
       renderDashboardFlights();
       renderAllFlightsTable();

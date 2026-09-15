@@ -1,0 +1,186 @@
+@{
+    ViewData["Title"] = "Cabin Berth & Seat Management";
+    Layout = "_AdminLayout";
+}
+
+<!-- Top header strip -->
+<header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 flex-shrink-0">
+  <div>
+    <h1 class="text-sm font-bold text-midnight-900">Cabin Berth &amp; Seat Management</h1>
+    <p class="text-[11px] text-slate-500">SkyBook Operations Console</p>
+  </div>
+  <a href="@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
+</header>
+
+<main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
+  <section class="space-y-6 max-w-5xl mx-auto">
+    <!-- Aircraft Selection Card -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-sm font-bold text-midnight-900" id="seatmap-selected-title">Boeing 787-9 Dreamliner (A6-SKB)</h2>
+        <p class="text-xs text-slate-500">Select an aircraft to inspect and manage seat availability, berths, and cabin layout.</p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <label class="text-xs font-semibold text-slate-700">Select Aircraft:</label>
+        <select class="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-200 text-slate-800 font-medium" id="seatmap-aircraft-select" onchange="onAircraftChange(this.value)">
+          <option value="A6-SKB">Boeing 787-9 (A6-SKB)</option>
+          <option value="A6-SKA">Airbus A350-1000 (A6-SKA)</option>
+          <option value="A6-SKX">Boeing 777-300ER (A6-SKX)</option>
+          <option value="A6-G71">Gulfstream G700 (A6-G71)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Cabin Berth Inspector Box -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+      <div class="flex items-center justify-around p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+        <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded bg-champagne-500 border border-champagne-600"></span><span class="font-medium text-slate-700">First Sovereign Suite</span></div>
+        <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded bg-midnight-700 border border-midnight-800"></span><span class="font-medium text-slate-700">Business Flat-Bed</span></div>
+        <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded bg-slate-200 border border-slate-300"></span><span class="font-medium text-slate-700">Economy Prestige</span></div>
+        <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded bg-rose-600 border border-rose-700"></span><span class="font-medium text-slate-700">Reserved / Taken</span></div>
+      </div>
+
+      <div class="border-2 border-dashed border-slate-300 rounded-3xl p-6 bg-slate-50/50 flex flex-col items-center space-y-6">
+        <div class="w-28 h-9 bg-slate-200 rounded-t-full flex items-center justify-center text-[10px] font-semibold text-slate-500 uppercase tracking-widest border border-slate-300 shadow-xs">Cockpit</div>
+        <div class="w-full space-y-6" id="ms-seatmap-root"></div>
+      </div>
+
+      <!-- Selected Seat Telemetry Box -->
+      <div class="p-4 rounded-xl bg-midnight-900 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="seat-inspector-panel">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider text-champagne-400 font-semibold block">Inspector Selection</span>
+          <span class="text-sm font-bold font-mono" id="inspected-seat-id">Seat 1A (First Sovereign)</span>
+          <p class="text-xs text-slate-300 mt-0.5" id="inspected-seat-desc">Status: Available for VIP assignment</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button type="button" class="px-3.5 py-2 bg-champagne-500 hover:bg-champagne-600 text-midnight-950 font-bold rounded-lg text-xs transition" onclick="showToast('Berth telemetry pushed to onboard Purser terminal', 'success')">Sync Berth</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+@section Scripts {
+<script>
+    const CABIN_LAYOUTS = {
+      first:    { name: 'FIRST CLASS',    groups: [['A'], ['D', 'G'], ['K']] },
+      business: { name: 'BUSINESS CLASS', groups: [['A'], ['D', 'G'], ['K']] },
+      economy:  { name: 'ECONOMY CLASS',  groups: [['A', 'B', 'C'], ['D', 'E', 'F'], ['H', 'J', 'K']] }
+    };
+    const CABIN_ROW_GAP = 1;
+
+    function buildCabin(typeKey, seatCount, startRow) {
+      const layout = CABIN_LAYOUTS[typeKey];
+      const seatsPerRow = layout.groups.reduce((sum, g) => sum + g.length, 0);
+      const rowCount = Math.max(1, Math.ceil(seatCount / seatsPerRow));
+      const rows = Array.from({ length: rowCount }, (_, i) => startRow + i);
+      return { typeKey, name: layout.name, groups: layout.groups, rows, seatsPerRow };
+    }
+
+    function buildCabinsFromCounts(seats) {
+      const cabinOrder = ['first', 'business', 'economy'];
+      const cabins = [];
+      let nextRow = 1;
+      cabinOrder.forEach(typeKey => {
+        const count = seats[typeKey] || 0;
+        if (count <= 0) return;
+        const cabin = buildCabin(typeKey, count, nextRow);
+        cabins.push(cabin);
+        nextRow = cabin.rows[cabin.rows.length - 1] + 1 + CABIN_ROW_GAP;
+      });
+      return cabins;
+    }
+
+    const state = {
+      fleet: [
+        { name: 'Boeing 787-9 Dreamliner', tail: 'A6-SKB', cabins: { first: 12, business: 48, economy: 230 }, capacity: '290 Seats', readiness: '98.5%', status: 'Operational (In-Flight)' },
+        { name: 'Airbus A350-1000 Flagship', tail: 'A6-SKA', cabins: { first: 14, business: 62, economy: 290 }, capacity: '366 Seats', readiness: '100%', status: 'Operational (Ready at Gate)' },
+        { name: 'Boeing 777-300ER Prestige', tail: 'A6-SKX', cabins: { first: 8, business: 68, economy: 320 }, capacity: '396 Seats', readiness: '94.2%', status: 'Turnaround Ops' },
+        { name: 'Gulfstream G700 SkySovereign', tail: 'A6-G71', cabins: { first: 19, business: 0, economy: 0 }, capacity: '19 VIP Berths', readiness: '100%', status: 'Ready on Apron' }
+      ]
+    };
+
+    const ZONE_STYLES = {
+      first:    { label: 'Zone A: First Sovereign Suites', seatClass: 'bg-champagne-500 text-white hover:brightness-110', cols: 4 },
+      business: { label: 'Zone B: Business Class Suites',  seatClass: 'bg-midnight-700 text-white hover:bg-midnight-600', cols: 4 },
+      economy:  { label: 'Zone C: Economy Prestige',       seatClass: 'bg-slate-200 text-slate-700 hover:bg-slate-300', cols: 9 }
+    };
+
+    function renderInspectorSeatMap(aircraft) {
+      const root = document.getElementById('ms-seatmap-root');
+      if (!root) return;
+
+      if (!aircraft || !aircraft.cabins) {
+        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No cabin configuration on file for this aircraft.</p>`;
+        return;
+      }
+
+      const cabins = buildCabinsFromCounts(aircraft.cabins);
+      if (cabins.length === 0) {
+        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">This aircraft has no seats configured yet.</p>`;
+        return;
+      }
+
+      root.innerHTML = cabins.map(cabin => {
+        const style = ZONE_STYLES[cabin.typeKey];
+        const seatButtons = cabin.rows.map(rowNum => cabin.groups.flat().map(letter => {
+          const seatId = `${rowNum}${letter}`;
+          const isOccupied = (rowNum + letter.charCodeAt(0)) % 7 === 0;
+          if (isOccupied) {
+            return `<button type="button" class="p-3 rounded-lg bg-rose-600 text-white font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Occupied — reserved for sovereign flight')">${seatId}<span class="text-[9px] font-normal opacity-90 font-sans">Taken</span></button>`;
+          }
+          return `<button type="button" class="p-3 rounded-lg ${style.seatClass} font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Available for assignment')">${seatId}<span class="text-[9px] uppercase font-normal opacity-80 font-sans">Open</span></button>`;
+        }).join('')).join('');
+
+        return `
+          <div class="w-full space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+              <span class="text-[10px] uppercase font-bold text-slate-600 tracking-wider">${style.label}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${cabin.rows.length * cabin.seatsPerRow} seats • Rows ${cabin.rows[0]}–${cabin.rows[cabin.rows.length - 1]}</span>
+            </div>
+            <div class="grid gap-1.5 px-2 py-2 font-mono max-h-56 overflow-y-auto" style="grid-template-columns: repeat(${style.cols}, minmax(0, 1fr));">
+              ${seatButtons}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function inspectSeat(seatId, cabin, statusInfo) {
+      document.getElementById('inspected-seat-id').innerText = `Seat ${seatId} (${cabin})`;
+      document.getElementById('inspected-seat-desc').innerText = `Status: ${statusInfo}`;
+    }
+
+    function onAircraftChange(tail) {
+      const plane = state.fleet.find(f => f.tail === tail) || state.fleet[0];
+      document.getElementById('seatmap-selected-title').innerText = `${plane.name} (${plane.tail})`;
+      renderInspectorSeatMap(plane);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
+      const role = localStorage.getItem('skybook-role');
+      if (!isAuthed || role !== 'admin') {
+        window.location.href = '/Account/Login?returnTo=/Admin/Seat';
+        return;
+      }
+
+      try {
+        const stored = localStorage.getItem('skybook_fleet');
+        if (stored) state.fleet = JSON.parse(stored);
+      } catch (e) {}
+
+      const select = document.getElementById('seatmap-aircraft-select');
+      if (select && state.fleet.length > 0) {
+        select.innerHTML = state.fleet.map(ac => `<option value="${ac.tail}">${ac.name} (${ac.tail})</option>`).join('');
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryTail = urlParams.get('tail');
+      const targetPlane = (queryTail && state.fleet.find(f => f.tail.toUpperCase() === queryTail.toUpperCase())) || state.fleet[0];
+      if (targetPlane) {
+        if (select) select.value = targetPlane.tail;
+        onAircraftChange(targetPlane.tail);
+      }
+    });
+</script>
+}

@@ -12,61 +12,36 @@
   <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
 </header>
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" id="view-customers">
-<section class="view-container space-y-6" data-purpose="customer-management" id="view-customers">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div class="flex items-center space-x-3">
-          <div class="relative w-80">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="customer-search-input" oninput="filterCustomerTable(this.value)" placeholder="Search passenger name, email, or tier..." type="text">
-          </div>
+  <section class="view-container space-y-6 active" data-purpose="customer-management" id="view-customers">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="relative w-80">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="customer-search-input" oninput="filterCustomerTable(this.value)" placeholder="Search passenger name, email, or tier..." type="text">
         </div>
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span class="">All Sovereign Members IATA Validated</span>
-        </div>
+        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-customer')">
+          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+          <span>+ Add Customer</span>
+        </button>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Member</th><th class="py-3 px-4">Contact Info</th><th class="py-3 px-4">Country</th><th class="py-3 px-4">SkyMiles Balance</th><th class="py-3 px-4">Trips Completed</th><th class="py-3 px-4">Role</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 font-medium" id="customers-table-body"></tbody>
-          </table>
-        </div>
+      <div class="flex items-center space-x-2 text-xs text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="">All Sovereign Members IATA Validated</span>
       </div>
-    </section>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+            <tr><th class="py-3 px-4">Member</th><th class="py-3 px-4">Contact Info</th><th class="py-3 px-4">Country</th><th class="py-3 px-4">SkyMiles Balance</th><th class="py-3 px-4">Trips Completed</th><th class="py-3 px-4">Role</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium" id="customers-table-body"></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 </main>
 
-
-@await Html.PartialAsync("_UserDetailsModal")
-<div class="fixed inset-0 z-[60] flex items-center justify-center hidden" id="modal-confirm-role">
-  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-sm" onclick="closeModal('modal-confirm-role')"></div>
-  <div class="relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-slate-200 z-10">
-    <div class="bg-midnight-800 px-6 py-4 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-champagne-500/20 border border-champagne-400/40 flex items-center justify-center text-champagne-300">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-      </div>
-      <div>
-        <p class="text-[10px] font-bold uppercase tracking-widest text-champagne-400">Access Control</p>
-        <h3 class="text-sm font-bold text-white" id="role-modal-title">Promote to Admin?</h3>
-      </div>
-    </div>
-    <div class="p-6 space-y-5">
-      <p class="text-sm text-slate-600 leading-relaxed" id="role-modal-desc">This user will receive full access to the Operations Console.</p>
-      <div class="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
-        <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        <p class="text-xs text-amber-900 leading-relaxed">Please confirm this change carefully. Admin privileges cannot be limited per module in this console.</p>
-      </div>
-      <div class="flex items-center gap-2 pt-1">
-        <button type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition" onclick="window.pendingRoleChange=null; closeModal('modal-confirm-role')">Cancel</button>
-        <button type="button" class="flex-1 py-2.5 text-xs font-bold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg shadow-sm transition" id="role-modal-confirm-btn" onclick="confirmRoleChange()">Yes, Make Admin</button>
-      </div>
-    </div>
-  </div>
-</div>
 @section Scripts {
 <script data-purpose="application-logic">
     // ============================================================
@@ -214,12 +189,18 @@
         { name: 'Gulfstream G700 SkySovereign', tail: 'A6-G71', cabins: { first: 19, business: 0, economy: 0 }, capacity: '19 VIP Berths', readiness: '100%', status: 'Ready on Apron' }
       ],
 
-      customers: [
-        { name: 'John Mohamed', email: 'john.mohamed@@sovereign-sky.com', phone: '+971 50 123 4567', country: 'United Arab Emirates', tier: 'SkyClub Sovereign Tier', trips: 18, miles: '142,500', role: 'user' },
-        { name: 'Ahmed Ali', email: 'ahmed.ali@@emirates-royal.com', phone: '+971 55 987 6543', country: 'United Arab Emirates', tier: 'SkyClub Royal', trips: 24, miles: '210,400', role: 'user' },
-        { name: 'Eleanor Wright', email: 'e.wright@@mayfair-partners.co.uk', phone: '+44 20 7946 0912', country: 'United Kingdom', tier: 'First Sovereign', trips: 31, miles: '389,000', role: 'admin' },
-        { name: 'Tariq Al-Hashimi', email: 'tariq@@hashimi-holdings.qa', phone: '+974 44 123456', country: 'Qatar', tier: 'Sovereign VIP', trips: 45, miles: '612,800', role: 'user' }
-      ]
+      customers: (() => {
+        try {
+          const raw = localStorage.getItem('skybook-admin-customers');
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [
+          { name: 'John Mohamed', email: 'john.mohamed@@sovereign-sky.com', phone: '+971 50 123 4567', country: 'United Arab Emirates', tier: 'SkyClub Sovereign Tier', trips: 18, miles: '142,500', role: 'user' },
+          { name: 'Ahmed Ali', email: 'ahmed.ali@@emirates-royal.com', phone: '+971 55 987 6543', country: 'United Arab Emirates', tier: 'SkyClub Royal', trips: 24, miles: '210,400', role: 'user' },
+          { name: 'Eleanor Wright', email: 'e.wright@@mayfair-partners.co.uk', phone: '+44 20 7946 0912', country: 'United Kingdom', tier: 'First Sovereign', trips: 31, miles: '389,000', role: 'admin' },
+          { name: 'Tariq Al-Hashimi', email: 'tariq@@hashimi-holdings.qa', phone: '+974 44 123456', country: 'Qatar', tier: 'Sovereign VIP', trips: 45, miles: '612,800', role: 'user' }
+        ];
+      })()
     };
 
     function switchView(viewKey) {
@@ -478,9 +459,11 @@
           <td class="py-3 px-4">${roleBadge(role)}</td>
           <td class="py-3 px-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified VIP</span></td>
           <td class="py-3 px-4 text-right">
-            <div class="flex items-center justify-end gap-3">
+            <div class="flex items-center justify-end gap-2.5">
               ${roleBtn}
-              <button onclick="openCustomerDrawerByName('${c.name}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View</button>
+              <button onclick="openCustomerDrawerByName('${safeName}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View</button>
+              <button type="button" onclick="openEditCustomerModal('${c.email}')" class="text-xs text-slate-600 hover:text-midnight-900 font-semibold transition">Edit</button>
+              <button type="button" onclick="handleDeleteCustomer('${safeName}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold transition">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -530,7 +513,96 @@
       }
       window.pendingRoleChange = null;
       closeModal('modal-confirm-role');
+      saveCustomersToStorage();
     };
+
+    function saveCustomersToStorage() {
+      try {
+        localStorage.setItem('skybook-admin-customers', JSON.stringify(state.customers));
+      } catch (err) {}
+    }
+
+    function loadCustomersFromStorage() {
+      try {
+        const stored = localStorage.getItem('skybook-admin-customers');
+        if (stored) {
+          state.customers = JSON.parse(stored);
+        }
+      } catch (err) {}
+    }
+
+    function handleCreateCustomer(e) {
+      e.preventDefault();
+      const name = document.getElementById('mc-name').value.trim();
+      const email = document.getElementById('mc-email').value.trim();
+      const phone = document.getElementById('mc-phone').value.trim() || '+971 50 000 0000';
+      const country = document.getElementById('mc-country').value.trim();
+      const tier = document.getElementById('mc-tier').value;
+      const role = document.getElementById('mc-role').value;
+      const trips = parseInt(document.getElementById('mc-trips').value, 10) || 0;
+      const miles = document.getElementById('mc-miles').value.trim() || '0';
+
+      if (!name || !email) {
+        showToast('Name and email are required', 'error');
+        return;
+      }
+
+      state.customers.unshift({
+        name, email, phone, country, tier, trips, miles, role
+      });
+
+      renderCustomers();
+      saveCustomersToStorage();
+      closeModal('modal-add-customer');
+      showToast(`Customer ${name} registered in sovereign directory`, 'success');
+      e.target.reset();
+    }
+
+    function openEditCustomerModal(email) {
+      const c = state.customers.find(x => x.email === email);
+      if (!c) return;
+      document.getElementById('ec-original-email').value = c.email;
+      document.getElementById('ec-name').value = c.name;
+      document.getElementById('ec-email').value = c.email;
+      document.getElementById('ec-phone').value = c.phone || '';
+      document.getElementById('ec-country').value = c.country || '';
+      document.getElementById('ec-tier').value = c.tier || 'SkyClub Sovereign Tier';
+      document.getElementById('ec-role').value = c.role || 'user';
+      document.getElementById('ec-trips').value = c.trips || 0;
+      document.getElementById('ec-miles').value = c.miles || '0';
+      openModal('modal-edit-customer');
+    }
+
+    function handleEditCustomer(e) {
+      e.preventDefault();
+      const origEmail = document.getElementById('ec-original-email').value;
+      const name = document.getElementById('ec-name').value.trim();
+      const email = document.getElementById('ec-email').value.trim();
+      const phone = document.getElementById('ec-phone').value.trim();
+      const country = document.getElementById('ec-country').value.trim();
+      const tier = document.getElementById('ec-tier').value;
+      const role = document.getElementById('ec-role').value;
+      const trips = parseInt(document.getElementById('ec-trips').value, 10) || 0;
+      const miles = document.getElementById('ec-miles').value.trim();
+
+      const idx = state.customers.findIndex(x => x.email === origEmail);
+      if (idx !== -1) {
+        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles };
+        renderCustomers();
+        saveCustomersToStorage();
+        closeModal('modal-edit-customer');
+        showToast(`Customer ${name} updated successfully`, 'success');
+      }
+    }
+
+    function handleDeleteCustomer(name) {
+      if (confirm(`Are you sure you want to remove customer "${name}" from the sovereign ledger?`)) {
+        state.customers = state.customers.filter(c => c.name !== name);
+        renderCustomers();
+        saveCustomersToStorage();
+        showToast(`Customer ${name} deleted successfully`, 'info');
+      }
+    }
 
 
     // role-action-btn-delegation
@@ -844,7 +916,7 @@
       localStorage.removeItem('skybook-user-name');
       localStorage.removeItem('skybook-user-email');
       localStorage.removeItem('skybook-user-initials');
-      window.location.href = 'account.html?mode=login';
+      window.location.href = '/Account/Login';
     }
 
     function refreshDashboardData() {
@@ -858,11 +930,12 @@
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
       const role = localStorage.getItem('skybook-role');
       if (!isAuthed || role !== 'admin') {
-        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        window.location.href = '/Account/Login?returnTo=/Admin/UserManagement';
         return;
       }
 
       loadFleetFromStorage();
+      loadCustomersFromStorage();
       saveFleetToStorage(); // seed storage on first run so seats.html has data to read
       renderDashboardBookings();
       renderDashboardFlights();

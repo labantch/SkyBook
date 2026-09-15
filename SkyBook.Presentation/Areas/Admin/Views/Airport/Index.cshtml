@@ -12,28 +12,25 @@
   <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
 </header>
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" id="view-airports">
-<section class="view-container space-y-6" data-purpose="airports-management" id="view-airports">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div class="flex items-center space-x-3">
-          <div class="relative w-72">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="airport-search-input" oninput="filterAirports(this.value)" placeholder="Search IATA or airport name..." type="text">
-          </div>
-          <span class="text-xs text-slate-500">6 Major Hubs Listed</span>
+  <section class="view-container space-y-6 active" data-purpose="airports-management" id="view-airports">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div class="flex items-center space-x-3">
+        <div class="relative w-72">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="airport-search-input" oninput="filterAirports(this.value)" placeholder="Search IATA or airport name..." type="text">
         </div>
-        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-airport')">
-          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-          <span class="">+ Add Airport Station</span>
-        </button>
+        <span class="text-xs text-slate-500">6 Major Hubs Listed</span>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="airports-grid"></div>
-    </section>
+      <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-airport')">
+        <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+        <span class="">+ Add Airport Station</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="airports-grid"></div>
   </section>
 </main>
 
 
-@await Html.PartialAsync("_AirportForm")
 @section Scripts {
 <script data-purpose="application-logic">
     // ============================================================
@@ -86,6 +83,17 @@
         const raw = localStorage.getItem(FLEET_STORAGE_KEY);
         if (raw) state.fleet = JSON.parse(raw);
       } catch (e) { /* ignore malformed storage */ }
+    }
+
+    const AIRPORTS_STORAGE_KEY = 'skybook_airports';
+    function saveAirportsToStorage() {
+      try { localStorage.setItem(AIRPORTS_STORAGE_KEY, JSON.stringify(state.airports)); } catch (e) {}
+    }
+    function loadAirportsFromStorage() {
+      try {
+        const raw = localStorage.getItem(AIRPORTS_STORAGE_KEY);
+        if (raw) state.airports = JSON.parse(raw);
+      } catch (e) {}
     }
 
     const state = {
@@ -287,6 +295,10 @@
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
             <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
             <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end space-x-2">
+            <button type="button" onclick="openEditAirportModal('${a.iata}')" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-midnight-900 hover:bg-slate-100 rounded transition">Edit</button>
+            <button type="button" onclick="handleDeleteAirport('${a.iata}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded transition">Delete</button>
           </div>
         </div>
       `).join('');
@@ -686,9 +698,48 @@
 
       state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active' });
       renderAirports();
+      saveAirportsToStorage();
       closeModal('modal-add-airport');
       showToast(`Airport ${iata} - ${name} added to route network`, 'success');
       e.target.reset();
+    }
+
+    function openEditAirportModal(iata) {
+      const airport = state.airports.find(a => a.iata === iata);
+      if (!airport) return;
+      document.getElementById('ea-original-iata').value = airport.iata;
+      document.getElementById('ea-iata').value = airport.iata;
+      document.getElementById('ea-name').value = airport.name;
+      document.getElementById('ea-city').value = airport.city;
+      document.getElementById('ea-country').value = airport.country;
+      openModal('modal-edit-airport');
+    }
+
+    function handleEditAirport(e) {
+      e.preventDefault();
+      const origIata = document.getElementById('ea-original-iata').value;
+      const iata = document.getElementById('ea-iata').value.trim().toUpperCase();
+      const name = document.getElementById('ea-name').value.trim();
+      const city = document.getElementById('ea-city').value.trim();
+      const country = document.getElementById('ea-country').value.trim();
+      
+      const idx = state.airports.findIndex(a => a.iata === origIata);
+      if (idx !== -1) {
+        state.airports[idx] = { ...state.airports[idx], iata, name, city, country };
+        renderAirports();
+        saveAirportsToStorage();
+        closeModal('modal-edit-airport');
+        showToast(`Airport ${iata} - ${name} updated successfully`, 'success');
+      }
+    }
+
+    function handleDeleteAirport(iata) {
+      if (confirm(`Are you sure you want to remove airport ${iata} from the network?`)) {
+        state.airports = state.airports.filter(a => a.iata !== iata);
+        renderAirports();
+        saveAirportsToStorage();
+        showToast(`Airport ${iata} removed from network`, 'info');
+      }
     }
 
     // Filtering
@@ -811,7 +862,7 @@
       localStorage.removeItem('skybook-user-name');
       localStorage.removeItem('skybook-user-email');
       localStorage.removeItem('skybook-user-initials');
-      window.location.href = 'account.html?mode=login';
+      window.location.href = '/Account/Login';
     }
 
     function refreshDashboardData() {
@@ -825,12 +876,14 @@
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
       const role = localStorage.getItem('skybook-role');
       if (!isAuthed || role !== 'admin') {
-        window.location.href = 'account.html?mode=login&returnTo=management.html';
+        window.location.href = '/Account/Login?returnTo=/Admin/Airport';
         return;
       }
 
       loadFleetFromStorage();
-      saveFleetToStorage(); // seed storage on first run so seats.html has data to read
+      loadAirportsFromStorage();
+      saveFleetToStorage();
+      saveAirportsToStorage();
       renderDashboardBookings();
       renderDashboardFlights();
       renderAllFlightsTable();
