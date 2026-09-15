@@ -54,7 +54,7 @@ public class AircraftService: IAircraftService
     }
     public async Task UpdateAircraftAsync(AircraftVM model)
     {
-        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Name ==model.Name);
+        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Id ==model.ID);
         if (aircraft == null)
         {
             throw new Exception("Aircraft  Not Found");

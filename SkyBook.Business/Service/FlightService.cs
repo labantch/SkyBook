@@ -77,9 +77,10 @@ public class FlightService : IFlightService
         {
             throw new Exception("Arival time must be after departure time");
         }
+        bool departureAirport=await _context.Airports.AnyAsync(a=>a.Id == model.DepartureAirportId);
+        bool arrivalAirport=await _context.Airports.AnyAsync(a=>a.Id == model.ArrivalAirportId);
 
-        var airportExist = await _context.Airports.AnyAsync(a => a.Id == model.DepartureAirportId || a.Id == model.ArrivalAirportId);
-        if (!airportExist)
+        if (!departureAirport&&arrivalAirport)
         {
             throw new Exception("airport not found");
         }
@@ -207,12 +208,30 @@ public class FlightService : IFlightService
         var flight = await _context.Flights
             .FirstOrDefaultAsync(f => f.Id == flightId);
 
+
         if (flight == null)
             throw new Exception("Flight not found.");
 
         flight.Status = status;
-
         await _context.SaveChangesAsync();
+    }
+    public async Task<FlightVM?> GetFlightForEditAsync(int id)
+    {
+        return await _context.Flights
+            .Where(f => f.Id == id)
+            .Select(f => new FlightVM
+            {
+                Id = f.Id,
+                FlightNumber = f.FlightNumber,
+                DepartureAirportId = f.DepartureAirportId,
+                ArrivalAirportId = f.ArrivalAirportId,
+                AircraftId = f.AircraftId,
+                DepartureTime = f.DepartureTime,
+                ArrivalTime = f.ArrivalTime,
+                Price = f.Price,
+                Status = f.Status
+            })
+            .FirstOrDefaultAsync();
     }
 } 
 
