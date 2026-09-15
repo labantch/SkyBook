@@ -12,7 +12,12 @@ namespace SkyBook.Data.Data
             : base(options)
         {
         }
-        
+
+        public ApplicationDbContext()
+        {
+            
+        }
+
 
         public DbSet<Airport> Airports { get; set; }
         public DbSet<Aircraft> Aircrafts { get; set; }
@@ -20,6 +25,7 @@ namespace SkyBook.Data.Data
         public DbSet<Seat> Seats { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Passenger> Passengers { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
