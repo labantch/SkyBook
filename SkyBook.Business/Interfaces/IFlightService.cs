@@ -11,7 +11,7 @@ public interface IFlightService
     public Task EditAsync(FlightVM flight);
     public Task DeleteAsync(int id);
     public Task<FlightSearshVM> Search(int id);
-    public Task<FlightVM> ChangeStatusAsync();
+    public Task<FlightVM> ChangeStatusAsync(int id, FlightStatus status);
     public Task<FlightCardVM> GetFlightCardAsync(int id);
 
 }

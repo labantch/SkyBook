@@ -129,11 +129,21 @@ public class FlightService : IFlightService
         return flight;
     }
 
-    public Task<FlightVM> ChangeStatusAsync()
+    public async Task<FlightVM> ChangeStatusAsync(int id, FlightStatus status)
     {
-        throw new NotImplementedException();
+        var flight = await context.Flights
+            .FirstOrDefaultAsync(f => f.Id == id);
+        if (flight == null)
+            return null;
+        flight.Status = status;
+        await context.SaveChangesAsync();
+        return new FlightVM()
+        {
+            Id = flight.Id,
+            Status = flight.Status
+        };
     }
-
+    
     public async Task<FlightCardVM> GetFlightCardAsync(int id)
     {
         var flights = await context.Flights
@@ -150,7 +160,7 @@ public class FlightService : IFlightService
             DepartureAirPort = flights.DepartureAirport.Name,
             DepartureTime = flights.DepartureTime,
             Price = flights.Price,
-            // AvailableSeat = flights.Aircraft.Seats
+            // AvailableSeat = flights.Aircraft.Seats.
 
         };
         return flight;
