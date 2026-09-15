@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SkyBook.Business.ViewModels
 {
@@ -6,13 +6,12 @@ namespace SkyBook.Business.ViewModels
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
+
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
 
-        public string RememberMe {  get; set; }
-        
-
+        public bool RememberMe { get; set; }
     }
 }

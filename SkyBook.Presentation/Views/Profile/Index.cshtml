@@ -17,7 +17,7 @@
 <div class="flex items-center gap-space-lg z-10">
 <!-- Avatar Ring with initials -->
 <div class="relative flex-shrink-0">
-<div class="w-20 h-20 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md shadow-md">
+<div class="w-20 h-20 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md shadow-md overflow-hidden" id="profile-avatar-container">
             JM
           </div>
 <span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-600 rounded-full ring-2 ring-surface-container-lowest" title="Active &amp; Verified"></span>
@@ -148,17 +148,17 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
 <div class="flex flex-col gap-1">
 <label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Full Legal Name</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-name" required="" type="text" value="John Mohamed"/>
+<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-name" maxlength="100" required="" type="text" value="John Mohamed"/>
 </div>
 <div class="flex flex-col gap-1">
 <label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Email Address</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-email" required="" type="email" value="john.mohamed@@sovereign-sky.com"/>
+<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-email" maxlength="256" required="" type="email" value="john.mohamed@@sovereign-sky.com"/>
 </div>
 <div class="flex flex-col gap-1">
 <label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Phone Number</label>
 <div class="flex gap-2">
 <span class="inline-flex items-center px-3 bg-surface-container-low rounded-lg text-body-md">🇦🇪 +971</span>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-phone" required="" type="tel" value="50 123 4567"/>
+<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-phone" maxlength="50" required="" type="tel" value="50 123 4567"/>
 </div>
 </div>
 <div class="flex flex-col gap-1">
@@ -175,6 +175,10 @@
 <div class="flex flex-col gap-1">
 <label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Date of Birth</label>
 <input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-dob" type="date" value="1988-05-15"/>
+</div>
+<div class="flex flex-col gap-1 md:col-span-2">
+<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Profile Photo / Avatar URL <span class="text-xs normal-case text-on-surface-variant/70 font-normal">(optional)</span></label>
+<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-avatar-url" maxlength="500" placeholder="https://images.example.com/avatar.jpg" type="url"/>
 </div>
 </div>
 <div class="flex items-center justify-end gap-space-sm pt-space-sm">
@@ -646,6 +650,17 @@
       document.getElementById('display-dob').textContent = parsedDate.toLocaleDateString('en-GB', options);
     }
 
+    const newAvatar = document.getElementById('input-avatar-url') ? document.getElementById('input-avatar-url').value.trim() : '';
+    if (newAvatar) {
+      localStorage.setItem('skybook-user-avatar', newAvatar);
+      if (typeof window.updateProfileAvatar === 'function') window.updateProfileAvatar(newAvatar);
+    } else {
+      localStorage.removeItem('skybook-user-avatar');
+      const initials = localStorage.getItem('skybook-user-initials') || 'JM';
+      const c = document.getElementById('profile-avatar-container');
+      if (c) c.textContent = initials;
+    }
+
     togglePersonalEdit(false);
     showToast('Personal information updated successfully');
   }
@@ -724,12 +739,22 @@
   }
 </script>
 <script>
+window.updateProfileAvatar = function(url) {
+  const c = document.getElementById('profile-avatar-container');
+  if (c && url) {
+    const initials = localStorage.getItem('skybook-user-initials') || 'JM';
+    c.innerHTML = `<img src="${url}" alt="Profile" class="w-full h-full rounded-full object-cover" onerror="this.outerHTML='${initials}'"/>`;
+  }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   var btn = document.getElementById('hero-signout-btn');
   if (btn) btn.addEventListener('click', function(e){ e.preventDefault(); window.handleProfileSignOut(); });
   const name = localStorage.getItem('skybook-user-name');
   const initials = localStorage.getItem('skybook-user-initials');
   const email = localStorage.getItem('skybook-user-email');
+  const avatar = localStorage.getItem('skybook-user-avatar');
+
   if (name) {
     document.querySelectorAll('h1.font-headline-md, #display-name').forEach(el => { el.textContent = name; });
     const input = document.getElementById('input-name');
@@ -748,6 +773,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (em.tagName === 'INPUT') em.value = email;
       else em.textContent = email;
     }
+  }
+  if (avatar) {
+    const avInput = document.getElementById('input-avatar-url');
+    if (avInput) avInput.value = avatar;
+    window.updateProfileAvatar(avatar);
   }
 });
 </script>

@@ -1,15 +1,20 @@
-﻿using Microsoft.Identity.Client;
+using SkyBook.Data.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace SkyBook.Business.ViewModel
+namespace SkyBook.Business.ViewModels
 {
     public class SeatVM
     {
-     public int AircraftId {  get; set; }
-        [Required]
-        [StringLength(100)]
-     public string SeatNumber {  get; set; }
+        public int Id { get; set; }
 
-    
+        [Required]
+        public int AircraftId { get; set; }
+
+        [Required]
+        [StringLength(10, ErrorMessage = "Seat number cannot exceed 10 characters.")]
+        public string SeatNumber { get; set; } = string.Empty;
+
+        [Required]
+        public SeatClass Class { get; set; }
     }
 }

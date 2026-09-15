@@ -285,6 +285,10 @@
       if (!container) return;
       container.innerHTML = state.airports.map(a => `
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
+          ${a.imageUrl ? `
+          <div class="w-full h-32 rounded-lg overflow-hidden mb-3 border border-slate-200 bg-slate-100">
+            <img src="${a.imageUrl}" alt="${a.name}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'"/>
+          </div>` : ''}
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3">
               <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
@@ -695,8 +699,9 @@
       const name = document.getElementById('ma-name').value.trim();
       const city = document.getElementById('ma-city').value.trim();
       const country = document.getElementById('ma-country').value.trim();
+      const imageUrl = document.getElementById('ma-image-url') ? document.getElementById('ma-image-url').value.trim() : '';
 
-      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active' });
+      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active', imageUrl });
       renderAirports();
       saveAirportsToStorage();
       closeModal('modal-add-airport');
@@ -712,6 +717,8 @@
       document.getElementById('ea-name').value = airport.name;
       document.getElementById('ea-city').value = airport.city;
       document.getElementById('ea-country').value = airport.country;
+      const imgInput = document.getElementById('ea-image-url');
+      if (imgInput) imgInput.value = airport.imageUrl || '';
       openModal('modal-edit-airport');
     }
 
@@ -722,24 +729,41 @@
       const name = document.getElementById('ea-name').value.trim();
       const city = document.getElementById('ea-city').value.trim();
       const country = document.getElementById('ea-country').value.trim();
+      const imageUrl = document.getElementById('ea-image-url') ? document.getElementById('ea-image-url').value.trim() : '';
       
       const idx = state.airports.findIndex(a => a.iata === origIata);
       if (idx !== -1) {
-        state.airports[idx] = { ...state.airports[idx], iata, name, city, country };
+        state.airports[idx] = { ...state.airports[idx], iata, name, city, country, imageUrl };
         renderAirports();
         saveAirportsToStorage();
         closeModal('modal-edit-airport');
-        showToast(`Airport ${iata} - ${name} updated successfully`, 'success');
+        showWebsitePopup({
+          title: 'Airport Details Updated',
+          message: `Airport ${iata} (${name}) has been updated in the sovereign network.`,
+          type: 'success'
+        });
       }
     }
 
     function handleDeleteAirport(iata) {
-      if (confirm(`Are you sure you want to remove airport ${iata} from the network?`)) {
-        state.airports = state.airports.filter(a => a.iata !== iata);
-        renderAirports();
-        saveAirportsToStorage();
-        showToast(`Airport ${iata} removed from network`, 'info');
-      }
+      showWebsiteConfirm({
+        title: `Remove Airport ${iata}?`,
+        category: 'Route Network Operations',
+        message: `Are you sure you want to remove airport <strong>${iata}</strong> from the sovereign route network? This will decommission associated dispatch routes.`,
+        confirmText: 'Yes, Remove Airport',
+        cancelText: 'Keep Airport',
+        type: 'danger',
+        onConfirm: () => {
+          state.airports = state.airports.filter(a => a.iata !== iata);
+          renderAirports();
+          saveAirportsToStorage();
+          showWebsitePopup({
+            title: 'Airport Removed',
+            message: `Airport ${iata} has been removed from the network.`,
+            type: 'info'
+          });
+        }
+      });
     }
 
     // Filtering

@@ -1,24 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SkyBook.Business.ViewModels
 {
     public class AirportVM
     {
-        [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
-
-        [Required]
-        [StringLength(10)]
-        public string Code {  get; set; }
+        public int Id { get; set; }
+        public int id { get => Id; set => Id = value; }
 
         [Required]
         [StringLength(100)]
-        public  string City {  get; set; }
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(10, ErrorMessage = "Airport code cannot exceed 10 characters.")]
+        public string Code { get; set; } = string.Empty;
 
         [Required]
         [StringLength(100)]
-        public  string Country {  get; set; }
-        public int id { get; internal set; }
+        public string City { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100)]
+        public string Country { get; set; } = string.Empty;
+
+        [StringLength(500)]
+        public string? ImageUrl { get; set; }
     }
 }
