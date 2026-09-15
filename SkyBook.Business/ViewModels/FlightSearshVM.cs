@@ -5,9 +5,9 @@ namespace SkyBook.Business.ViewModels
     public class FlightSearshVM
     {
         [Required]
-        public int DepartureAirPortId { get; set; }
+        public int DepartureAirportId { get; set; }
         [Required]
-        public int ArrivalAirPortId { get; set; }
+        public int ArrivalAirportId { get; set; }
         [Required]
         public DateTime TravelDate {  get; set; }
         [Range(1,10)]

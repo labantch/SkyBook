@@ -8,151 +8,226 @@ namespace SkyBook.Business.Service;
 
 public class FlightService : IFlightService
 {
-    private ApplicationDbContext context = new ApplicationDbContext();
+    private ApplicationDbContext _context;
+    public FlightService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
     public async Task<List<FlightVM>> GetAllFlightsAsync()
     {
-        var flights = await context.Flights.ToListAsync();
-        var result = new List<FlightVM>();
-        foreach (var flight in flights)
+        return await _context.Flights.Select(f => new FlightVM
         {
-            var f = new FlightVM()
-            {
-                Id = flight.Id,
-                FlightNumber = flight.FlightNumber,
-                AircraftID = flight.AircraftId,
-                DepartureAirportId = flight.DepartureAirportId,
-                ArrivalAirportId = flight.ArrivalAirportId,
-                DepartureTime = flight.DepartureTime,
-                ArrivalTime = flight.ArrivalTime,
-                Price = flight.Price,
-                Status = flight.Status
-            };
-            result.Add(f);
-        }
+            Id = f.Id,
+            FlightNumber = f.FlightNumber,
 
-        return result;
+            AircraftId = f.AircraftId,
+            DepartureAirportId = f.DepartureAirportId,
+            ArrivalAirportId = f.ArrivalAirportId,
+            DepartureTime = f.DepartureTime,
+            ArrivalTime = f.ArrivalTime,
+            Price = f.Price,
+            Status = f.Status
+        }).ToListAsync();
+
     }
 
-    public async Task<FlightDetailsVM> GetFlightsByIdAsync(int id)
+    public async Task<FlightDetailsVM> GetFlightByIdAsync(int id)
     {
-        var flights = await context.Flights
-            .Include(flight => flight.Aircraft)
-            .Include(flight => flight.DepartureAirport)
-            .Include(flight => flight.ArrivalAirport)
+        var flights = await _context.Flights
+            .Include(f => f.Aircraft)
+            .Include(f => f.DepartureAirport)
+            .Include(f => f.ArrivalAirport)
             .FirstOrDefaultAsync(f => f.Id == id);
-        var flight = new FlightDetailsVM()
+        if (flights == null)
+        {
+            return null;
+        }
+        var seats = await _context.Seats.Where(s => s.AircraftId == flights.AircraftId)
+        .Select(s => new SeatSelectionVM
+        {
+            SeatId = s.Id,
+            SeatNumber = s.SeatNumber,
+            SeatClass = s.Class,
+            IsBooked = _context.Bookings
+        .Any(b => b.FlightId == flights.Id && b.SeatId == s.Id)
+        }).ToListAsync();
+        var avaliablesSeats = seats.Count(c => !c.IsBooked);
+        return new FlightDetailsVM
         {
             FlightId = flights.Id,
             FlightNumber = flights.FlightNumber,
             AircraftName = flights.Aircraft.Name,
-            DepartureAirport = flights.DepartureAirport.Name,
             ArrivalAirport = flights.ArrivalAirport.Name,
-            DepartureTime = flights.DepartureTime,
-            ArrivalTime = flights.ArrivalTime,
+            DepartureAirport = flights.DepartureAirport.Name,
             Price = flights.Price,
-            Status = flights.Status
+            Status = flights.Status,
+            AvaliableSeats = avaliablesSeats,
+            Seats = seats
         };
-        return flight;
     }
 
-    public async Task CreatAsync(FlightVM flight)
+
+    public async Task CreateFlightAsync(FlightVM model)
     {
-        bool flightExist = await context.Flights.AnyAsync(a => a.Id == flight.Id);
-        if (flightExist)
+        if (model.DepartureAirportId == model.ArrivalAirportId)
         {
-            throw new Exception("Flight Already Exist");
+            throw new Exception("Departure and Arrival airport cannot be the same");
         }
-        var flights=new Flight()
+        if (model.ArrivalTime <= model.DepartureTime)
         {
-            FlightNumber = flight.FlightNumber,
-            AircraftId = flight.AircraftID,
-            DepartureAirportId = flight.DepartureAirportId,
-            ArrivalAirportId = flight.ArrivalAirportId,
-            DepartureTime = flight.DepartureTime,
-            ArrivalTime = flight.ArrivalTime,
-            Price = flight.Price
+            throw new Exception("Arival time must be after departure time");
+        }
+
+        var airportExist = await _context.Airports.AnyAsync(a => a.Id == model.DepartureAirportId || a.Id == model.ArrivalAirportId);
+        if (!airportExist)
+        {
+            throw new Exception("airport not found");
+        }
+        var flight = new Flight
+        {
+
+            FlightNumber = model.FlightNumber,
+            AircraftId = model.AircraftId,
+            DepartureAirportId = model.DepartureAirportId,
+            ArrivalAirportId = model.ArrivalAirportId,
+            DepartureTime = model.DepartureTime,
+            ArrivalTime = model.ArrivalTime,
+            Price = model.Price
         };
-        await context.Flights.AddAsync(flights);
-        await context.SaveChangesAsync();
-        
+
+        _context.Flights.Add(flight);
+        await _context.SaveChangesAsync();
+
     }
 
-    public async Task EditAsync(FlightVM flight)
-    {
-        var flights = await context.Flights.FirstOrDefaultAsync(a => a.FlightNumber ==flight.FlightNumber);
-        if (flights == null)
-        {
-            throw new Exception("Aircraft  Not Found");
-        }
-        flights.FlightNumber = flight.FlightNumber;
-        flights.DepartureAirportId = flight.DepartureAirportId;
-        flights.ArrivalAirportId = flight.ArrivalAirportId;
-        flights.AircraftId = flight.AircraftID;
-        flights.DepartureTime = flight.DepartureTime;
-        flights.ArrivalTime = flight.ArrivalTime;
-        flights.Price = flight.Price;
-        flights.Status = flight.Status;
-        
-        await context.SaveChangesAsync();
-    }
 
-    public async Task DeleteAsync(int id)
+    public async Task UpdateFlightAsync(FlightVM model)
     {
-        bool hasFlights = await context.Flights.AnyAsync(a => a.Id == id);
-        if (hasFlights)
-        {
-            throw new Exception("Aircraft is used in Flights");
-        }
-        var flight = await context.Aircrafts.FindAsync(id);
+        var flight = await _context.Flights
+            .FirstOrDefaultAsync(f => f.Id == model.Id);
+
         if (flight == null)
+            throw new Exception("Flight not found.");
+
+        if (model.DepartureAirportId == model.ArrivalAirportId)
+            throw new Exception("Departure and Arrival airports cannot be the same.");
+
+        if (model.ArrivalTime <= model.DepartureTime)
+            throw new Exception("Arrival time must be after departure time.");
+
+        var flightNumberExists = await _context.Flights
+            .AnyAsync(f =>
+                f.FlightNumber == model.FlightNumber &&
+                f.Id != model.Id);
+
+        if (flightNumberExists)
+            throw new Exception("Flight number already exists.");
+
+        flight.FlightNumber = model.FlightNumber;
+        flight.DepartureAirportId = model.DepartureAirportId;
+        flight.ArrivalAirportId = model.ArrivalAirportId;
+        flight.AircraftId = model.AircraftId;
+        flight.DepartureTime = model.DepartureTime;
+        flight.ArrivalTime = model.ArrivalTime;
+        flight.Price = model.Price;
+        flight.Status = model.Status;
+
+        await _context.SaveChangesAsync();
+    }
+
+
+    public async Task DeleteFlightAsync(int id)
+    {
+        var flight = await _context.Flights
+            .FirstOrDefaultAsync(f => f.Id == id);
+
+        if (flight == null)
+            throw new Exception("Flight not found.");
+
+        var hasBookings = await _context.Bookings
+            .AnyAsync(b => b.FlightId == id);
+
+        if (hasBookings)
+            throw new Exception("Cannot delete a flight that has bookings.");
+
+        _context.Flights.Remove(flight);
+
+        await _context.SaveChangesAsync();
+    }
+
+
+    public async Task<List<FlightCardVM>> SearchFlightsAsync(
+          FlightSearshVM model)
+    {
+        var flights = await _context.Flights
+            .Where(f =>
+                f.DepartureAirportId == model.DepartureAirportId &&
+                f.ArrivalAirportId == model.ArrivalAirportId &&
+                f.DepartureTime.Date == model.TravelDate.Date
+            )
+            .Include(f => f.DepartureAirport)
+            .Include(f => f.ArrivalAirport)
+            .Include(f => f.Aircraft)
+            .ToListAsync();
+
+        var result = new List<FlightCardVM>();
+
+        foreach (var flight in flights)
         {
-            throw new Exception("Aircraft Not  Found");
+            var totalSeats = await _context.Seats
+                .CountAsync(s => s.AircraftId == flight.AircraftId);
+
+            var bookedSeats = await _context.Bookings
+                .CountAsync(b => b.FlightId == flight.Id);
+
+            var availableSeats = totalSeats - bookedSeats;
+
+            if (availableSeats >= model.PassengerCount)
+            {
+                result.Add(new FlightCardVM
+                {
+                    FlightID = flight.Id,
+                    FlightNumber = flight.FlightNumber,
+                    DepartureAirPort = flight.DepartureAirport.Name,
+                    ArrivalAirPort = flight.ArrivalAirport.Name,
+
+                    DepartureTime = flight.DepartureTime,
+                    ArrivalTime = flight.ArrivalTime,
+
+                    Price = flight.Price,
+                    AvailableSeat = availableSeats
+                });
+            }
         }
-        context.Aircrafts.Remove(flight);
-        await context.SaveChangesAsync();
-    }
 
-    public async Task<FlightSearshVM> Search(int id)
+        return result; }
+
+     public async Task ChangeStatusAsync(int flightId,FlightStatus status)
     {
-        var flights = await context.Flights
-            .Include(flight => flight.Aircraft)
-            .Include(flight => flight.DepartureAirport)
-            .Include(flight => flight.ArrivalAirport)
-            .FirstOrDefaultAsync(f => f.Id == id);
-        var flight = new FlightSearshVM()
-        {
-            DepartureAirPortId = flights.DepartureAirportId,
-            ArrivalAirPortId = flights.ArrivalAirportId,
-            TravelDate = flights.DepartureTime,
-            PassengerCount = flights.Aircraft.Capacity
-        };
-        return flight;
-    }
+        var flight = await _context.Flights
+            .FirstOrDefaultAsync(f => f.Id == flightId);
 
-    public Task<FlightVM> ChangeStatusAsync()
-    {
-        throw new NotImplementedException();
-    }
+        if (flight == null)
+            throw new Exception("Flight not found.");
 
-    public async Task<FlightCardVM> GetFlightCardAsync(int id)
-    {
-        var flights = await context.Flights
-            .Include(flight => flight.Aircraft)
-            .Include(flight => flight.DepartureAirport)
-            .Include(flight => flight.ArrivalAirport)
-            .FirstOrDefaultAsync(f => f.Id == id);
-        var flight = new FlightCardVM()
-        {
-            FlightID = flights.Id,
-            FlightNumber = flights.FlightNumber,
-            ArrivalAirPort = flights.ArrivalAirport.Name,
-            ArrivalTime = flights.ArrivalTime,
-            DepartureAirPort = flights.DepartureAirport.Name,
-            DepartureTime = flights.DepartureTime,
-            Price = flights.Price,
-            // AvailableSeat = flights.Aircraft.Seats
+        flight.Status = status;
 
-        };
-        return flight;
+        await _context.SaveChangesAsync();
     }
-}
+} 
+
+
+    
+    
+
+
+
+    
+
+
+    
+
+
+    
+
+    

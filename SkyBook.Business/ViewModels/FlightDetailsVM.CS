@@ -19,6 +19,7 @@ namespace SkyBook.Business.ViewModels
         
         public decimal Price { get; set; }
         public FlightStatus Status { get; set; }
+        public int AvaliableSeats { get; set; }
         public List<SeatSelectionVM> Seats {  get; set; }
     }
 }

@@ -5,6 +5,6 @@ namespace SkyBook.Business.Interfaces;
 public interface ISeatService
 {
 
-    Task<List<SeatSelectionVM>> GetSeatsByFlightAsync(int flightid);
-    Task<bool> IsSeatAvailableAsync(int seatid, int flightid);
+  public  Task<List<SeatSelectionVM>> GetSeatsByFlightAsync(int flightid);
+   public Task<bool> IsSeatAvailableAsync(int seatid, int flightid);
 }
