@@ -7,12 +7,8 @@ namespace SkyBook.Business.ViewModels
     {
         [Required]
         public int DepartureAirportId { get; set; }
-        public int DepartureAirPortId { get => DepartureAirportId; set => DepartureAirportId = value; }
-
         [Required]
         public int ArrivalAirportId { get; set; }
-        public int ArrivalAirPortId { get => ArrivalAirportId; set => ArrivalAirportId = value; }
-
         [Required]
         public DateTime TravelDate { get; set; }
 

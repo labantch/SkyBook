@@ -18,9 +18,7 @@ namespace SkyBook.Business.ViewModels
         public int ArrivalAirportId { get; set; }
 
         [Required]
-        public int AircraftId { get; set; }
-        public int AircraftID { get => AircraftId; set => AircraftId = value; }
-
+        public int AircraftId {  get; set; }
         [Required]
         public DateTime DepartureTime { get; set; }
 
