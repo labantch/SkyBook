@@ -1,11 +1,14 @@
+using SkyBook.Business.ViewModels;
 using SkyBook.Data.Models;
 
 namespace SkyBook.Business.Interfaces;
 
 public interface IAircraftService
 {
-    public void Add(Aircraft aircraft);
-    public void Delete(int id);
-    public void Edit(Aircraft aircraft);
-    // public List<AirportViewModel> GetAll();
+    Task<List<AircraftVM>> GetAllAircraftsAsync();
+    Task<AircraftVM> GetAircraftByIdAsync(int id);
+    Task CreateAircraftAsync(AircraftVM aircraft);
+    Task UpdateAircraftAsync(AircraftVM aircraft);
+    Task DeleteAircraftAsync(int id);
+
 }

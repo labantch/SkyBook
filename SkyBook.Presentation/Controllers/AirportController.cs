@@ -22,7 +22,9 @@ namespace SkyBook.Presentation.Controllers
         {
             var airport = await _airportService.GetAirportByIdAsync(id);
             if (airport == null)
+            {
                 return NotFound();
+            }
             return View(airport);
         }
         [HttpGet]
@@ -45,7 +47,9 @@ namespace SkyBook.Presentation.Controllers
         {
             var airport = await _airportService.GetAirportByIdAsync(id);
             if (airport == null)
+            {
                 return NotFound();
+            }
             return View(airport);
         }
         [HttpPost]
