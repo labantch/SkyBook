@@ -1,12 +1,13 @@
+using SkyBook.Business.ViewModels;
 using SkyBook.Data.Models;
 
 namespace SkyBook.Business.Interfaces;
 
 public interface IPassengerService
 {
-    public Task<List<Passenger>> GetAll();
-    public Task<List<Passenger>> GetById(int id);
-    public Task Add(Passenger passenger);
-    public Task Update(Passenger passenger);
-    public Task Delete(int id);
+    public Task<List<PassengerVM>> GetAllPassengersAsync();
+    public Task<PassengerVM> GetPassengersByIdAsync(int id);
+    public Task AddPassengerAsync(PassengerVM passenger);
+    public Task UpdatePassengerAsync(PassengerVM passenger);
+    public Task DeletePassengerAsync(int id);
 }
