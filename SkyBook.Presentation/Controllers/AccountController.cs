@@ -30,7 +30,7 @@ namespace SkyBook.Presentation.Controllers
             if (ModelState.IsValid)
             {
                 await _userService.LoginAsync(model);
-                return RedirectToAction(nameof(Index);
+                return RedirectToAction(nameof(Index)); 
             }
             return View();
         } 
