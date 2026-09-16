@@ -9,11 +9,11 @@ namespace SkyBook.Presentation.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IApplicationUserService _userService;
+        private readonly IAccountService _userService;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AccountController(IApplicationUserService userService, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(IAccountService userService, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
         {
             _userService = userService;
             _roleManager = roleManager;

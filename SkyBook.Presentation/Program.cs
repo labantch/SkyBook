@@ -23,11 +23,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IAirportService, SkyBook.Business.Service.AirportService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IAircraftService, SkyBook.Business.Service.AircraftService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IFlightService, SkyBook.Business.Service.FlightService>();
-builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, SkyBook.Business.Service.ApplicationUserService>();
+builder.Services.AddScoped<SkyBook.Business.Interfaces.IAccountService, SkyBook.Business.Service.AccountService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IBookingService, SkyBook.Business.Service.BookingService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.ISeatService, SkyBook.Business.Service.SeatService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBook.Business.Service.DashboardService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 var app = builder.Build();
 
