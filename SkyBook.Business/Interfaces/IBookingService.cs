@@ -5,11 +5,13 @@ namespace SkyBook.Business.Interfaces;
 
 public interface IBookingService
 {
-    public Task<List<MyBookingVM>> GetUserBookingsAsync();
-    // public Task<List<MyBookingVM>> GetAllBookingAsync();
-    public Task<BookingDetailsVm> GetBookingByIdAsync (int id);
-    public Task CancelAsync(int id);
-    public Task<CreateBookingVM> AddAsync(int id);
-    public Task<bool> IsSeatBookedAsync(int id);
-    
+    public Task<List<MyBookingVM>> GetUserBookingsAsync(string userId);
+    public Task<BookingDetailsVm> GetBookingByIdAsync (int bookingId,string userId);
+    public Task CancelAsync(int bookingId,string userId);
+    public Task CreateBookingAsync(string userId,CreateBookingVM model);
+    public Task<bool> IsSeatAvailableAsync(int flightId, int SeatId);
+    public Task<int> GetAvailableSeatsCountAsync(int flightId);
+
+
+
 }

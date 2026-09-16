@@ -12,6 +12,7 @@ namespace SkyBook.Data.Configuration
         public void Configure(EntityTypeBuilder<Aircraft> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.HasIndex(a => a.Name).IsUnique();
 
             builder.Property(x => x.Name)
                    .IsRequired()

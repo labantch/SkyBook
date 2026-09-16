@@ -13,6 +13,7 @@ public class FlightService : IFlightService
     {
         _context = context;
     }
+    #region GetAllFlights
     public async Task<List<FlightVM>> GetAllFlightsAsync()
     {
         return await _context.Flights.Select(f => new FlightVM
@@ -30,7 +31,9 @@ public class FlightService : IFlightService
         }).ToListAsync();
 
     }
+    #endregion
 
+    #region GetFlightById
     public async Task<FlightDetailsVM> GetFlightByIdAsync(int id)
     {
         var flights = await _context.Flights
@@ -65,8 +68,9 @@ public class FlightService : IFlightService
             Seats = seats
         };
     }
-
-
+    #endregion
+    
+    #region  CreateFlight
     public async Task CreateFlightAsync(FlightVM model)
     {
         if (model.DepartureAirportId == model.ArrivalAirportId)
@@ -100,8 +104,9 @@ public class FlightService : IFlightService
         await _context.SaveChangesAsync();
 
     }
-
-
+    #endregion
+    
+    #region UpdateFlight
     public async Task UpdateFlightAsync(FlightVM model)
     {
         var flight = await _context.Flights
@@ -136,7 +141,9 @@ public class FlightService : IFlightService
         await _context.SaveChangesAsync();
     }
 
-
+    #endregion
+    
+    #region DeleteFlight
     public async Task DeleteFlightAsync(int id)
     {
         var flight = await _context.Flights
@@ -155,8 +162,9 @@ public class FlightService : IFlightService
 
         await _context.SaveChangesAsync();
     }
-
-
+    #endregion
+    
+    #region SearchFlights
     public async Task<List<FlightCardVM>> SearchFlightsAsync(
           FlightSearshVM model)
     {
@@ -202,8 +210,10 @@ public class FlightService : IFlightService
         }
 
         return result; }
-
-     public async Task ChangeStatusAsync(int flightId,FlightStatus status)
+    #endregion
+    
+    #region ChangeStatus
+    public async Task ChangeStatusAsync(int flightId,FlightStatus status)
     {
         var flight = await _context.Flights
             .FirstOrDefaultAsync(f => f.Id == flightId);
@@ -215,6 +225,9 @@ public class FlightService : IFlightService
         flight.Status = status;
         await _context.SaveChangesAsync();
     }
+    #endregion
+    
+    #region GetFlightForEdit
     public async Task<FlightVM?> GetFlightForEditAsync(int id)
     {
         return await _context.Flights
@@ -233,20 +246,21 @@ public class FlightService : IFlightService
             })
             .FirstOrDefaultAsync();
     }
-} 
-
-
-    
-    
+    #endregion
+}
 
 
 
-    
 
 
-    
 
 
-    
 
-    
+
+
+
+
+
+
+
+

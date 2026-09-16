@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -13,7 +14,8 @@ public class AircraftService: IAircraftService
     {
         _context = context;
     }
-   public async Task<List<AircraftVM>> GetAllAircraftsAsync()
+    #region GetAllAircraft
+    public async Task<List<AircraftVM>> GetAllAircraftsAsync()
     {
         return await _context.Aircrafts
             .Select(a=> new AircraftVM 
@@ -23,6 +25,9 @@ public class AircraftService: IAircraftService
             .ToListAsync();
 
     }
+    #endregion
+
+    #region GetAircraftById
     public async Task<AircraftVM> GetAircraftByIdAsync(int id)
     {
         return await _context.Aircrafts
@@ -34,12 +39,15 @@ public class AircraftService: IAircraftService
             .FirstOrDefaultAsync();
         
     }
-   public async Task CreateAircraftAsync(AircraftVM model)
+    #endregion
+    
+    #region CreateAircraft
+    public async Task CreateAircraftAsync(AircraftVM model)
     {
-        bool AircraftExist = await _context.Aircrafts.AnyAsync(a => a.Id == model.ID);
+        bool AircraftExist = await _context.Aircrafts.AnyAsync(a => a.Name == model.Name);
         if (AircraftExist)
         {
-            throw new Exception("Aircraft  Already Exist");
+            throw new Exception("Aircraft Name Already Exist");
         }
         var aircraft=new Aircraft
         {
@@ -52,19 +60,30 @@ public class AircraftService: IAircraftService
          await _context.SaveChangesAsync();
 
     }
+    #endregion
+    
+    #region UpdateAircraft
     public async Task UpdateAircraftAsync(AircraftVM model)
     {
-        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Id ==model.ID);
+        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Id == model.ID);
         if (aircraft == null)
         {
             throw new Exception("Aircraft  Not Found");
         }
-        aircraft.Name = model.Name;
-        aircraft.Capacity = model.Capecity;
-        aircraft.ImageUrl = model.imageUrl;
-        await  _context.SaveChangesAsync();
+        var nameExit = await _context.Aircrafts.AnyAsync(a => a.Name == model.Name && a.Id != model.Id);
+        if (nameExit)
+        {
+            throw new Exception("Aircraft Name Already Exist");
+            aircraft.Name = model.Name;
+            aircraft.Capacity = model.Capecity;
+            aircraft.ImageUrl = model.imageUrl;
+            await _context.SaveChangesAsync();
 
+        }
     }
+    #endregion
+    
+    #region DeleteAircraft
     public async Task DeleteAircraftAsync(int id)
     {
         bool hasFlights = await _context.Flights.AnyAsync(a => a.AircraftId == id);
@@ -80,7 +99,7 @@ public class AircraftService: IAircraftService
         _context.Aircrafts.Remove(aircraft);
         await _context.SaveChangesAsync();
     }
-
+    #endregion
 
 
 

@@ -10,7 +10,10 @@ namespace SkyBook.Business.ViewModels
         [Required]
         [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
         public string FirstName { get; set; } = string.Empty;
-
+        [EmailAddress]
+        public string? Email {  get; set; }
+        [Phone]
+        public string? Phone { get; set; }
         [Required]
         [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
         public string LastName { get; set; } = string.Empty;

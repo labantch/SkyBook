@@ -14,7 +14,7 @@ public class AirportService : IAirportService
     {
         _context = context;
     }
-
+    #region  GetAllAirport
     public async Task<List<AirportVM>> GetAllAirportAsync()
     {
         return await _context.Airports
@@ -29,7 +29,9 @@ public class AirportService : IAirportService
             })
             .ToListAsync();
     }
-
+    #endregion
+    
+    #region GetAirportById
     public async Task<AirportVM> GetAirportByIdAsync(int id)
     {
         var airport = await _context.Airports
@@ -52,7 +54,9 @@ public class AirportService : IAirportService
 
         return airport;
     }
-
+    #endregion
+    
+    #region Create
     public async Task CreateAsync(AirportVM model)
     {
         bool codeExists = await _context.Airports.AnyAsync(a => a.Code == model.Code);
@@ -73,7 +77,9 @@ public class AirportService : IAirportService
         _context.Airports.Add(airport);
         await _context.SaveChangesAsync();
     }
-
+    #endregion
+    
+    #region  UpdateAirport
     public async Task UpdateAirportAsync(AirportVM model)
     {
         var airport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.Id);
@@ -91,6 +97,9 @@ public class AirportService : IAirportService
         await _context.SaveChangesAsync();
     }
 
+    #endregion
+    
+    #region DeleteAirport
     public async Task DeleteAirportAsync(int id)
     {
         bool hasFlights = await _context.Flights.AnyAsync(f => f.DepartureAirportId == id || f.ArrivalAirportId == id);
@@ -108,4 +117,5 @@ public class AirportService : IAirportService
         _context.Airports.Remove(airport);
         await _context.SaveChangesAsync();
     }
-}
+    #endregion
+}

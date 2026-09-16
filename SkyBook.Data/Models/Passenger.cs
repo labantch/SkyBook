@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace SkyBook.Data.Models
@@ -18,6 +19,10 @@ namespace SkyBook.Data.Models
             public string PassportNumber { get; set; }
 
             public string Nationality { get; set; }
+            [EmailAddress]
+            public string? Email { get; set; }
+            [Phone]
+            public string? Phone { get; set; }
 
             public ICollection<Booking> Bookings { get; set; }
         }
