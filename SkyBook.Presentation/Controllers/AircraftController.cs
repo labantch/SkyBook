@@ -61,6 +61,7 @@ namespace SkyBook.Presentation.Controllers
             };
             return View(aircraftvm);
         }
+        [HttpPost]
         public async Task<IActionResult>Delete(int id)
         {
             await _aircraftService.DeleteAircraftAsync(id);
