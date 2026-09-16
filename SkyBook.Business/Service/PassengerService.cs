@@ -14,30 +14,6 @@ public class PassengerService : IPassengerService
     {
         this.context = context;
     }
-
-    public async Task Add(Passenger passenger)
-    {
-        await context.Passengers.AddAsync(passenger);
-        await context.SaveChangesAsync();
-    }
-
-    public async Task Update(Passenger passenger)
-    {
-        context.Passengers.Update(passenger);
-        await context.SaveChangesAsync();
-
-    }
-
-    public async Task Delete(int id)
-    {
-        var airport = await context.Airports.FirstOrDefaultAsync(a => a.Id == id);
-        if (airport != null)
-        {
-            context.Airports.Remove(airport);
-            await context.SaveChangesAsync();
-        }
-    }
-
     public async Task<List<PassengerVM>> GetAllPassengersAsync()
     {
         return await context.Passengers
