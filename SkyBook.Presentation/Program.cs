@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SkyBook.Business.Interfaces;
+using SkyBook.Business.Service;
 using SkyBook.Data.Data;
-
 using SkyBook.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,7 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, 
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IBookingService, SkyBook.Business.Service.BookingService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.ISeatService, SkyBook.Business.Service.SeatService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBook.Business.Service.DashboardService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 

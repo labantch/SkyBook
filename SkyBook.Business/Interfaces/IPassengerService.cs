@@ -6,8 +6,8 @@ namespace SkyBook.Business.Interfaces;
 public interface IPassengerService
 {
     public Task<List<PassengerVM>> GetAllPassengersAsync();
-    public Task<PassengerVM> GetPassengersByIdAsync(int id);
-    public Task AddPassengerAsync(PassengerVM passenger);
-    public Task UpdatePassengerAsync(PassengerVM passenger);
-    public Task DeletePassengerAsync(int id);
+    public Task<PassengerVM> GetPassengerByIdAsync(int id);
+    //public Task AddPassengerAsync(PassengerVM passenger);
+    //public Task UpdatePassengerAsync(PassengerVM passenger);
+    //public Task DeletePassengerAsync(int id);
 }
