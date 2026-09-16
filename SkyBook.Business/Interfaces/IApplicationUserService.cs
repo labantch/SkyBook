@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using SkyBook.Business.ViewModels;
 using SkyBook.Data.Models;
 
 namespace SkyBook.Business.Interfaces;
 
 public interface IApplicationUserService
 {
-    public Task<bool> Login(string email, string password, bool remmberMe);
-    public Task<IdentityResult> Register(ApplicationUser user, string password);
-    public Task Logout();
+    public Task<LoginVM> LoginAsync(LoginVM model);
+    public Task<RegisterVM> RegisterAsync(RegisterVM model);
+    public Task LogoutAsync();
 }
