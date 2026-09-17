@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
+using SkyBook.Data.Models;
 
 namespace SkyBook.Presentation.Areas.Admin.Controllers
 {
@@ -28,6 +29,46 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 return NotFound();
 
             return View(booking);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            try
+            {
+                var newStatus = await _bookingService.ToggleStatusAsync(id);
+                var message = newStatus == BookingStatus.Cancelled
+                    ? "Booking canceled successfully."
+                    : "Booking restored successfully.";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return Json(new { success = true, status = (int)newStatus, statusName = newStatus.ToString(), message });
+                }
+
+                TempData["Success"] = message;
+            }
+            catch (Exception ex)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        [ActionName("ToggleStatus")]
+        public IActionResult ToggleStatusGet(int id)
+        {
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

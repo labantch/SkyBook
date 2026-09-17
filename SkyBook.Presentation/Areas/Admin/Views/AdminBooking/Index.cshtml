@@ -582,7 +582,7 @@
           // Update local state
           const booking = state.bookings.find(b => b.id === id);
           if (booking) {
-            booking.status = result.status ? getStatusText(result.status) : (isCancelled ? 'Confirmed' : 'Cancelled');
+            booking.status = result.status != null ? getStatusText(result.status) : (isCancelled ? 'Confirmed' : 'Cancelled');
           }
           renderBookingsTable();
           showToast(result.message || (isCancelled ? `Booking ${pnr} restored to Active.` : `Booking ${pnr} cancelled.`), 'success');
@@ -592,6 +592,14 @@
           if (drawerPnr === pnr) {
             openBookingDetailsDrawer(id);
           }
+          return;
+        } else {
+          let errorMsg = 'Failed to update booking status.';
+          try {
+            const err = await response.json();
+            if (err && err.message) errorMsg = err.message;
+          } catch (_) {}
+          showToast(errorMsg, 'error');
           return;
         }
       } catch (err) {
