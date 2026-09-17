@@ -22,10 +22,6 @@ namespace SkyBook.Data.Models
 
         public AirportStatus Status { get; set; } = AirportStatus.Active;
 
-        public AirportStatus Status { get; set; } = AirportStatus.Active;
-
-        public AirportStatus Status { get; set; } = AirportStatus.Active;
-
         public ICollection<Flight> DepartingFlights { get; set; }
         public ICollection<Flight> ArrivingFlights { get; set; }
     }
