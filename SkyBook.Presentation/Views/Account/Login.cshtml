@@ -1,8 +1,8 @@
+@model SkyBook.Business.ViewModels.LoginVM
 @{
     ViewData["Title"] = "Log In";
     Layout = "_Layout";
 }
-
 
 <div class="min-h-[calc(100vh-5rem)] flex items-center justify-center p-6 bg-[#F8F9FA]">
   <div class="w-full max-w-xl bg-white rounded-xl p-8 shadow-xl">
@@ -15,66 +15,77 @@
       <a href="@Url.Action("Login", "Account")" class="flex-1 py-2 text-center rounded-md text-xs font-bold bg-white text-[#0B192C] shadow-sm">Log In</a>
       <a href="@Url.Action("Register", "Account")" class="flex-1 py-2 text-center rounded-md text-xs font-semibold text-slate-500 hover:text-[#0B192C]">Create Account</a>
     </div>
-<form class="flex flex-col gap-space-md" id="form-login" onsubmit="handleAuthSubmit(event);" method="post">
-<div class="flex flex-col gap-space-xs">
-<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="login-email">Email Address</label>
-<div class="relative flex items-center">
-<span class="material-symbols-outlined absolute left-3.5 text-outline text-headline-sm pointer-events-none">mail</span>
-<input class="w-full pl-11 pr-space-md py-3.5 bg-surface-container-low rounded-lg text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:shadow-md transition duration-150" id="login-email" placeholder="e.g. alexander.wright@@luxurytravel.com" required="" type="email">
-</div>
-</div>
-<div class="flex flex-col gap-space-xs">
-<div class="flex items-center justify-between">
-<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="login-password">Password</label>
-<a class="font-label-caps text-label-caps text-secondary hover:text-on-secondary-fixed-variant transition" href="javascript:void(0)">Forgot password?</a>
-</div>
-<div class="relative flex items-center">
-<span class="material-symbols-outlined absolute left-3.5 text-outline text-headline-sm pointer-events-none">vpn_key</span>
-<input class="w-full pl-11 pr-12 py-3.5 bg-surface-container-low rounded-lg text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:shadow-md transition duration-150" id="login-password" placeholder="••••••••••••" required="" type="password">
-<button class="absolute right-3.5 text-outline hover:text-on-surface focus:outline-none" onclick="togglePasswordVisibility('login-password', this)" type="button">
-<span class="material-symbols-outlined text-headline-sm">visibility</span>
-</button>
-</div>
-</div>
-<div class="flex items-center justify-between pt-space-xs">
-<label class="flex items-center gap-space-sm cursor-pointer select-none">
-<input checked="" class="w-4 h-4 rounded text-primary accent-primary bg-surface-container-low focus:ring-0 cursor-pointer" type="checkbox">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Remember this verified terminal</span>
-</label>
-</div>
-<button class="w-full mt-space-sm py-4 px-space-lg rounded-lg bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold tracking-wide shadow-md hover:bg-on-secondary-fixed-variant hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-space-sm group" type="submit">
-<span class="">Sign In to SkyBook</span>
-<span class="material-symbols-outlined text-headline-sm group-hover:translate-x-1 transition-transform">flight_takeoff</span>
-</button>
-<p class="font-label-caps text-label-caps text-outline text-center">Demo tip: sign in with <span class="text-on-surface font-semibold">admin@@skybook.com</span> (any password) to open the Ops Console.</p>
-</form>
-    <p class="mt-4 text-center text-xs text-slate-400">Demo tip: sign in with <strong>admin@@skybook.com</strong> (any password) for the Ops Console.</p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+      <div class="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm" role="alert">
+        <ul class="list-disc list-inside space-y-1">
+          @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+          {
+            <li>@error.ErrorMessage</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <form class="flex flex-col gap-space-md" id="form-login" method="post"
+          asp-action="Login" asp-controller="Account"
+          asp-route-returnUrl="@ViewData["ReturnUrl"]">
+      @Html.AntiForgeryToken()
+
+      <div class="flex flex-col gap-space-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="login-email">Email Address</label>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3.5 text-outline text-headline-sm pointer-events-none">mail</span>
+          <input class="w-full pl-11 pr-space-md py-3.5 bg-surface-container-low rounded-lg text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:shadow-md transition duration-150"
+                 id="login-email" name="Email" type="email"
+                 placeholder="e.g. alexander.wright@@luxurytravel.com"
+                 value="@(Model?.Email ?? "")" required />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-space-xs">
+        <div class="flex items-center justify-between">
+          <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="login-password">Password</label>
+          <a class="font-label-caps text-label-caps text-secondary hover:text-on-secondary-fixed-variant transition" href="javascript:void(0)">Forgot password?</a>
+        </div>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3.5 text-outline text-headline-sm pointer-events-none">vpn_key</span>
+          <input class="w-full pl-11 pr-12 py-3.5 bg-surface-container-low rounded-lg text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:shadow-md transition duration-150"
+                 id="login-password" name="Password" type="password"
+                 placeholder="••••••••••••" required />
+          <button class="absolute right-3.5 text-outline hover:text-on-surface focus:outline-none"
+                  onclick="togglePasswordVisibility('login-password', this)" type="button">
+            <span class="material-symbols-outlined text-headline-sm">visibility</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-space-xs">
+        <label class="flex items-center gap-space-sm cursor-pointer select-none">
+          <input class="w-4 h-4 rounded text-primary accent-primary bg-surface-container-low focus:ring-0 cursor-pointer"
+                 type="checkbox" name="RememberMe" id="remember-me" value="true" />
+          <span class="font-body-sm text-body-sm text-on-surface-variant">Remember this verified terminal</span>
+        </label>
+      </div>
+
+      <button class="w-full mt-space-sm py-4 px-space-lg rounded-lg bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold tracking-wide shadow-md hover:bg-on-secondary-fixed-variant hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-space-sm group"
+              type="submit" id="login-submit-btn">
+        <span>Sign In to SkyBook</span>
+        <span class="material-symbols-outlined text-headline-sm group-hover:translate-x-1 transition-transform">flight_takeoff</span>
+      </button>
+
+      <p class="text-center text-xs text-slate-400 mt-2">
+        Don't have an account? <a href="@Url.Action("Register", "Account")" class="text-secondary font-semibold hover:underline">Create one here</a>
+      </p>
+    </form>
   </div>
 </div>
 
-
 @section Scripts {
-<script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-low":"#f3f4f5","on-secondary":"#ffffff","on-secondary-fixed":"#281800","surface-bright":"#f8f9fa","secondary-container":"#fedeb2","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3a475c","on-secondary-fixed-variant":"#584323","primary-fixed-dim":"#bac7e1","inverse-primary":"#bac7e1","primary-container":"#0e1c2f","on-background":"#191c1d","error-container":"#ffdad6","primary-fixed":"#d6e3fe","on-tertiary-fixed":"#001c38","on-tertiary-fixed-variant":"#29486d","tertiary-fixed":"#d3e4ff","outline-variant":"#c5c6cd","surface":"#f8f9fa","secondary":"#725b38","surface-container-high":"#e7e8e9","on-tertiary":"#ffffff","on-surface":"#191c1d","tertiary-fixed-dim":"#aac9f4","on-error-container":"#93000a","surface-container-highest":"#e1e3e4","primary":"#000000","on-primary":"#ffffff","on-primary-fixed":"#0e1c2f","surface-variant":"#e1e3e4","on-error":"#ffffff","on-primary-container":"#77849c","inverse-on-surface":"#f0f1f2","surface-container-lowest":"#ffffff","tertiary-container":"#001c38","error":"#ba1a1a","outline":"#75777d","background":"#f8f9fa","tertiary":"#000000","on-secondary-container":"#78603e","inverse-surface":"#2e3132","surface-dim":"#d9dadb","secondary-fixed":"#fedeb2","surface-tint":"#525f75","surface-container":"#edeeef","on-tertiary-container":"#6886ae","secondary-fixed-dim":"#e0c298"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-sm":"0.5rem","space-md":"1rem","space-xs":"0.25rem",margin:"3rem","margin-mobile":"1.25rem","gutter-mobile":"1rem",gutter:"1.5rem","space-xl":"2.5rem"},fontFamily:{"display-hero":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"title-flight-code":["Space Grotesk"],"headline-lg":["Plus Jakarta Sans"],"label-caps":["Space Grotesk"],"body-sm":["Plus Jakarta Sans"],"price-lg":["Space Grotesk"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},fontSize:{"display-hero":["56px",{lineHeight:"64px",letterSpacing:"-0.03em",fontWeight:"700"}],"body-lg":["18px",{lineHeight:"28px",fontWeight:"400"}],"display-hero-mobile":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"title-flight-code":["28px",{lineHeight:"32px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-lg":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"600"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"price-lg":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],"body-md":["15px",{lineHeight:"22px",fontWeight:"400"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.015em",fontWeight:"600"}]}}}};</script>
+<script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-low":"#f3f4f5","on-secondary":"#ffffff","on-secondary-fixed":"#281800","surface-bright":"#f8f9fa","secondary-container":"#fedeb2","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3a475c","on-secondary-fixed-variant":"#584323","primary-fixed-dim":"#bac7e1","inverse-primary":"#bac7e1","primary-container":"#0e1c2f","on-background":"#191c1d","error-container":"#ffdad6","primary-fixed":"#d6e3fe","on-tertiary-fixed":"#001c38","on-tertiary-fixed-variant":"#29486d","tertiary-fixed":"#d3e4ff","outline-variant":"#c5c6cd","surface":"#f8f9fa","secondary":"#725b38","surface-container-high":"#e7e8e9","on-tertiary":"#ffffff","on-surface":"#191c1d","tertiary-fixed-dim":"#aac9f4","on-error-container":"#93000a","surface-container-highest":"#e1e3e4","primary":"#000000","on-primary":"#ffffff","on-primary-fixed":"#0e1c2f","surface-variant":"#e1e3e4","on-error":"#ffffff","on-primary-container":"#77849c","inverse-on-surface":"#f0f1f2","surface-container-lowest":"#ffffff","tertiary-container":"#001c38","error":"#ba1a1a","outline":"#75777d","background":"#f8f9fa","tertiary":"#000000","on-secondary-container":"#78603e","inverse-surface":"#2e3132","surface-dim":"#d9dadb","secondary-fixed":"#fedeb2","surface-tint":"#525f75","surface-container":"#edeeef","on-tertiary-container":"#6886ae","secondary-fixed-dim":"#e0c298"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-sm":"0.5rem","space-md":"1rem","space-xs":"0.25rem",margin:"3rem","margin-mobile":"1.25rem","gutter-mobile":"1rem",gutter:"1.5rem","space-xl":"2.5rem"},fontFamily:{"display-hero":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"title-flight-code":["Space Grotesk"],"headline-lg":["Plus Jakarta Sans"],"label-caps":["Space Grotesk"],"body-sm":["Plus Jakarta Sans"],"price-lg":["Space Grotesk"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},fontSize:{"display-hero":["56px",{lineHeight:"64px",letterSpacing:"-0.03em",fontWeight:"700"}],"body-lg":["18px",{lineHeight:"28px",fontWeight:"400"}],"display-hero-mobile":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"title-flight-code":["28px",{lineHeight:"32px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-lg":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"600"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"price-lg":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],"body-md":["15px",{lineHeight:"22px",fontWeight:"400"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.015em",fontWeight:"600"}]}}}};
+</script>
 <script>
-  function switchAuthMode(mode) {
-    const loginBtn = document.getElementById('toggle-login');
-    const signupBtn = document.getElementById('toggle-signup');
-    const loginForm = document.getElementById('form-login');
-    const signupForm = document.getElementById('form-signup');
-
-    if (mode === 'login') {
-      loginBtn.className = 'flex-1 py-space-sm px-space-md text-center rounded-md font-label-caps text-label-caps transition-all duration-200 bg-surface-container-lowest text-on-surface shadow-sm';
-      signupBtn.className = 'flex-1 py-space-sm px-space-md text-center rounded-md font-label-caps text-label-caps transition-all duration-200 text-on-surface-variant hover:text-on-surface';
-      loginForm.classList.remove('hidden');
-      signupForm.classList.add('hidden');
-    } else {
-      signupBtn.className = 'flex-1 py-space-sm px-space-md text-center rounded-md font-label-caps text-label-caps transition-all duration-200 bg-surface-container-lowest text-on-surface shadow-sm';
-      loginBtn.className = 'flex-1 py-space-sm px-space-md text-center rounded-md font-label-caps text-label-caps transition-all duration-200 text-on-surface-variant hover:text-on-surface';
-      signupForm.classList.remove('hidden');
-      loginForm.classList.add('hidden');
-    }
-  }
-
   function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('.material-symbols-outlined');
@@ -87,110 +98,11 @@
     }
   }
 
-  // Demo-only role check: in the real MVC app this happens server-side against
-  // the Users table / an auth role claim, not against a hardcoded email list.
-  const ADMIN_EMAILS = ['admin@@skybook.com'];
-
-  function handleAuthSubmit(event) {
-    event.preventDefault();
-    const isLoginForm = event.target && event.target.id === 'form-login';
-    const emailInput = document.getElementById(isLoginForm ? 'login-email' : 'signup-email');
-    const email = ((emailInput && emailInput.value) || '').trim().toLowerCase();
-    const isAdmin = isLoginForm && ADMIN_EMAILS.includes(email);
-
-    let firstName = '';
-    let lastName = '';
-    if (!isLoginForm) {
-      firstName = (document.getElementById('signup-first-name')?.value || '').trim();
-      lastName = (document.getElementById('signup-last-name')?.value || '').trim();
-    } else {
-      // Prefer previously saved name for this email; else derive from email
-      const savedEmail = (localStorage.getItem('skybook-user-email') || '').toLowerCase();
-      if (savedEmail && savedEmail === email && localStorage.getItem('skybook-user-name')) {
-        const parts = localStorage.getItem('skybook-user-name').split(' ');
-        firstName = parts[0] || '';
-        lastName = parts.slice(1).join(' ') || '';
-      } else {
-        const local = email.split('@@')[0] || 'Guest';
-        const bits = local.replace(/[._]+/g, ' ').split(' ').filter(Boolean);
-        firstName = bits[0] ? bits[0].charAt(0).toUpperCase() + bits[0].slice(1) : 'Guest';
-        lastName = bits[1] ? bits[1].charAt(0).toUpperCase() + bits[1].slice(1) : '';
-      }
-    }
-
-    const fullName = (firstName + ' ' + lastName).trim() || 'SkyBook Guest';
-    const initials = fullName.split(' ').filter(Boolean).map(p => p[0]).join('').slice(0, 2).toUpperCase();
-
-    localStorage.setItem('skybook-authenticated', 'true');
-    localStorage.setItem('skybook-role', isAdmin ? 'admin' : 'user');
-    localStorage.setItem('skybook-user-email', email);
-    localStorage.setItem('skybook-user-name', fullName);
-    localStorage.setItem('skybook-user-initials', initials || 'SB');
-    const authUser = {
-      name: fullName,
-      email: email,
-      role: isAdmin ? 'Admin' : 'Passenger',
-      initials: initials || 'SB'
-    };
-    localStorage.setItem('skybook-auth-user', JSON.stringify(authUser));
-    sessionStorage.removeItem('skybook-return-to');
-
-    if (isAdmin) {
-      window.location.href = '/Admin/AdminDashboard';
-      return;
-    }
-
-    let returnTo = new URLSearchParams(window.location.search).get('returnTo') || '/';
-    if (returnTo === 'management.html' || returnTo === 'index.html' || (returnTo.startsWith('/Admin') && !isAdmin)) {
-      returnTo = '/';
-    }
-    window.location.href = returnTo;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('returnTo') || params.get('mode') === 'login') {
-      switchAuthMode('login');
-      document.getElementById('auth-heading').textContent = params.has('returnTo') ? 'Log in to continue' : 'Sign in to your account';
-      document.getElementById('auth-subtitle').textContent = params.has('returnTo') ? 'Sign in to save your booking and continue securely to payment.' : 'Enter your credentials to access your flights and account.';
-    } else if (params.get('mode') === 'signup') {
-      switchAuthMode('signup');
-      document.getElementById('auth-heading').textContent = 'Create your account';
-      document.getElementById('auth-subtitle').textContent = 'Enter your details to create an account and join SkyBook.';
-    }
+  // Show loading state on submit
+  document.getElementById('form-login').addEventListener('submit', function () {
+    const btn = document.getElementById('login-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-headline-sm">progress_activity</span><span>Signing in…</span>';
   });
-</script>
-<script>
-function selectCountry(flag, code, name) {
-  const flagEl = document.getElementById('selected-country-flag');
-  const codeEl = document.getElementById('selected-country-code');
-  const menu = document.getElementById('country-dropdown-menu');
-  if (flagEl) flagEl.textContent = flag;
-  if (codeEl) codeEl.textContent = code;
-  if (menu) menu.classList.add('hidden');
-}
-
-function filterCountries(query) {
-  const q = query.toLowerCase().trim();
-  const items = document.querySelectorAll('#country-list-items .country-option');
-  items.forEach(item => {
-    const text = item.textContent.toLowerCase();
-    if (text.includes(q)) {
-      item.style.display = 'flex';
-    } else {
-      item.style.display = 'none';
-    }
-  });
-}
-
-document.addEventListener('click', function(e) {
-  const menu = document.getElementById('country-dropdown-menu');
-  const btn = document.getElementById('country-picker-btn');
-  if (menu && !menu.classList.contains('hidden')) {
-    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-      menu.classList.add('hidden');
-    }
-  }
-});
 </script>
 }
