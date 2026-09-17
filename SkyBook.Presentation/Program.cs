@@ -49,6 +49,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
+
+
+
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=AdminDashboard}/{action=Index}/{id?}");
@@ -56,5 +59,11 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
 
-app.Run();
+    await IdentitySeeder.SeedRolesAsync(services);
+}
+
+    app.Run();

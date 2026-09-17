@@ -3,60 +3,158 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
-using SkyBook.Data.Models;
+using System.Security.Claims;
 
 namespace SkyBook.Presentation.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IAccountService _userService;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAccountService _accountService;
 
-        public AccountController(IAccountService userService, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(IAccountService accountService)
         {
-            _userService = userService;
-            _roleManager = roleManager;
-            _signInManager = signInManager;
+            _accountService = accountService;
         }
-        public IActionResult login()
-        {
-            return View();
-        }
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task< IActionResult> Login(LoginVM model)
-        {
-            if (ModelState.IsValid)
-            {
-                await _userService.LoginAsync(model);
-                return RedirectToAction(nameof(Index)); 
-            }
-            return View();
-        } 
-        [AllowAnonymous]
+
         [HttpGet]
-        public IActionResult Register() => View();
+        public IActionResult Register()
+        {
+            return View();
+        }
 
-        [AllowAnonymous]
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
         {
-            await _roleManager.CreateAsync(new IdentityRole("Admin"));
-            await _roleManager.CreateAsync(new IdentityRole("Passenger"));
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.RegisterAsync(model);
+
+            if (result.Succeeded)
             {
-                await _userService.RegisterAsync(model);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Login");
             }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View(model);
+        }
+
+
+    
+        [HttpGet]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
 
             return View();
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(
+            LoginVM model,
+            string? returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.LoginAsync(model);
+
+            if (result.Succeeded)
+            {
+                if (!string.IsNullOrEmpty(returnUrl) &&
+                    Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Your account has been locked out. Please try again later.");
+
+                return View(model);
+            }
+
+            ModelState.AddModelError(
+                "",
+                "Invalid email or password.");
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("login");
+            await _accountService.LogoutAsync();
+
+            return RedirectToAction("Index", "Home");
+        }
+
+
+        
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var model = await _accountService.GetProfileAsync(userId);
+
+            if (model == null)
+                return NotFound();
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Profile(ProfileVM model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var result = await _accountService.UpdateProfileAsync(
+                userId,
+                model);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] =
+                    "Profile updated successfully.";
+
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View(model);
         }
     }
 }
