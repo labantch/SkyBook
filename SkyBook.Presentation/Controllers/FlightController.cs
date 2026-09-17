@@ -14,17 +14,17 @@ namespace SkyBook.Presentation.Controllers
             {
                 _flightService = flightService;
             }
-
-           
-            public async Task<IActionResult> Index()
+        #region Index
+        public async Task<IActionResult> Index()
             {
                 var flights = await _flightService.GetAllFlightsAsync();
 
                 return View(flights);
             }
+        #endregion
 
-           
-            public async Task<IActionResult> Details(int id)
+        #region Details 
+        public async Task<IActionResult> Details(int id)
             {
                 var flight = await _flightService.GetFlightByIdAsync(id);
 
@@ -33,16 +33,18 @@ namespace SkyBook.Presentation.Controllers
 
                 return View(flight);
             }
-
-           
-            [HttpGet]
+        #endregion
+        
+        #region CreateGet
+        [HttpGet]
             public IActionResult Create()
             {
                 return View();
             }
+        #endregion
 
-           
-            [HttpPost]
+        #region CreatePost
+        [HttpPost]
             public async Task<IActionResult> Create(FlightVM model)
             {
                 if (!ModelState.IsValid)
@@ -52,9 +54,10 @@ namespace SkyBook.Presentation.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+        #endregion
 
-            
-            [HttpGet]
+        #region EditGet
+        [HttpGet]
             public async Task<IActionResult> Edit(int id)
             {
                 var flight = await _flightService.GetFlightForEditAsync(id);
@@ -64,9 +67,10 @@ namespace SkyBook.Presentation.Controllers
 
                 return View(flight);
             }
+        #endregion
 
-          
-            [HttpPost]
+        #region EditPost
+        [HttpPost]
             public async Task<IActionResult> Edit(FlightVM model)
             {
                 if (!ModelState.IsValid)
@@ -76,33 +80,39 @@ namespace SkyBook.Presentation.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+        #endregion
 
-           
-            [HttpPost]
+        #region Delete
+        [HttpPost]
             public async Task<IActionResult> Delete(int id)
             {
                 await _flightService.DeleteFlightAsync(id);
 
                 return RedirectToAction(nameof(Index));
             }
+        #endregion
 
-           
-            [HttpPost]
+        #region ChangeStatus
+        [HttpPost]
             public async Task<IActionResult> ChangeStatus(int id, FlightStatus status)
             {
                 await _flightService.ChangeStatusAsync(id, status);
 
                 return RedirectToAction(nameof(Index));
             }
+        #endregion
 
-            [HttpGet]
+        #region SearchGet
+
+        [HttpGet]
             public IActionResult Search()
             {
                 return View(new FlightSearshVM());
             }
+        #endregion
 
-          
-            [HttpPost]
+        #region SearchPost
+        [HttpPost]
             public async Task<IActionResult> Search(FlightSearshVM model)
             {
                 if (!ModelState.IsValid)
@@ -112,8 +122,9 @@ namespace SkyBook.Presentation.Controllers
 
                 return View("SearchResults", flights);
             }
-        }
+        #endregion
     }
+}
 
         
 

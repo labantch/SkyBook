@@ -22,21 +22,26 @@ namespace SkyBook.Presentation.Controllers
                 _userManager = userManager;
             }
 
-            public async Task<IActionResult> MyBookings()
+        #region MyBookings
+        public async Task<IActionResult> MyBookings()
             {
                 var userId = _userManager.GetUserId(User);
                 var bookings = await _bookingService.GetUserBookingsAsync(userId);
                 return View(bookings);
             }
+        #endregion
 
-            public async Task<IActionResult> Details(int id)
+        #region Details
+        public async Task<IActionResult> Details(int id)
             {
                 var userId = _userManager.GetUserId(User);
                 var booking =await _bookingService.GetBookingByIdAsync(id, userId);
                 return View(booking);
             }
+        #endregion
 
-            [HttpGet]
+        #region CreateGet
+        [HttpGet]
             public IActionResult Create( int flightId,int seatId)
             {
                 var model = new CreateBookingVM
@@ -46,8 +51,10 @@ namespace SkyBook.Presentation.Controllers
                 };
                 return View(model);
             }
+        #endregion
 
-            [HttpPost]
+        #region CreatePost
+        [HttpPost]
             [ValidateAntiForgeryToken]
             public async Task<IActionResult> Create(
                 CreateBookingVM model)
@@ -71,8 +78,10 @@ namespace SkyBook.Presentation.Controllers
                     return View(model);
                 }
             }
+        #endregion
 
-            [HttpPost]
+        #region Cancel
+        [HttpPost]
             [ValidateAntiForgeryToken]
             public async Task<IActionResult> Cancel(
                 int id)
@@ -90,5 +99,6 @@ namespace SkyBook.Presentation.Controllers
                 }
                 return RedirectToAction(nameof(MyBookings));
             }
-        }
+        #endregion
     }
+}

@@ -18,7 +18,8 @@ namespace SkyBook.Presentation.Controllers
                 _dashboardService = dashboardService;
             }
 
-            public async Task<IActionResult> Index()
+        #region Index
+        public async Task<IActionResult> Index()
             {
                 var model =
                     await _dashboardService
@@ -26,7 +27,8 @@ namespace SkyBook.Presentation.Controllers
 
                 return View(model);
             }
-        }
+        #endregion
     }
+}
 
 
