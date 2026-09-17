@@ -1,4 +1,9 @@
 @* Add flight modal *@
+@{
+    var airports = ViewBag.Airports as IEnumerable<SkyBook.Business.ViewModels.AirportVM> ?? Enumerable.Empty<SkyBook.Business.ViewModels.AirportVM>();
+    var aircrafts = ViewBag.Aircrafts as IEnumerable<SkyBook.Business.ViewModels.AircraftVM> ?? Enumerable.Empty<SkyBook.Business.ViewModels.AircraftVM>();
+}
+
 <div class="fixed inset-0 z-50 flex items-center justify-center hidden" data-purpose="modal-flight-form" id="modal-add-flight">
   <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs" onclick="closeModal('modal-add-flight')"></div>
   <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden border border-slate-200 z-10 animate-scale">
@@ -7,76 +12,126 @@
         <svg class="w-4 h-4 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
         Schedule New Sovereign Flight
       </h3>
-      <button class="text-slate-400 hover:text-white" onclick="closeModal('modal-add-flight')">✕</button>
+      <button class="text-slate-400 hover:text-white" onclick="closeModal('modal-add-flight')" type="button">✕</button>
     </div>
-    <form class="p-6 space-y-4 text-xs" onsubmit="handleCreateFlight(event)" method="post">
+    
+    <form asp-area="Admin" asp-controller="AdminFlight" asp-action="Create" method="post" id="form-add-flight" class="p-6 space-y-4 text-xs">
+      @Html.AntiForgeryToken()
+      
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Flight Number</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="mf-flightno" maxlength="20" placeholder="e.g. SB 992" required type="text">
+          <label class="block font-semibold text-slate-700 mb-1">Flight Number <span class="text-rose-500">*</span></label>
+          <input name="FlightNumber" class="w-full text-xs font-mono uppercase rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" maxlength="20" placeholder="e.g. SB-101" required type="text">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Assigned Aircraft</label>
-          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-aircraft">
-            <option value="Boeing 787-9 (A6-SKB)">Boeing 787-9 (A6-SKB)</option>
-            <option value="Airbus A350-1000 (A6-SKA)">Airbus A350-1000 (A6-SKA)</option>
-            <option value="Boeing 777-300ER (A6-SKX)">Boeing 777-300ER (A6-SKX)</option>
-            <option value="Gulfstream G700 (A6-G71)">Gulfstream G700 (A6-G71)</option>
+          <label class="block font-semibold text-slate-700 mb-1">Assigned Aircraft <span class="text-rose-500">*</span></label>
+          <select name="AircraftId" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required>
+            @if (!aircrafts.Any(p => p.Status == AircraftStatus.Active))
+            {
+                <option value="" disabled selected>No active aircraft in fleet</option>
+            }
+            else
+            {
+                <option value="" disabled selected>Select an aircraft</option>
+                @foreach (var plane in aircrafts)
+                {
+                    if (plane.Status == AircraftStatus.Active)
+                    {
+                        <option value="@plane.Id">@plane.Name (@plane.Capacity seats)</option>
+                    }
+                    else
+                    {
+                        <option value="@plane.Id" disabled class="text-slate-400 bg-slate-100 italic">@plane.Name (@plane.Capacity seats - @plane.Status: Unavailable)</option>
+                    }
+                }
+            }
           </select>
         </div>
       </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Departure Origin (IATA)</label>
-          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-origin">
-            <option value="CAI">CAI - Cairo International</option>
-            <option selected value="DXB">DXB - Dubai International</option>
-            <option value="LHR">LHR - London Heathrow</option>
-            <option value="JFK">JFK - New York JFK</option>
-            <option value="HND">HND - Tokyo Haneda</option>
+          <label class="block font-semibold text-slate-700 mb-1">Departure Origin (IATA) <span class="text-rose-500">*</span></label>
+          <select name="DepartureAirportId" id="add-departure-airport" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required>
+            @if (!airports.Any(a => a.Status == AirportStatus.Active))
+            {
+                <option value="" disabled selected>No active airports available</option>
+            }
+            else
+            {
+                <option value="" disabled selected>Select departure station</option>
+                @foreach (var port in airports)
+                {
+                    if (port.Status == AirportStatus.Active)
+                    {
+                        <option value="@port.Id">@port.Code - @port.City (@port.Name)</option>
+                    }
+                    else
+                    {
+                        <option value="@port.Id" disabled class="text-slate-400 bg-slate-100 italic">@port.Code - @port.City (@port.Name) - [@port.Status: Unavailable]</option>
+                    }
+                }
+            }
           </select>
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Destination Arrival (IATA)</label>
-          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-destination">
-            <option selected value="LHR">LHR - London Heathrow</option>
-            <option value="CAI">CAI - Cairo International</option>
-            <option value="DXB">DXB - Dubai International</option>
-            <option value="JFK">JFK - New York JFK</option>
-            <option value="HND">HND - Tokyo Haneda</option>
+          <label class="block font-semibold text-slate-700 mb-1">Destination Arrival (IATA) <span class="text-rose-500">*</span></label>
+          <select name="ArrivalAirportId" id="add-arrival-airport" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required>
+            @if (!airports.Any(a => a.Status == AirportStatus.Active))
+            {
+                <option value="" disabled selected>No active airports available</option>
+            }
+            else
+            {
+                <option value="" disabled selected>Select destination station</option>
+                @foreach (var port in airports)
+                {
+                    if (port.Status == AirportStatus.Active)
+                    {
+                        <option value="@port.Id">@port.Code - @port.City (@port.Name)</option>
+                    }
+                    else
+                    {
+                        <option value="@port.Id" disabled class="text-slate-400 bg-slate-100 italic">@port.Code - @port.City (@port.Name) - [@port.Status: Unavailable]</option>
+                    }
+                }
+            }
           </select>
         </div>
       </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Departure Time (UTC)</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-dept-time" required type="text" value="08:30">
+          <label class="block font-semibold text-slate-700 mb-1">Departure Time <span class="text-rose-500">*</span></label>
+          <input name="DepartureTime" id="add-dept-time" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required type="datetime-local">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Arrival Time (UTC)</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-arr-time" required type="text" value="13:15">
+          <label class="block font-semibold text-slate-700 mb-1">Arrival Time <span class="text-rose-500">*</span></label>
+          <input name="ArrivalTime" id="add-arr-time" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required type="datetime-local">
         </div>
       </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Base Sovereign Fare ($ USD)</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="mf-fare" required type="text" value="$1,850.00">
+          <label class="block font-semibold text-slate-700 mb-1">Base Sovereign Fare ($ USD) <span class="text-rose-500">*</span></label>
+          <input name="Price" class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required type="number" step="0.01" min="1" placeholder="e.g. 1250.00">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Initial Status</label>
-          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="mf-status">
-            <option selected value="Scheduled">Scheduled</option>
-            <option value="Boarding">Boarding</option>
-            <option value="Departed">Departed (In Flight)</option>
-            <option value="Delayed">Delayed</option>
-            <option value="Landed">Landed</option>
-            <option value="Cancelled">Cancelled</option>
+          <label class="block font-semibold text-slate-700 mb-1">Initial Status <span class="text-rose-500">*</span></label>
+          <select name="Status" class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500">
+            <option value="1" selected>Scheduled</option>
+            <option value="3">Boarding</option>
+            <option value="4">Departed (In Flight)</option>
+            <option value="2">Delayed</option>
+            <option value="5">Landed</option>
+            <option value="6">Cancelled</option>
           </select>
         </div>
       </div>
+
       <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
-        <button class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg" onclick="closeModal('modal-add-flight')" type="button">Cancel</button>
-        <button class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm" type="submit">Save &amp; Broadcast Flight</button>
+        <button class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" onclick="closeModal('modal-add-flight')" type="button">Cancel</button>
+        <button class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm transition" type="submit">Save &amp; Broadcast Flight</button>
       </div>
     </form>
   </div>

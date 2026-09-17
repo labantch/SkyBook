@@ -1,3 +1,4 @@
+@model SkyBook.Business.ViewModels.DashboardVM
 @{
     ViewData["Title"] = "Operations Dashboard";
     Layout = "_AdminLayout";
@@ -19,14 +20,9 @@
         <span class="font-mono text-slate-600">UTC <span id="live-utc-clock" class="">17:14:03</span></span>
         <span class="text-slate-300">•</span>
         <span class="text-emerald-700 bg-emerald-50 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Live Sync Active</span>
-      </div>
-      <div class="relative w-64 md:w-80">
-        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <input class="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-xs text-slate-800 rounded-lg pl-9 pr-14 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500 focus:border-champagne-500 transition-all shadow-sm" id="globalSearchInput" oninput="handleGlobalSearch(this.value)" placeholder="Search flight code, tail, passenger..." type="text">
-        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">⌘K</span>
-      </div>
-      <button class="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" onclick="refreshDashboardData()" title="Force Refresh">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      <button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all cursor-pointer shadow-2xs group" onclick="refreshDashboardData()" title="Force Refresh Operations Console">
+        <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-800 transition-transform duration-300" id="force-refresh-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span class="hidden sm:inline">Refresh</span>
       </button>
     </div>
   </header>
@@ -39,19 +35,9 @@
     <!-- ============================================== -->
     <section class="view-container space-y-6 active" data-purpose="dashboard-view" id="view-dashboard">
       <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center space-x-2">
-          <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 hover:bg-midnight-900 text-white text-xs font-semibold shadow-sm hover:shadow transition-all" onclick="openModal('modal-add-flight')">
-            <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-            <span class="">Add Flight</span>
-          </button>
-          <button class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition-colors" onclick="openModal('modal-add-airport')">
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span class="">Add Airport</span>
-          </button>
-          <button class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition-colors" onclick="openModal('modal-add-aircraft')">
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span class="">Add Aircraft</span>
-          </button>
+        <div>
+          <h2 class="text-sm font-bold text-midnight-900">Flight Operations Overview</h2>
+          <p class="text-[11px] text-slate-500">Real-time telemetry and fleet dispatch status</p>
         </div>
         <div class="flex items-center space-x-3 text-xs text-slate-500 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
           <span class="w-2 h-2 rounded-full bg-champagne-500"></span>
@@ -64,84 +50,169 @@
 
       <!-- 5 Primary Metric KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Card 1: Total Flights -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-champagne-100 flex items-center justify-center text-champagne-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">↑ +12% <span class="font-normal text-slate-400">vs lw</span></span>
+            <div class="w-8 h-8 rounded-lg bg-champagne-100 flex items-center justify-center text-champagne-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">Live Ops</span>
           </div>
           <div class="mt-3">
-            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">142</h3>
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">@Model.TotalFlights</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Flights</p>
-            <p class="text-[11px] text-slate-500 mt-1">86 In-Flight • 48 Sched • 8 Ground</p>
+            <p class="text-[11px] text-slate-500 mt-1">@Model.InFlightCount In-Flight • @Model.ScheduledFlightsCount Sched • @Model.DelayedFlightsCount Delayed</p>
           </div>
-          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-champagne-500 h-full rounded-full" style="width: 68%"></div></div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
+            <div class="bg-champagne-500 h-full rounded-full" style="width: @(Model.TotalFlights > 0 ? Math.Min(100, Math.Round((double)Model.InFlightCount / Model.TotalFlights * 100)) : 0)%"></div>
+          </div>
         </div>
         
+        <!-- Card 2: Total Airports -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
             <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">Active Network</span>
           </div>
           <div class="mt-3">
-            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">48</h3>
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">@Model.TotalAirports</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Airports</p>
-            <p class="text-[11px] text-slate-500 mt-1">28 Global Hubs • 20 Concierge FBOs</p>
+            <p class="text-[11px] text-slate-500 mt-1">@Model.TotalCountriesCount Countries • @Model.TotalCitiesCount Destinations</p>
           </div>
-          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-amber-600 h-full rounded-full" style="width: 82%"></div></div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
+            <div class="bg-amber-600 h-full rounded-full" style="width: 100%"></div>
+          </div>
         </div>
 
+        <!-- Card 3: Total Aircraft -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">97.2% Ready</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Fleet Ready</span>
           </div>
           <div class="mt-3">
-            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight" id="kpi-total-aircraft">4</h3>
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight" id="kpi-total-aircraft">@Model.TotalAircrafts</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Aircraft</p>
-            <p class="text-[11px] text-slate-500 mt-1" id="kpi-aircraft-breakdown">18 B787-9 • 12 A350 • 6 G700</p>
+            <p class="text-[11px] text-slate-500 mt-1 truncate" id="kpi-aircraft-breakdown" title="@(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "Fleet")">
+              @(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "Active Fleet Roster")
+            </p>
           </div>
-          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-midnight-800 h-full rounded-full" style="width: 94%"></div></div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
+            <div class="bg-midnight-800 h-full rounded-full" style="width: 100%"></div>
+          </div>
         </div>
 
+        <!-- Card 4: Total Customers -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">↑ +8.4% MoM</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Active Users</span>
           </div>
           <div class="mt-3">
-            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">28,450</h3>
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">@Model.TotalUsers.ToString("N0")</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Customers</p>
-            <p class="text-[11px] text-slate-500 mt-1">3,840 Sovereign • 24,610 Elite</p>
+            <p class="text-[11px] text-slate-500 mt-1">@Model.AdminCount Admin • @Model.StandardUserCount Standard</p>
           </div>
-          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-champagne-600 h-full rounded-full" style="width: 76%"></div></div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
+            <div class="bg-champagne-600 h-full rounded-full" style="width: 100%"></div>
+          </div>
         </div>
 
+        <!-- Card 5: Total Bookings -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
-            <span class="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">High Demand</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">Bookings</span>
           </div>
           <div class="mt-3">
-            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">12,890</h3>
+            <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight">@Model.TotalBookings.ToString("N0")</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Bookings</p>
-            <p class="text-[11px] text-slate-500 mt-1">$34.8M Gross • 94.2% Load</p>
+            <p class="text-[11px] text-slate-500 mt-1">$@Model.TotalRevenueGross.ToString("N2") Gross • @Model.SeatLoadPercentage.ToString("F1")% Load</p>
           </div>
-          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden"><div class="bg-midnight-900 h-full rounded-full" style="width: 88%"></div></div>
+          <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
+            <div class="bg-midnight-900 h-full rounded-full" style="width: @Math.Min(100, Math.Round(Model.SeatLoadPercentage))%"></div>
+          </div>
         </div>
       </div>
 
       <!-- Recent Bookings Table -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden mt-6">
         <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-          <div><h3 class="text-sm font-bold text-midnight-900">Recent Bookings</h3><p class="text-xs text-slate-500">Showing latest 6 of 1,248 today</p></div>
-          <button class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1" onclick="switchView('bookings')"><span class="">View All Bookings</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+          <div><h3 class="text-sm font-bold text-midnight-900">Recent Bookings</h3><p class="text-xs text-slate-500">Showing latest @(Model.RecentBookings?.Count ?? 0) of @Model.TotalBookings today</p></div>
+          <a href="/Admin/AdminBooking" class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1"><span class="">View All Bookings</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
               <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-bookings-body"></tbody>
+            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-bookings-body">
+              @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+              {
+                foreach (var b in Model.RecentBookings)
+                {
+                  var initials = !string.IsNullOrWhiteSpace(b.PassengerName)
+                    ? string.Concat(b.PassengerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper()
+                    : "PA";
+                  if (initials.Length > 2) initials = initials.Substring(0, 2);
+
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-3 px-4 font-mono font-bold text-midnight-900">@b.BookingReference</td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center space-x-2.5">
+                        @if (!string.IsNullOrEmpty(b.UserImageUrl))
+                        {
+                          <img src="@b.UserImageUrl" alt="@b.PassengerName" class="w-6 h-6 rounded-full object-cover border border-champagne-500/50 shrink-0 shadow-2xs" onerror="this.outerHTML='<div class=\'w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0\'>@initials</div>'"/>
+                        }
+                        else
+                        {
+                          <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0">@initials</div>
+                        }
+                        <div><span class="block font-semibold text-slate-800">@b.PassengerName</span><span class="text-[10px] text-slate-400 font-normal">Customer</span></div>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-slate-700">
+                      <span class="font-semibold text-midnight-900">@b.FlightNumber</span>
+                      <span class="text-[10px] text-slate-400 ml-1">(@b.DepartureAirPort → @b.ArrivalAirPort)</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600">@b.BookingDate.ToString("dd MMM yyyy")</td>
+                    <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">@(string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber)</span></td>
+                    <td class="py-3 px-4 font-mono font-bold text-slate-900">$@b.TotalPrice.ToString("N2")</td>
+                    <td class="py-3 px-4">
+                      @if (b.Status == SkyBook.Data.Models.BookingStatus.Confirmed)
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Confirmed</span>
+                      }
+                      else if (b.Status == SkyBook.Data.Models.BookingStatus.Pending)
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>Pending</span>
+                      }
+                      else
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Cancelled</span>
+                      }
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                      <a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</a>
+                    </td>
+                  </tr>
+                }
+              }
+              else
+              {
+                <tr>
+                  <td colspan="8" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td>
+                </tr>
+              }
+            </tbody>
           </table>
         </div>
       </div>
@@ -158,18 +229,80 @@
               <button class="dash-flight-filter-pill px-2 py-0.5 rounded text-slate-500 hover:text-slate-800" onclick="setDashboardFlightFilter('DELAYED', this)">Delayed</button>
             </div>
           </div>
-          <button class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1" onclick="switchView('flights')"><span class="">Full Flight Schedule</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+          <a href="/Admin/AdminFlight" class="text-xs font-semibold text-champagne-600 hover:text-champagne-700 flex items-center gap-1"><span>Full Flight Schedule</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
               <tr><th class="py-3 px-4">Flight No.</th><th class="py-3 px-4">Route</th><th class="py-3 px-4">Departure</th><th class="py-3 px-4">Arrival</th><th class="py-3 px-4">Aircraft</th><th class="py-3 px-4">Base Fare</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Details</th></tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-flights-body"></tbody>
+            <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-flights-body">
+              @if (Model.RecentFlights != null && Model.RecentFlights.Any())
+              {
+                foreach (var f in Model.RecentFlights)
+                {
+                  var isDeparted = f.Status == SkyBook.Data.Models.FlightStatus.Departed || f.Status == SkyBook.Data.Models.FlightStatus.Boarding;
+                  var isDelayed = f.Status == SkyBook.Data.Models.FlightStatus.Delayed;
+                  var isCancelled = f.Status == SkyBook.Data.Models.FlightStatus.Cancelled;
+
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-3 px-4 font-mono font-bold text-midnight-900">
+                      <span class="w-2 h-2 rounded-full inline-block mr-1.5 @(isDeparted ? "bg-emerald-500" : isDelayed ? "bg-amber-500" : isCancelled ? "bg-rose-500" : "bg-slate-400")"></span>@f.FlightNumber
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="font-bold text-midnight-900">@f.DepartureAirportCode</span>
+                      <span class="text-champagne-500 mx-1">→</span>
+                      <span class="font-bold text-midnight-900">@f.ArrivalAirportCode</span>
+                      <span class="text-[11px] text-slate-400 ml-1">(@f.DepartureAirportCity → @f.ArrivalAirportCity)</span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="font-mono font-bold text-slate-800">@f.DepartureTime.ToString("HH:mm")</span>
+                      <span class="text-[10px] text-slate-400 block">@f.DepartureTime.ToString("dd MMM yyyy")</span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="font-mono font-bold text-slate-800">@f.ArrivalTime.ToString("HH:mm")</span>
+                      <span class="text-[10px] text-slate-400 block">@f.ArrivalTime.ToString("dd MMM yyyy")</span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="font-semibold text-slate-800">@(string.IsNullOrEmpty(f.AircraftName) ? "Unassigned" : f.AircraftName)</span>
+                    </td>
+                    <td class="py-3 px-4 font-mono font-bold text-slate-900">$@f.Price.ToString("N2")</td>
+                    <td class="py-3 px-4">
+                      @if (isDeparted)
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>@f.Status</span>
+                      }
+                      else if (isDelayed)
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>Delayed</span>
+                      }
+                      else if (isCancelled)
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Cancelled</span>
+                      }
+                      else
+                      {
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/60"><span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>@f.Status</span>
+                      }
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                      <a href="/Admin/AdminFlight" class="text-champagne-600 hover:text-champagne-700 font-semibold">Inspect</a>
+                    </td>
+                  </tr>
+                }
+              }
+              else
+              {
+                <tr>
+                  <td colspan="8" class="text-center py-6 text-slate-400 italic">No flights scheduled yet.</td>
+                </tr>
+              }
+            </tbody>
           </table>
         </div>
       </div>
     </section>
+
 
     <!-- ============================================== -->
     <!-- VIEW 2: FLIGHTS MANAGEMENT -->
@@ -205,25 +338,6 @@
       </div>
     </section>
 
-    <!-- ============================================== -->
-    <!-- VIEW 3: AIRPORTS MANAGEMENT -->
-    <!-- ============================================== -->
-    <section class="view-container space-y-6" data-purpose="airports-management" id="view-airports">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        <div class="flex items-center space-x-3">
-          <div class="relative w-72">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500" id="airport-search-input" oninput="filterAirports(this.value)" placeholder="Search IATA or airport name..." type="text">
-          </div>
-          <span class="text-xs text-slate-500">6 Major Hubs Listed</span>
-        </div>
-        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-airport')">
-          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-          <span class="">+ Add Airport Station</span>
-        </button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="airports-grid"></div>
-    </section>
 
     <!-- ============================================== -->
     <!-- VIEW 4: AIRCRAFT & FLEET MANAGEMENT -->
@@ -314,52 +428,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ============================================== -->
-    <!-- VIEW 7: OPERATIONS SETTINGS -->
-    <!-- ============================================== -->
-    <section class="view-container space-y-6" data-purpose="settings-panel" id="view-settings">
-      <div class="bg-white rounded-xl border border-slate-200 p-6 max-w-4xl space-y-6">
-        <div class="border-b border-slate-100 pb-4">
-          <h3 class="text-base font-bold text-midnight-900">Console Dispatch Configuration</h3>
-          <p class="text-xs text-slate-500">Manage automated airspace telemetry, sovereign corridor routing, and fallback failovers.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
-            <label class="block text-xs font-semibold text-slate-700">Operational Base Currency</label>
-            <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2">
-              <option selected="">USD ($) - United States Dollar</option>
-              <option>EUR (€) - Eurozone</option>
-              <option>AED (د.إ) - UAE Dirham</option>
-              <option>GBP (£) - British Pound</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs font-semibold text-slate-700">Automated ETOPS Calculation</label>
-            <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2">
-              <option selected="">ETOPS 330 (Ultra Long Range Transpacific)</option>
-              <option>ETOPS 240 (Standard Transatlantic)</option>
-              <option>ETOPS 180 (Direct Regional)</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs font-semibold text-slate-700">Flight Telemetry API Gateway</label>
-            <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 py-2 text-slate-600" type="text" value="https://telemetry.sovereign-skybook.aero/v3/feed">
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs font-semibold text-slate-700">Dispatch Emergency Override Pin</label>
-            <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 py-2" type="password" value="••••••••••••">
-          </div>
-        </div>
-        <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <input checked="" class="rounded text-midnight-800 focus:ring-champagne-500" id="auto-sync-check" type="checkbox">
-            <label class="text-xs text-slate-700 font-medium" for="auto-sync-check">Broadcast flight deviations to Sovereign VIP Mobile Concourse instantly</label>
-          </div>
-          <button class="px-4 py-2 bg-midnight-800 text-white text-xs font-semibold rounded-lg hover:bg-midnight-900 transition-colors" onclick="showToast('Operational settings saved successfully', 'success')">Save Changes</button>
-        </div>
-      </div>
-    </section>
   </main>
 
 @section Scripts {
@@ -427,16 +495,18 @@
       } catch (e) {}
     }
 
-    const AIRPORTS_STORAGE_KEY = 'skybook_airports';
-    function saveAirportsToStorage() {
-      try { localStorage.setItem(AIRPORTS_STORAGE_KEY, JSON.stringify(state.airports)); } catch (e) {}
-    }
-    function loadAirportsFromStorage() {
-      try {
-        const raw = localStorage.getItem(AIRPORTS_STORAGE_KEY);
-        if (raw) state.airports = JSON.parse(raw);
-      } catch (e) {}
-    }
+    const DEFAULT_AIRPORT_IMAGES = {
+      'DXB': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
+      'CAI': 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=1200&q=80',
+      'LHR': 'https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=1200&q=80',
+      'JFK': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80',
+      'HND': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1200&q=80',
+      'GVA': 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?auto=format&fit=crop&w=1200&q=80',
+      'SIN': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1200&q=80',
+      'CDG': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
+      'SYD': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=80'
+    };
+    const GENERIC_AIRPORT_IMAGE = 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?auto=format&fit=crop&w=1200&q=80';
 
     const CUSTOMERS_STORAGE_KEY = 'skybook-admin-customers';
     function saveCustomersToStorage() {
@@ -454,86 +524,38 @@
       sidebarCollapsed: false,
       cancellationTarget: null,
       
-      flights: [
-        { code: 'SB 918', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '20:05', deptGate: 'CAI T2 • Gate 14', arr: '01:45 +1', arrGate: 'DXB T3 • Gate B12', aircraft: 'Boeing 787-9', tail: 'A6-SKB • Sovereign Dreamliner', fare: '$1,290.00', status: 'In Flight' },
-        { code: 'SB 928', origin: 'DXB', dest: 'CAI', routeDesc: 'Dubai → Cairo', dept: '08:30', deptGate: 'DXB T3 • Gate B18', arr: '11:15', arrGate: 'CAI T2 • Gate 08', aircraft: 'Airbus A350-1000', tail: 'A6-SKA • Flagship Luxury', fare: '$2,410.00', status: 'Scheduled' },
-        { code: 'SB 501', origin: 'DXB', dest: 'HND', routeDesc: 'Dubai → Tokyo', dept: '03:40', deptGate: 'DXB T3 • Gate A04', arr: '17:50 +1', arrGate: 'HND T3 • Gate 112', aircraft: 'Boeing 777-300ER', tail: 'A6-SKX • Extended Prestige', fare: '$2,150.00', status: 'Delayed' },
-        { code: 'SB 101', origin: 'LHR', dest: 'JFK', routeDesc: 'London → New York', dept: '10:15', deptGate: 'LHR T5 • Gate 22', arr: '13:20', arrGate: 'JFK T7 • Gate 04', aircraft: 'Airbus A350-1000', tail: 'A6-SKC • Sovereign Prime', fare: '$3,470.00', status: 'Scheduled' },
-        { code: 'SB 904', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '16:45', deptGate: 'CAI T2 • Gate 07', arr: '22:10', arrGate: 'DXB T3 • Gate B02', aircraft: 'Boeing 787-9', tail: 'A6-SKD • Oasis Horizon', fare: '$1,450.00', status: 'In Flight' },
-        { code: 'SB 502', origin: 'DXB', dest: 'LHR', routeDesc: 'Dubai → London', dept: '23:55', deptGate: 'DXB T3 • Gate C02', arr: '04:40 +1', arrGate: 'LHR T5 • Gate 18', aircraft: 'Gulfstream G700', tail: 'A6-G71 • SkySovereign Charter', fare: '$5,400.00', status: 'Scheduled' }
-      ],
+      flights: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        (Model.RecentFlights ?? new List<SkyBook.Business.ViewModels.FlightVM>()).Select(f => new {
+          code = f.FlightNumber,
+          origin = f.DepartureAirportCode ?? "N/A",
+          dest = f.ArrivalAirportCode ?? "N/A",
+          routeDesc = $"{f.DepartureAirportCity} → {f.ArrivalAirportCity}",
+          dept = f.DepartureTime.ToString("HH:mm"),
+          deptGate = $"{f.DepartureAirportCode} • {f.DepartureTime:dd MMM}",
+          arr = f.ArrivalTime.ToString("HH:mm"),
+          arrGate = $"{f.ArrivalAirportCode} • {f.ArrivalTime:dd MMM}",
+          aircraft = !string.IsNullOrEmpty(f.AircraftName) ? f.AircraftName : "Aircraft",
+          tail = f.FlightNumber,
+          fare = $"${f.Price:N2}",
+          status = f.Status.ToString()
+        })
+      )),
 
-      bookings: [
-        {
-          pnr: 'SKY-8F42KQ',
-          customerName: 'John Mohamed & Ahmed Ali',
-          initials: '2x',
-          tier: 'Sovereign Tier',
-          flightCode: 'SB 918 / SB 928',
-          routeSummary: 'CAI ↔ DXB',
-          travelDate: '11 Sep 2026',
-          seat: '14A, 14B',
-          price: '$2,560.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-4M77XP',
-          customerName: 'Eleanor Wright',
-          initials: 'EW',
-          tier: 'First Sovereign',
-          flightCode: 'SB 501',
-          routeSummary: 'DXB → HND',
-          travelDate: '24 Oct 2026',
-          seat: '1A (First Sovereign)',
-          price: '$4,150.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-2B19LL',
-          customerName: 'Marcus Vance',
-          initials: 'MV',
-          tier: 'Sovereign Tier',
-          flightCode: 'SB 101',
-          routeSummary: 'LHR → JFK',
-          travelDate: '02 Nov 2026',
-          seat: '2D (Business)',
-          price: '$3,840.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-7D33WQ',
-          customerName: 'Sophia Al-Mansoor',
-          initials: 'SA',
-          tier: 'SkyClub Silver',
-          flightCode: 'SB 904',
-          routeSummary: 'CAI → DXB',
-          travelDate: '14 Nov 2026',
-          seat: '11F (Economy)',
-          price: '$1,290.00',
-          status: 'Cancelled'
-        },
-        {
-          pnr: 'SKY-6J90PL',
-          customerName: 'Tariq Al-Hashimi',
-          initials: 'TA',
-          tier: 'Sovereign VIP',
-          flightCode: 'SB 502',
-          routeSummary: 'DXB → LHR',
-          travelDate: '29 Nov 2026',
-          seat: '1L (First Sovereign)',
-          price: '$5,400.00',
-          status: 'Confirmed'
-        }
-      ],
+      bookings: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        (Model.RecentBookings ?? new List<SkyBook.Business.ViewModels.BookingDetailsVm>()).Select(b => new {
+          pnr = b.BookingReference,
+          customerName = b.PassengerName,
+          initials = !string.IsNullOrWhiteSpace(b.PassengerName) ? string.Concat(b.PassengerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper() : "PA",
+          tier = "Customer",
+          flightCode = b.FlightNumber,
+          routeSummary = $"{b.DepartureAirPort} → {b.ArrivalAirPort}",
+          travelDate = b.BookingDate.ToString("dd MMM yyyy"),
+          seat = string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber,
+          price = $"${b.TotalPrice:N2}",
+          status = b.Status.ToString()
+        })
+      )),
 
-      airports: [
-        { iata: 'DXB', name: 'Dubai International Airport', city: 'Dubai', country: 'United Arab Emirates', type: 'Primary Global Hub', gates: 182, runways: '2 Active' },
-        { iata: 'CAI', name: 'Cairo International Airport', city: 'Cairo', country: 'Egypt', type: 'North Africa Hub', gates: 64, runways: '3 Active' },
-        { iata: 'LHR', name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom', type: 'European Flagship', gates: 115, runways: '2 Active' },
-        { iata: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'United States', type: 'Transatlantic Terminal', gates: 128, runways: '4 Active' },
-        { iata: 'HND', name: 'Tokyo Haneda Airport', city: 'Tokyo', country: 'Japan', type: 'Asia-Pacific Concourse', gates: 89, runways: '4 Active' },
-        { iata: 'GVA', name: 'Geneva Cointrin Airport', city: 'Geneva', country: 'Switzerland', type: 'Concierge FBO', gates: 42, runways: '1 Active' }
-      ],
 
       fleet: [
         { name: 'Boeing 787-9 Dreamliner', tail: 'A6-SKB', cabins: { first: 12, business: 48, economy: 230 }, capacity: '290 Seats', readiness: '98.5%', status: 'Operational (In-Flight)' },
@@ -551,6 +573,26 @@
     };
 
     function switchView(viewKey) {
+      if (viewKey === 'airports') {
+        window.location.href = '/Admin/Airport';
+        return;
+      }
+      if (viewKey === 'flights') {
+        window.location.href = '/Admin/AdminFlight';
+        return;
+      }
+      if (viewKey === 'aircraft') {
+        window.location.href = '/Admin/Aircraft';
+        return;
+      }
+      if (viewKey === 'bookings') {
+        window.location.href = '/Admin/AdminBooking';
+        return;
+      }
+      if (viewKey === 'customers') {
+        window.location.href = '/Admin/UserManagement';
+        return;
+      }
       state.currentView = viewKey;
 
       document.querySelectorAll('.nav-item').forEach(btn => {
@@ -580,6 +622,10 @@
     function renderDashboardBookings() {
       const container = document.getElementById('dashboard-bookings-body');
       if (!container) return;
+      if (!state.bookings || state.bookings.length === 0) {
+        container.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td></tr>';
+        return;
+      }
       container.innerHTML = state.bookings.slice(0, 6).map(b => `
         <tr class="hover:bg-slate-50/70 transition-colors">
           <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
@@ -594,7 +640,7 @@
           <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
           <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
-          <td class="py-3 px-4 text-right"><button onclick="openBookingCustomerDrawer('${b.customerName.split(' & ')[0]}')" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</button></td>
+          <td class="py-3 px-4 text-right"><a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</a></td>
         </tr>
       `).join('');
     }
@@ -602,19 +648,29 @@
     function renderDashboardFlights(list = state.flights) {
       const container = document.getElementById('dashboard-flights-body');
       if (!container) return;
-      container.innerHTML = list.map(f => `
+      if (!list || list.length === 0) {
+        container.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-slate-400 italic">No flights scheduled yet.</td></tr>';
+        return;
+      }
+      container.innerHTML = list.map(f => {
+        const isDeparted = f.status === 'In Flight' || f.status === 'Departed' || f.status === 'Boarding';
+        const isDelayed = f.status === 'Delayed';
+        const isCancelled = f.status === 'Cancelled';
+        const dotColor = isDeparted ? 'bg-emerald-500' : isDelayed ? 'bg-amber-500' : isCancelled ? 'bg-rose-500' : 'bg-slate-400';
+        return `
         <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4 font-mono font-bold text-midnight-900"><span class="w-2 h-2 rounded-full inline-block mr-1.5 ${f.status === 'In Flight' ? 'bg-emerald-500' : f.status === 'Delayed' ? 'bg-amber-500' : 'bg-slate-400'}"></span>${f.code}</td>
+          <td class="py-3 px-4 font-mono font-bold text-midnight-900"><span class="w-2 h-2 rounded-full inline-block mr-1.5 ${dotColor}"></span>${f.code}</td>
           <td class="py-3 px-4"><span class="font-bold text-midnight-900">${f.origin}</span><span class="text-champagne-500 mx-1">→</span><span class="font-bold text-midnight-900">${f.dest}</span><span class="text-[11px] text-slate-400 ml-1">(${f.routeDesc})</span></td>
           <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.dept}</span><span class="text-[10px] text-slate-400 block">${f.deptGate}</span></td>
           <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.arr}</span><span class="text-[10px] text-slate-400 block">${f.arrGate}</span></td>
           <td class="py-3 px-4"><span class="font-semibold text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
           <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
-          <td class="py-3 px-4 text-right"><button onclick="openFlightDrawer('${f.code}')" class="text-champagne-600 hover:text-champagne-700 font-semibold">Inspect</button></td>
+          <td class="py-3 px-4 text-right"><a href="/Admin/AdminFlight" class="text-champagne-600 hover:text-champagne-700 font-semibold">Inspect</a></td>
         </tr>
-      `).join('');
+      `;}).join('');
     }
+
 
     function renderAllFlightsTable(list = state.flights) {
       const container = document.getElementById('all-flights-body');
@@ -638,33 +694,19 @@
       `).join('');
     }
 
-    function renderAirports() {
-      const container = document.getElementById('airports-grid');
-      if (!container) return;
-      container.innerHTML = state.airports.map(a => `
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
-          ${a.imageUrl ? `
-          <div class="w-full h-32 rounded-lg overflow-hidden mb-3 border border-slate-200 bg-slate-100">
-            <img src="${a.imageUrl}" alt="${a.name}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'"/>
-          </div>` : ''}
-          <div class="flex items-start justify-between">
-            <div class="flex items-center space-x-3">
-              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
-              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
-            </div>
-            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
-            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end space-x-2">
-            <button type="button" onclick="openEditAirportModal('${a.iata}')" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-midnight-900 hover:bg-slate-100 rounded transition">Edit</button>
-            <button type="button" onclick="handleDeleteAirport('${a.iata}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded transition">Delete</button>
-          </div>
-        </div>
-      `).join('');
+    function getFlagshipBadge(country, code) {
+      const c = (country || '').toLowerCase();
+      const cd = (code || '').toUpperCase();
+      if (cd === 'JFK' || c.includes('united states') || c.includes('usa') || c.includes('america')) return 'US FLAGSHIP';
+      if (cd === 'HND' || cd === 'NRT' || cd === 'SIN' || cd === 'HKG' || cd === 'BKK' || c.includes('japan') || c.includes('china') || c.includes('singapore') || c.includes('korea') || c.includes('thailand')) return 'ASIAN FLAGSHIP';
+      if (cd === 'DXB' || cd === 'DOH' || cd === 'AUH' || c.includes('emirates') || c.includes('uae') || c.includes('qatar') || c.includes('saudi')) return 'MIDDLE EAST FLAGSHIP';
+      if (cd === 'CAI' || c.includes('egypt') || c.includes('africa') || c.includes('morocco') || c.includes('south africa')) return 'AFRICAN FLAGSHIP';
+      if (cd === 'LHR' || cd === 'CDG' || cd === 'FRA' || cd === 'AMS' || cd === 'GVA' || cd === 'ZRH' || cd === 'MAD' || cd === 'FCO' || 
+          c.includes('kingdom') || c.includes('uk') || c.includes('france') || c.includes('germany') || c.includes('switzerland') || c.includes('italy') || c.includes('spain') || c.includes('europe') || c.includes('netherlands')) return 'EUROPEAN FLAGSHIP';
+      return 'GLOBAL FLAGSHIP';
     }
+
+
 
     function renderFleet() {
       const container = document.getElementById('fleet-card-container');
@@ -1274,78 +1316,7 @@
       e.target.reset();
     }
 
-    function handleCreateAirport(e) {
-      e.preventDefault();
-      const iata = document.getElementById('ma-iata').value.trim().toUpperCase();
-      const name = document.getElementById('ma-name').value.trim();
-      const city = document.getElementById('ma-city').value.trim();
-      const country = document.getElementById('ma-country').value.trim();
-      const imageUrl = document.getElementById('ma-image-url') ? document.getElementById('ma-image-url').value.trim() : '';
 
-      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active', imageUrl });
-      renderAirports();
-      saveAirportsToStorage();
-      closeModal('modal-add-airport');
-      showToast(`Airport ${iata} - ${name} added to route network`, 'success');
-      e.target.reset();
-    }
-
-    function openEditAirportModal(iata) {
-      const airport = state.airports.find(a => a.iata === iata);
-      if (!airport) return;
-      document.getElementById('ea-original-iata').value = airport.iata;
-      document.getElementById('ea-iata').value = airport.iata;
-      document.getElementById('ea-name').value = airport.name;
-      document.getElementById('ea-city').value = airport.city;
-      document.getElementById('ea-country').value = airport.country;
-      const imgInput = document.getElementById('ea-image-url');
-      if (imgInput) imgInput.value = airport.imageUrl || '';
-      openModal('modal-edit-airport');
-    }
-
-    function handleEditAirport(e) {
-      e.preventDefault();
-      const origIata = document.getElementById('ea-original-iata').value;
-      const iata = document.getElementById('ea-iata').value.trim().toUpperCase();
-      const name = document.getElementById('ea-name').value.trim();
-      const city = document.getElementById('ea-city').value.trim();
-      const country = document.getElementById('ea-country').value.trim();
-      const imageUrl = document.getElementById('ea-image-url') ? document.getElementById('ea-image-url').value.trim() : '';
-      
-      const idx = state.airports.findIndex(a => a.iata === origIata);
-      if (idx !== -1) {
-        state.airports[idx] = { ...state.airports[idx], iata, name, city, country, imageUrl };
-        renderAirports();
-        saveAirportsToStorage();
-        closeModal('modal-edit-airport');
-        showWebsitePopup({
-          title: 'Airport Details Updated',
-          message: `Airport ${iata} (${name}) has been updated in the sovereign network.`,
-          type: 'success'
-        });
-      }
-    }
-
-    function handleDeleteAirport(iata) {
-      showWebsiteConfirm({
-        title: `Remove Airport ${iata}?`,
-        category: 'Route Network Operations',
-        message: `Are you sure you want to remove airport <strong>${iata}</strong> from the sovereign route network? This will decommission associated dispatch routes.`,
-        confirmText: 'Yes, Remove Airport',
-        cancelText: 'Keep Airport',
-        type: 'danger',
-        onConfirm: () => {
-          state.airports = state.airports.filter(a => a.iata !== iata);
-          renderAirports();
-          saveAirportsToStorage();
-          showWebsitePopup({
-            title: 'Airport Removed',
-            message: `Airport ${iata} has been removed from the network.`,
-            type: 'info'
-          });
-        }
-      });
-    }
 
     function openEditFlightModal(code) {
       const flight = state.flights.find(f => f.code === code);
@@ -1555,30 +1526,21 @@
         btn.classList.add('bg-white', 'text-midnight-900', 'font-semibold', 'shadow-2xs');
       }
 
-      if (type === 'IN_FLIGHT') renderDashboardFlights(state.flights.filter(f => f.status === 'In Flight'));
+      if (type === 'IN_FLIGHT') renderDashboardFlights(state.flights.filter(f => f.status === 'In Flight' || f.status === 'Departed' || f.status === 'Boarding'));
       else if (type === 'SCHEDULED') renderDashboardFlights(state.flights.filter(f => f.status === 'Scheduled'));
       else if (type === 'DELAYED') renderDashboardFlights(state.flights.filter(f => f.status === 'Delayed'));
       else renderDashboardFlights(state.flights);
     }
 
     function filterAirports(query) {
-      const q = query.toLowerCase();
-      const filtered = state.airports.filter(a => a.iata.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q));
-      document.getElementById('airports-grid').innerHTML = filtered.map(a => `
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center space-x-3">
-              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
-              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
-            </div>
-            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
-            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
-          </div>
-        </div>
-      `).join('');
+      const q = (query || '').toLowerCase().trim();
+      const filtered = state.airports.filter(a => 
+        a.iata.toLowerCase().includes(q) || 
+        a.name.toLowerCase().includes(q) || 
+        a.city.toLowerCase().includes(q) || 
+        a.country.toLowerCase().includes(q)
+      );
+      renderAirports(filtered);
     }
 
     function filterBookingsTable(query) {
@@ -1648,11 +1610,22 @@
     }
 
     function refreshDashboardData() {
-      showToast('Refreshing telemetric feed from live sovereign corridor...', 'info');
-      setTimeout(() => showToast('All 142 airborne transponders in sync', 'success'), 800);
+      const icon = document.getElementById('force-refresh-icon') || document.querySelector('[title*="Refresh"] svg');
+      if (icon) icon.classList.add('animate-spin');
+      sessionStorage.setItem('skybook_refreshed', 'true');
+      showToast('Refreshing live operations telemetry & database...', 'info');
+      setTimeout(() => {
+        window.location.reload();
+      }, 350);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Check if this was loaded following a force refresh
+      if (sessionStorage.getItem('skybook_refreshed') === 'true') {
+        sessionStorage.removeItem('skybook_refreshed');
+        showToast('Operations console refreshed with latest live data', 'success');
+      }
+
       // Demo-only gate: mirrors the [Authorize(Roles = "Admin")] check the real
       // MVC controller would enforce server-side on every request to this route.
       const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
@@ -1662,18 +1635,16 @@
         return;
       }
 
+      try { localStorage.removeItem('skybook_airports'); } catch (e) {}
+      try { localStorage.removeItem('skybook_flights'); } catch (e) {}
+
       loadFleetFromStorage();
-      loadFlightsFromStorage();
-      loadAirportsFromStorage();
       loadCustomersFromStorage();
       saveFleetToStorage();
-      saveFlightsToStorage();
-      saveAirportsToStorage();
       saveCustomersToStorage();
       renderDashboardBookings();
       renderDashboardFlights();
       renderAllFlightsTable();
-      renderAirports();
       renderFleet();
       renderBookingsTable();
       renderCustomers();
@@ -1726,7 +1697,7 @@
 
       window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleBtn.click(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput').focus(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') { e.preventDefault(); refreshDashboardData(); }
       });
     });
   </script>

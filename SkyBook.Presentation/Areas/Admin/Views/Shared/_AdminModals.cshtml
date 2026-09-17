@@ -1,9 +1,9 @@
 @* Shared Operations Modals and Drawers *@
-@await Html.PartialAsync("~/Areas/Admin/Views/Airport/_AirportForm.cshtml")
+@await Html.PartialAsync("~/Areas/Admin/Views/Airport/_AirportForm.cshtml", new SkyBook.Business.ViewModels.AirportVM())
 @await Html.PartialAsync("~/Areas/Admin/Views/AdminFlight/_AddFlightModal.cshtml")
 @await Html.PartialAsync("~/Areas/Admin/Views/AdminFlight/_EditFlightModal.cshtml")
-@await Html.PartialAsync("~/Areas/Admin/Views/Aircraft/_AddAircraftModal.cshtml")
-@await Html.PartialAsync("~/Areas/Admin/Views/Aircraft/_EditAircraftModal.cshtml")
+@await Html.PartialAsync("~/Areas/Admin/Views/Aircraft/_AddAircraftModal.cshtml", new SkyBook.Business.ViewModels.AircraftVM())
+@await Html.PartialAsync("~/Areas/Admin/Views/Aircraft/_EditAircraftModal.cshtml", new SkyBook.Business.ViewModels.AircraftVM())
 @await Html.PartialAsync("~/Areas/Admin/Views/Seat/_ManageSeatsModal.cshtml")
 @await Html.PartialAsync("~/Areas/Admin/Views/UserManagement/_AddCustomerModal.cshtml")
 @await Html.PartialAsync("~/Areas/Admin/Views/UserManagement/_EditCustomerModal.cshtml")

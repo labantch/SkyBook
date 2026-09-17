@@ -16,25 +16,35 @@ public class FlightService : IFlightService
     #region GetAllFlights
     public async Task<List<FlightVM>> GetAllFlightsAsync()
     {
-        return await _context.Flights.Select(f => new FlightVM
-        {
-            Id = f.Id,
-            FlightNumber = f.FlightNumber,
-
-            AircraftId = f.AircraftId,
-            DepartureAirportId = f.DepartureAirportId,
-            ArrivalAirportId = f.ArrivalAirportId,
-            DepartureTime = f.DepartureTime,
-            ArrivalTime = f.ArrivalTime,
-            Price = f.Price,
-            Status = f.Status
-        }).ToListAsync();
+        return await _context.Flights
+            .Include(f => f.DepartureAirport)
+            .Include(f => f.ArrivalAirport)
+            .Include(f => f.Aircraft)
+            .Select(f => new FlightVM
+            {
+                Id = f.Id,
+                FlightNumber = f.FlightNumber,
+                AircraftId = f.AircraftId,
+                DepartureAirportId = f.DepartureAirportId,
+                ArrivalAirportId = f.ArrivalAirportId,
+                DepartureTime = f.DepartureTime,
+                ArrivalTime = f.ArrivalTime,
+                Price = f.Price,
+                Status = f.Status,
+                DepartureAirportCode = f.DepartureAirport.Code,
+                DepartureAirportName = f.DepartureAirport.Name,
+                DepartureAirportCity = f.DepartureAirport.City,
+                ArrivalAirportCode = f.ArrivalAirport.Code,
+                ArrivalAirportName = f.ArrivalAirport.Name,
+                ArrivalAirportCity = f.ArrivalAirport.City,
+                AircraftName = f.Aircraft.Name
+            }).ToListAsync();
 
     }
     #endregion
 
     #region GetFlightById
-    public async Task<FlightDetailsVM> GetFlightByIdAsync(int id)
+    public async Task<FlightDetailsVM?> GetFlightByIdAsync(int id)
     {
         var flights = await _context.Flights
             .Include(f => f.Aircraft)
@@ -75,29 +85,58 @@ public class FlightService : IFlightService
     {
         if (model.DepartureAirportId == model.ArrivalAirportId)
         {
-            throw new Exception("Departure and Arrival airport cannot be the same");
+            throw new Exception("Departure and Arrival airports cannot be the same.");
         }
         if (model.ArrivalTime <= model.DepartureTime)
         {
-            throw new Exception("Arival time must be after departure time");
+            throw new Exception("Arrival time must be after departure time.");
         }
-        bool departureAirport=await _context.Airports.AnyAsync(a=>a.Id == model.DepartureAirportId);
-        bool arrivalAirport=await _context.Airports.AnyAsync(a=>a.Id == model.ArrivalAirportId);
-
-        if (!departureAirport&&arrivalAirport)
+        var departureAirport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.DepartureAirportId);
+        if (departureAirport == null)
         {
-            throw new Exception("airport not found");
+            throw new Exception("Departure airport station could not be found.");
         }
+        if (departureAirport.Status != AirportStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Departure airport '{departureAirport.Name}' ({departureAirport.Code}) is currently {departureAirport.Status} and not operational.");
+        }
+
+        var arrivalAirport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.ArrivalAirportId);
+        if (arrivalAirport == null)
+        {
+            throw new Exception("Arrival airport station could not be found.");
+        }
+        if (arrivalAirport.Status != AirportStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Arrival airport '{arrivalAirport.Name}' ({arrivalAirport.Code}) is currently {arrivalAirport.Status} and not operational.");
+        }
+
+        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Id == model.AircraftId);
+        if (aircraft == null)
+        {
+            throw new Exception("Selected aircraft could not be found in active fleet.");
+        }
+        if (aircraft.Status != AircraftStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Aircraft '{aircraft.Name}' is currently {aircraft.Status} and cannot be assigned to flights.");
+        }
+
+        var flightNumberExists = await _context.Flights.AnyAsync(f => f.FlightNumber == model.FlightNumber);
+        if (flightNumberExists)
+        {
+            throw new Exception($"Flight number '{model.FlightNumber}' already exists.");
+        }
+
         var flight = new Flight
         {
-
-            FlightNumber = model.FlightNumber,
+            FlightNumber = model.FlightNumber.Trim().ToUpper(),
             AircraftId = model.AircraftId,
             DepartureAirportId = model.DepartureAirportId,
             ArrivalAirportId = model.ArrivalAirportId,
             DepartureTime = model.DepartureTime,
             ArrivalTime = model.ArrivalTime,
-            Price = model.Price
+            Price = model.Price,
+            Status = model.Status != 0 ? model.Status : FlightStatus.Scheduled
         };
 
         _context.Flights.Add(flight);
@@ -120,6 +159,36 @@ public class FlightService : IFlightService
 
         if (model.ArrivalTime <= model.DepartureTime)
             throw new Exception("Arrival time must be after departure time.");
+
+        var departureAirport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.DepartureAirportId);
+        if (departureAirport == null)
+        {
+            throw new Exception("Departure airport station could not be found.");
+        }
+        if (departureAirport.Status != AirportStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Departure airport '{departureAirport.Name}' ({departureAirport.Code}) is currently {departureAirport.Status} and not operational.");
+        }
+
+        var arrivalAirport = await _context.Airports.FirstOrDefaultAsync(a => a.Id == model.ArrivalAirportId);
+        if (arrivalAirport == null)
+        {
+            throw new Exception("Arrival airport station could not be found.");
+        }
+        if (arrivalAirport.Status != AirportStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Arrival airport '{arrivalAirport.Name}' ({arrivalAirport.Code}) is currently {arrivalAirport.Status} and not operational.");
+        }
+
+        var aircraft = await _context.Aircrafts.FirstOrDefaultAsync(a => a.Id == model.AircraftId);
+        if (aircraft == null)
+        {
+            throw new Exception("Selected aircraft could not be found in active fleet.");
+        }
+        if (aircraft.Status != AircraftStatus.Active)
+        {
+            throw new Exception($"Cannot schedule flight: Aircraft '{aircraft.Name}' is currently {aircraft.Status} and cannot be assigned to flights.");
+        }
 
         var flightNumberExists = await _context.Flights
             .AnyAsync(f =>
@@ -227,6 +296,9 @@ public class FlightService : IFlightService
     {
         return await _context.Flights
             .Where(f => f.Id == id)
+            .Include(f => f.DepartureAirport)
+            .Include(f => f.ArrivalAirport)
+            .Include(f => f.Aircraft)
             .Select(f => new FlightVM
             {
                 Id = f.Id,
@@ -237,7 +309,14 @@ public class FlightService : IFlightService
                 DepartureTime = f.DepartureTime,
                 ArrivalTime = f.ArrivalTime,
                 Price = f.Price,
-                Status = f.Status
+                Status = f.Status,
+                DepartureAirportCode = f.DepartureAirport.Code,
+                DepartureAirportName = f.DepartureAirport.Name,
+                DepartureAirportCity = f.DepartureAirport.City,
+                ArrivalAirportCode = f.ArrivalAirport.Code,
+                ArrivalAirportName = f.ArrivalAirport.Name,
+                ArrivalAirportCity = f.ArrivalAirport.City,
+                AircraftName = f.Aircraft.Name
             })
             .FirstOrDefaultAsync();
     }

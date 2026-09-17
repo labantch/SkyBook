@@ -169,6 +169,138 @@ public class BookingService : IBookingService
     }
     #endregion
 
+    public async Task<List<BookingDetailsVm>> GetBookingByIdAsync(string userId)
+    {
+        var bookings = await _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.Flight)
+            .ThenInclude(f => f.DepartureAirport)
+            .Include(b => b.Flight)
+            .ThenInclude(f => f.ArrivalAirport)
+            .Include(b => b.Passenger)
+            .Include(b => b.Seat)
+            .Where(b => b.UserId == userId)
+            .ToListAsync();
+        return bookings.Select(booking => new BookingDetailsVm
+        {
+            BookingId = booking.Id,
+            BookingDate = booking.BookingDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status,
+            BookingReference = booking.BookingReference,
+            DepartureAirPort = booking.Flight.DepartureAirport.Name,
+            ArrivalAirPort = booking.Flight.ArrivalAirport.Name,
+            PassengerName = $"{booking.Passenger.FirstName} {booking.Passenger.LastName}",
+            FlightNumber = booking.Flight.FlightNumber,
+            SeatNumber = booking.Seat.SeatNumber,
+            UserImageUrl = booking.User?.ImageUrl
+        }).ToList();
+    }
+
+    public async Task<List<BookingDetailsVm>> GetAllBookingsAsync()
+    {
+        var bookings = await _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.DepartureAirport)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.ArrivalAirport)
+            .Include(b => b.Passenger)
+            .Include(b => b.Seat)
+            .OrderByDescending(b => b.BookingDate)
+            .ToListAsync();
+
+        return bookings.Select(booking => new BookingDetailsVm
+        {
+            BookingId = booking.Id,
+            BookingDate = booking.BookingDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status,
+            BookingReference = booking.BookingReference,
+            DepartureAirPort = booking.Flight?.DepartureAirport?.Name ?? "",
+            ArrivalAirPort = booking.Flight?.ArrivalAirport?.Name ?? "",
+            PassengerName = booking.Passenger != null ? $"{booking.Passenger.FirstName} {booking.Passenger.LastName}" : "Unknown Passenger",
+            FlightNumber = booking.Flight?.FlightNumber ?? "",
+            SeatNumber = booking.Seat?.SeatNumber ?? "",
+            UserImageUrl = booking.User?.ImageUrl
+        }).ToList();
+    }
+
+    public async Task<List<BookingDetailsVm>> ListAllBookingsAsync()
+    {
+        return await GetAllBookingsAsync();
+    }
+
+    public async Task<BookingDetailsVm> GetBookingByIdAsync(int bookingId)
+    {
+        var booking = await _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.Passenger)
+            .Include(b => b.Seat)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.DepartureAirport)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.ArrivalAirport)
+            .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+        if (booking == null)
+            throw new Exception("Booking not found.");
+
+        return new BookingDetailsVm
+        {
+            BookingId = booking.Id,
+            BookingDate = booking.BookingDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status,
+            BookingReference = booking.BookingReference,
+            DepartureAirPort = booking.Flight?.DepartureAirport?.Name ?? "",
+            ArrivalAirPort = booking.Flight?.ArrivalAirport?.Name ?? "",
+            PassengerName = booking.Passenger != null ? $"{booking.Passenger.FirstName} {booking.Passenger.LastName}" : "Unknown Passenger",
+            FlightNumber = booking.Flight?.FlightNumber ?? "",
+            SeatNumber = booking.Seat?.SeatNumber ?? "",
+            UserImageUrl = booking.User?.ImageUrl
+        };
+    }
+
+    public async Task CancelAsync(int bookingId)
+    {
+        var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+        if (booking == null)
+            throw new Exception("Booking not found.");
+        if (booking.Status == BookingStatus.Cancelled)
+            throw new Exception("Booking is already cancelled.");
+        booking.Status = BookingStatus.Cancelled;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<BookingStatus> ToggleStatusAsync(int bookingId)
+    {
+        var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+        if (booking == null)
+            throw new Exception("Booking not found.");
+
+        if (booking.Status == BookingStatus.Cancelled)
+        {
+            booking.Status = BookingStatus.Confirmed;
+        }
+        else
+        {
+            booking.Status = BookingStatus.Cancelled;
+        }
+
+        await _context.SaveChangesAsync();
+        return booking.Status;
+    }
+
+    public async Task UncancelAsync(int bookingId)
+    {
+        var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+        if (booking == null)
+            throw new Exception("Booking not found.");
+
+        booking.Status = BookingStatus.Confirmed;
+        await _context.SaveChangesAsync();
+    }
 }
 
 

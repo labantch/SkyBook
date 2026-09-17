@@ -1,4 +1,4 @@
-﻿using SkyBook.Data.Models;
+using SkyBook.Data.Models;
 
 namespace SkyBook.Business.ViewModels
 {
@@ -14,7 +14,6 @@ namespace SkyBook.Business.ViewModels
         public string PassengerName {  get; set; }
         public string FlightNumber {  get; set; }
         public string SeatNumber {  get; set; }
-
-
+        public string? UserImageUrl { get; set; }
     }
 }

@@ -407,9 +407,8 @@
       else if (viewKey === 'airports') window.location.href = '/Admin/Airport';
       else if (viewKey === 'aircraft') window.location.href = '/Admin/Aircraft';
       else if (viewKey === 'bookings') window.location.href = '/Admin/AdminBooking';
-      else if (viewKey === 'customers') window.location.href = '/Admin/UserManagement';
-      else if (viewKey === 'settings') window.location.href = '/Admin/AdminDashboard?view=settings';
-      else window.location.href = '/Admin/AdminDashboard?view=' + viewKey;
+      else if (viewKey === 'customers' || viewKey === 'users') window.location.href = '/Admin/UserManagement';
+      else window.location.href = '/Admin/AdminDashboard';
     }
   }
 
@@ -461,13 +460,13 @@
     } else if (path.includes('booking')) {
       currentNav = 'bookings';
     } else if (path.includes('user') || path.includes('customer')) {
-      currentNav = 'customers';
+      currentNav = 'users';
     }
 
     // Set active button style
     document.querySelectorAll('#main-sidebar .nav-item').forEach(btn => {
       const target = btn.getAttribute('data-nav-target');
-      if (target === currentNav) {
+      if (target === currentNav || (currentNav === 'users' && target === 'customers')) {
         btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-midnight-700/80 shadow-sm border border-midnight-600/50 group transition-colors';
         const icon = btn.querySelector('svg');
         if (icon) icon.className = 'w-4 h-4 text-champagne-400 flex-shrink-0';

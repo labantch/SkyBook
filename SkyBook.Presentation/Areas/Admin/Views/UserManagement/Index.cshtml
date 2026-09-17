@@ -1,1031 +1,596 @@
+@model IEnumerable<SkyBook.Business.ViewModels.UserVM>
 @{
-    ViewData["Title"] = "Customers & VIPs";
+    ViewData["Title"] = "Users Management";
     Layout = "_AdminLayout";
 }
 
-<!-- Top header strip (matches ops console) -->
+<!-- Top header strip -->
 <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 flex-shrink-0">
-  <div>
-    <h1 class="text-sm font-bold text-midnight-900">Customers & VIPs</h1>
-    <p class="text-[11px] text-slate-500">SkyBook Operations Console</p>
+  <div class="flex items-center space-x-3">
+    <div class="w-9 h-9 rounded-xl bg-midnight-900 flex items-center justify-center text-champagne-400 shadow-xs border border-champagne-500/30">
+      <svg class="w-5 h-5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+    </div>
+    <div>
+      <h1 class="text-sm font-bold text-midnight-900 tracking-tight">Users Management</h1>
+      <p class="text-[11px] text-slate-500">SkyBook Operations Console &bull; Access &amp; Identity Directory</p>
+    </div>
   </div>
-  <a href="@@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="text-xs font-semibold text-champagne-600 hover:underline">← Full Dashboard</a>
+  <div class="flex items-center space-x-3">
+    <a href="@Url.Action("Index", "AdminDashboard", new { area = "Admin" })" class="inline-flex items-center gap-1.5 text-xs font-semibold text-champagne-600 hover:text-champagne-700 hover:underline">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      <span>Operations Dashboard</span>
+    </a>
+  </div>
 </header>
+
 <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]" id="viewport-root">
-  <section class="view-container space-y-6 active" data-purpose="customer-management" id="view-customers">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-      <div class="flex items-center space-x-3">
-        <div class="relative w-80">
+  <section class="view-container space-y-6 active" data-purpose="user-management" id="view-users">
+    
+    <!-- Top Controls: Search & Filters (no Add User button) -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Search Input -->
+        <div class="relative w-72 sm:w-80">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none" id="customer-search-input" oninput="filterCustomerTable(this.value)" placeholder="Search passenger name, email, or tier..." type="text">
+          <input class="w-full text-xs bg-slate-50 rounded-lg pl-9 pr-3 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-champagne-500 focus:border-champagne-500 transition-all" id="user-search-input" oninput="filterUserTable(this.value)" placeholder="Search user name, email, country, role..." type="text">
         </div>
-        <button class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-midnight-800 text-white text-xs font-semibold hover:bg-midnight-900 transition-all" onclick="openModal('modal-add-customer')">
-          <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-          <span>+ Add Customer</span>
-        </button>
+
+        <!-- Role Filter Pills -->
+        <div class="inline-flex items-center p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-semibold">
+          <button type="button" onclick="setUserRoleFilter('ALL')" id="filter-pill-all" class="user-filter-pill px-3 py-1 rounded-md bg-midnight-800 text-white shadow-xs transition-all">All Users</button>
+          <button type="button" onclick="setUserRoleFilter('Admin')" id="filter-pill-admin" class="user-filter-pill px-3 py-1 rounded-md text-slate-600 hover:text-midnight-900 transition-all">Admins</button>
+          <button type="button" onclick="setUserRoleFilter('User')" id="filter-pill-user" class="user-filter-pill px-3 py-1 rounded-md text-slate-600 hover:text-midnight-900 transition-all">Regular Users</button>
+        </div>
       </div>
-      <div class="flex items-center space-x-2 text-xs text-slate-500">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span class="">All Sovereign Members IATA Validated</span>
+
+      <!-- Live Sync & Counts -->
+      <div class="flex items-center space-x-3 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="user-count-label">Loading users...</span>
+        </span>
       </div>
     </div>
+
+    <!-- Users Table -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-            <tr><th class="py-3 px-4">Member</th><th class="py-3 px-4">Contact Info</th><th class="py-3 px-4">Country</th><th class="py-3 px-4">SkyMiles Balance</th><th class="py-3 px-4">Trips Completed</th><th class="py-3 px-4">Role</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            <tr>
+              <th class="py-3.5 px-4">User</th>
+              <th class="py-3.5 px-4">Contact Information</th>
+              <th class="py-3.5 px-4">Country</th>
+              <th class="py-3.5 px-4">Role</th>
+              <th class="py-3.5 px-4 text-right">Actions</th>
+            </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 font-medium" id="customers-table-body"></tbody>
+          <tbody class="divide-y divide-slate-100 font-medium" id="users-table-body">
+            <!-- Rendered by JavaScript from server model -->
+          </tbody>
         </table>
       </div>
+
+      <!-- Users Pagination Footer -->
+      <div id="users-pagination" class="border-t border-slate-100 px-5 py-3 bg-slate-50/50 flex items-center justify-center">
+        <nav id="users-pagination-nav" class="flex items-center gap-1.5" aria-label="Users pagination">
+          <button type="button" id="users-prev-btn" onclick="prevUserPage()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>Previous</span>
+          </button>
+          <div id="users-page-numbers" class="flex items-center gap-1"></div>
+          <button type="button" id="users-next-btn" onclick="nextUserPage()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
+            <span>Next</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </nav>
+      </div>
+
     </div>
   </section>
 </main>
 
-@section Scripts {
-<script data-purpose="application-logic">
-    // ============================================================
-    // SEAT-MAP GENERATOR (shared logic with the customer-facing
-    // seats.html). Given a { first, business, economy } seat count —
-    // exactly what the "Add Aircraft" form collects — this lays out
-    // real rows/letters so the "Manage Seats" inspector below always
-    // matches what was actually configured for that aircraft, instead
-    // of showing a fixed hardcoded demo map for every plane.
-    // ============================================================
-    const CABIN_LAYOUTS = {
-      first:    { name: 'FIRST CLASS',    groups: [['A'], ['D', 'G'], ['K']] },
-      business: { name: 'BUSINESS CLASS', groups: [['A'], ['D', 'G'], ['K']] },
-      economy:  { name: 'ECONOMY CLASS',  groups: [['A', 'B', 'C'], ['D', 'E', 'F'], ['H', 'J', 'K']] }
-    };
-    const CABIN_ROW_GAP = 1;
-
-    function buildCabin(typeKey, seatCount, startRow) {
-      const layout = CABIN_LAYOUTS[typeKey];
-      const seatsPerRow = layout.groups.reduce((sum, g) => sum + g.length, 0);
-      const rowCount = Math.max(1, Math.ceil(seatCount / seatsPerRow));
-      const rows = Array.from({ length: rowCount }, (_, i) => startRow + i);
-      return { typeKey, name: layout.name, groups: layout.groups, rows, seatsPerRow };
-    }
-
-    function buildCabinsFromCounts(seats) {
-      const cabinOrder = ['first', 'business', 'economy'];
-      const cabins = [];
-      let nextRow = 1;
-      cabinOrder.forEach(typeKey => {
-        const count = seats[typeKey] || 0;
-        if (count <= 0) return;
-        const cabin = buildCabin(typeKey, count, nextRow);
-        cabins.push(cabin);
-        nextRow = cabin.rows[cabin.rows.length - 1] + 1 + CABIN_ROW_GAP;
-      });
-      return cabins;
-    }
-
-    // Persist the fleet to localStorage so the customer-facing seats.html
-    // page (opened in the same browser) can pick up any aircraft added
-    // here. In the real MVC app this is replaced by both pages reading
-    // the same Aircraft table instead of a shared browser key.
-    const FLEET_STORAGE_KEY = 'skybook_fleet';
-    function saveFleetToStorage() {
-      try { localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(state.fleet)); } catch (e) { /* storage unavailable */ }
-    }
-    function loadFleetFromStorage() {
-      try {
-        const raw = localStorage.getItem(FLEET_STORAGE_KEY);
-        if (raw) state.fleet = JSON.parse(raw);
-      } catch (e) { /* ignore malformed storage */ }
-    }
-
-    const state = {
-      currentView: 'dashboard',
-      sidebarCollapsed: false,
-      cancellationTarget: null,
+<!-- ============================================================== -->
+<!-- RIGHT-SIDE USER DETAILS DRAWER (Master-Detail Page Panel) -->
+<!-- ============================================================== -->
+<div class="fixed inset-0 z-50 overflow-hidden hidden" data-purpose="user-details-drawer" id="drawer-user-details">
+  <div class="drawer-backdrop absolute inset-0 bg-midnight-950/60 backdrop-blur-xs transition-opacity duration-200 opacity-0" onclick="closeDrawer('drawer-user-details')"></div>
+  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+    <div class="drawer-content w-screen max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 translate-x-full border-l-2 border-[#C5A880]">
       
-      flights: [
-        { code: 'SB 918', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '20:05', deptGate: 'CAI T2 • Gate 14', arr: '01:45 +1', arrGate: 'DXB T3 • Gate B12', aircraft: 'Boeing 787-9', tail: 'A6-SKB • Sovereign Dreamliner', fare: '$1,290.00', status: 'In Flight' },
-        { code: 'SB 928', origin: 'DXB', dest: 'CAI', routeDesc: 'Dubai → Cairo', dept: '08:30', deptGate: 'DXB T3 • Gate B18', arr: '11:15', arrGate: 'CAI T2 • Gate 08', aircraft: 'Airbus A350-1000', tail: 'A6-SKA • Flagship Luxury', fare: '$2,410.00', status: 'Scheduled' },
-        { code: 'SB 501', origin: 'DXB', dest: 'HND', routeDesc: 'Dubai → Tokyo', dept: '03:40', deptGate: 'DXB T3 • Gate A04', arr: '17:50 +1', arrGate: 'HND T3 • Gate 112', aircraft: 'Boeing 777-300ER', tail: 'A6-SKX • Extended Prestige', fare: '$2,150.00', status: 'Delayed' },
-        { code: 'SB 101', origin: 'LHR', dest: 'JFK', routeDesc: 'London → New York', dept: '10:15', deptGate: 'LHR T5 • Gate 22', arr: '13:20', arrGate: 'JFK T7 • Gate 04', aircraft: 'Airbus A350-1000', tail: 'A6-SKC • Sovereign Prime', fare: '$3,470.00', status: 'Scheduled' },
-        { code: 'SB 904', origin: 'CAI', dest: 'DXB', routeDesc: 'Cairo → Dubai', dept: '16:45', deptGate: 'CAI T2 • Gate 07', arr: '22:10', arrGate: 'DXB T3 • Gate B02', aircraft: 'Boeing 787-9', tail: 'A6-SKD • Oasis Horizon', fare: '$1,450.00', status: 'In Flight' },
-        { code: 'SB 502', origin: 'DXB', dest: 'LHR', routeDesc: 'Dubai → London', dept: '23:55', deptGate: 'DXB T3 • Gate C02', arr: '04:40 +1', arrGate: 'LHR T5 • Gate 18', aircraft: 'Gulfstream G700', tail: 'A6-G71 • SkySovereign Charter', fare: '$5,400.00', status: 'Scheduled' }
-      ],
+      <!-- Drawer Header -->
+      <div class="h-16 px-6 bg-midnight-800 text-white flex items-center justify-between border-b border-midnight-700 flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-champagne-500/20 border border-champagne-500/30 flex items-center justify-center text-champagne-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-champagne-400 block">Identity Ledger</span>
+            <h2 class="text-xs font-bold text-white tracking-wide">User Profile &amp; Access Dossier</h2>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors" onclick="closeDrawer('drawer-user-details')" title="Close details">
+          ✕
+        </button>
+      </div>
 
-      bookings: [
-        {
-          pnr: 'SKY-8F42KQ',
-          customerName: 'John Mohamed & Ahmed Ali',
-          initials: '2x',
-          tier: 'Sovereign Tier',
-          flightCode: 'SB 918 / SB 928',
-          routeSummary: 'CAI ↔ DXB',
-          travelDate: '11 Sep 2026',
-          seat: '14A, 14B',
-          price: '$2,560.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-4M77XP',
-          customerName: 'Eleanor Wright',
-          initials: 'EW',
-          tier: 'First Sovereign',
-          flightCode: 'SB 501',
-          routeSummary: 'DXB → HND',
-          travelDate: '24 Oct 2026',
-          seat: '1A (First Sovereign)',
-          price: '$4,150.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-2B19LL',
-          customerName: 'Marcus Vance',
-          initials: 'MV',
-          tier: 'Sovereign Tier',
-          flightCode: 'SB 101',
-          routeSummary: 'LHR → JFK',
-          travelDate: '02 Nov 2026',
-          seat: '2D (Business)',
-          price: '$3,840.00',
-          status: 'Confirmed'
-        },
-        {
-          pnr: 'SKY-7D33WQ',
-          customerName: 'Sophia Al-Mansoor',
-          initials: 'SA',
-          tier: 'SkyClub Silver',
-          flightCode: 'SB 904',
-          routeSummary: 'CAI → DXB',
-          travelDate: '14 Nov 2026',
-          seat: '11F (Economy)',
-          price: '$1,290.00',
-          status: 'Cancelled'
-        },
-        {
-          pnr: 'SKY-6J90PL',
-          customerName: 'Tariq Al-Hashimi',
-          initials: 'TA',
-          tier: 'Sovereign VIP',
-          flightCode: 'SB 502',
-          routeSummary: 'DXB → LHR',
-          travelDate: '29 Nov 2026',
-          seat: '1L (First Sovereign)',
-          price: '$5,400.00',
-          status: 'Confirmed'
-        }
-      ],
-
-      airports: [
-        { iata: 'DXB', name: 'Dubai International Airport', city: 'Dubai', country: 'United Arab Emirates', type: 'Primary Global Hub', gates: 182, runways: '2 Active' },
-        { iata: 'CAI', name: 'Cairo International Airport', city: 'Cairo', country: 'Egypt', type: 'North Africa Hub', gates: 64, runways: '3 Active' },
-        { iata: 'LHR', name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom', type: 'European Flagship', gates: 115, runways: '2 Active' },
-        { iata: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'United States', type: 'Transatlantic Terminal', gates: 128, runways: '4 Active' },
-        { iata: 'HND', name: 'Tokyo Haneda Airport', city: 'Tokyo', country: 'Japan', type: 'Asia-Pacific Concourse', gates: 89, runways: '4 Active' },
-        { iata: 'GVA', name: 'Geneva Cointrin Airport', city: 'Geneva', country: 'Switzerland', type: 'Concierge FBO', gates: 42, runways: '1 Active' }
-      ],
-
-      fleet: [
-        { name: 'Boeing 787-9 Dreamliner', tail: 'A6-SKB', cabins: { first: 12, business: 48, economy: 230 }, capacity: '290 Seats', readiness: '98.5%', status: 'Operational (In-Flight)' },
-        { name: 'Airbus A350-1000 Flagship', tail: 'A6-SKA', cabins: { first: 14, business: 62, economy: 290 }, capacity: '366 Seats', readiness: '100%', status: 'Operational (Ready at Gate)' },
-        { name: 'Boeing 777-300ER Prestige', tail: 'A6-SKX', cabins: { first: 8, business: 68, economy: 320 }, capacity: '396 Seats', readiness: '94.2%', status: 'Turnaround Ops' },
-        { name: 'Gulfstream G700 SkySovereign', tail: 'A6-G71', cabins: { first: 19, business: 0, economy: 0 }, capacity: '19 VIP Berths', readiness: '100%', status: 'Ready on Apron' }
-      ],
-
-      customers: (() => {
-        try {
-          const raw = localStorage.getItem('skybook-admin-customers');
-          if (raw) return JSON.parse(raw);
-        } catch (e) {}
-        return [
-          { name: 'John Mohamed', email: 'john.mohamed@@sovereign-sky.com', phone: '+971 50 123 4567', country: 'United Arab Emirates', tier: 'SkyClub Sovereign Tier', trips: 18, miles: '142,500', role: 'user' },
-          { name: 'Ahmed Ali', email: 'ahmed.ali@@emirates-royal.com', phone: '+971 55 987 6543', country: 'United Arab Emirates', tier: 'SkyClub Royal', trips: 24, miles: '210,400', role: 'user' },
-          { name: 'Eleanor Wright', email: 'e.wright@@mayfair-partners.co.uk', phone: '+44 20 7946 0912', country: 'United Kingdom', tier: 'First Sovereign', trips: 31, miles: '389,000', role: 'admin' },
-          { name: 'Tariq Al-Hashimi', email: 'tariq@@hashimi-holdings.qa', phone: '+974 44 123456', country: 'Qatar', tier: 'Sovereign VIP', trips: 45, miles: '612,800', role: 'user' }
-        ];
-      })()
-    };
-
-    function switchView(viewKey) {
-      state.currentView = viewKey;
-
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        const target = btn.getAttribute('data-nav-target');
-        if (target === viewKey) {
-          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-midnight-700/80 shadow-sm border border-midnight-600/50 group transition-colors';
-          const icon = btn.querySelector('svg');
-          if (icon) icon.className = 'w-4 h-4 text-champagne-400 flex-shrink-0';
-        } else {
-          btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-midnight-700/50 group transition-colors';
-          const icon = btn.querySelector('svg');
-          if (icon) icon.className = 'w-4 h-4 text-slate-400 group-hover:text-champagne-400 flex-shrink-0';
-        }
-      });
-
-      document.querySelectorAll('.view-container').forEach(panel => panel.classList.remove('active'));
-      const activePanel = document.getElementById(`view-${viewKey}`);
-      if (activePanel) activePanel.classList.add('active');
-    }
-
-    function getStatusBadge(status) {
-      if (status === 'In Flight' || status === 'Confirmed') return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>${status}</span>`;
-      if (status === 'Scheduled' || status === 'Pending') return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>${status}</span>`;
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>${status}</span>`;
-    }
-
-    function renderDashboardBookings() {
-      const container = document.getElementById('dashboard-bookings-body');
-      if (!container) return;
-      container.innerHTML = state.bookings.slice(0, 6).map(b => `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
-          <td class="py-3 px-4">
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center">${b.initials}</div>
-              <div><span class="block font-semibold text-slate-800">${b.customerName}</span><span class="text-[10px] text-slate-400 font-normal">${b.tier}</span></div>
+      <!-- Drawer Body (Scrollable Details Content) -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-5 text-xs text-slate-600 bg-slate-50/50" id="drawer-details-body">
+        
+        <!-- User Identity Header Card with Picture -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4 text-center relative overflow-hidden">
+          <div class="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-champagne-500/10 blur-xl pointer-events-none"></div>
+          
+          <!-- Profile Picture & Status Badge -->
+          <div class="relative w-20 h-20 mx-auto">
+            <div id="ud-avatar-container" class="w-20 h-20 rounded-full border-2 border-[#C5A880] shadow-md overflow-hidden bg-midnight-900 flex items-center justify-center text-champagne-300 font-extrabold text-xl">
+              <!-- Rendered dynamically -->
             </div>
+            <span class="absolute bottom-0 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-xs" title="Account Active"></span>
+          </div>
+
+          <div>
+            <h3 class="text-base font-extrabold text-midnight-900" id="ud-name">User Name</h3>
+            <p class="text-xs text-slate-500 font-mono mt-0.5" id="ud-email">user@skybook.com</p>
+            <div class="mt-2.5 flex items-center justify-center gap-2" id="ud-role-pill-container">
+              <!-- Role badge rendered here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Security & Access Level Card -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+          <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Security &amp; Role Privilege</p>
+          <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="w-8 h-8 rounded-lg bg-midnight-800 text-champagne-400 flex items-center justify-center flex-shrink-0 mt-0.5" id="ud-privilege-icon">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-midnight-900 text-xs" id="ud-privilege-title">Administrator Privileges</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed" id="ud-privilege-desc">Has comprehensive access to flights, fleet, airports, bookings, and user ledger.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Information Details -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+          <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Personal &amp; Contact Records</p>
+          
+          <div class="space-y-2.5 text-xs">
+            <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500">Contact Email</span>
+              <span class="font-semibold text-midnight-900 font-mono" id="ud-contact-email">user@skybook.com</span>
+            </div>
+            <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500">Telephone</span>
+              <span class="font-semibold text-midnight-900 font-mono" id="ud-phone">N/A</span>
+            </div>
+            <div class="flex items-center justify-between py-1.5">
+              <span class="text-slate-500">Country / Base</span>
+              <span class="font-semibold text-midnight-900" id="ud-country">N/A</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Drawer Action Buttons Footer (Promote as Admin & Delete) - UI Only -->
+      <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0 shadow-lg">
+        <!-- Delete User Button -->
+        <button type="button" id="drawer-btn-delete" onclick="handleDrawerDelete()" class="px-4 py-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs">
+          <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Delete User</span>
+        </button>
+
+        <!-- Promote as Admin / Demote Button -->
+        <button type="button" id="drawer-btn-promote" onclick="handleDrawerPromoteToggle()" class="flex-1 px-4 py-2.5 rounded-lg bg-midnight-900 hover:bg-midnight-800 text-champagne-300 border border-champagne-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+          <svg class="w-4 h-4 text-champagne-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          <span id="drawer-promote-text">Promote as Admin</span>
+        </button>
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+@* Toast Notification Container *@
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+@section Scripts {
+<script data-purpose="user-management-logic">
+  // Load users from server model (no sample data)
+  const serverUsers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+  const userState = {
+    users: serverUsers || [],
+    selectedUser: null,
+    roleFilter: 'ALL',
+    searchKeyword: '',
+    currentPage: 1,
+    pageSize: 10
+  };
+
+  function getInitials(name) {
+    if (!name) return 'SB';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function getAvatarHtml(user, sizeClass = 'w-9 h-9', textSize = 'text-xs') {
+    const initials = getInitials(user.fullName);
+    const safeName = (user.fullName || '').replace(/"/g, '&quot;');
+    if (user.imageUrl) {
+      return `
+        <img src="${user.imageUrl}" alt="${safeName}" class="${sizeClass} rounded-full object-cover border border-champagne-500/50 shadow-2xs" 
+             onerror="this.outerHTML='<div class=\\'${sizeClass} rounded-full bg-midnight-900 text-champagne-400 font-bold ${textSize} flex items-center justify-center border border-champagne-500/40 shadow-2xs\\'>${initials}</div>'"/>
+      `;
+    }
+    return `
+      <div class="${sizeClass} rounded-full bg-midnight-900 text-champagne-400 font-bold ${textSize} flex items-center justify-center border border-champagne-500/40 shadow-2xs">
+        ${initials}
+      </div>
+    `;
+  }
+
+  function getRoleBadge(role) {
+    if (role === 'Admin') {
+      return `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-midnight-900 text-champagne-300 border border-champagne-500/40 shadow-2xs tracking-wider">
+          <svg class="w-3 h-3 text-champagne-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          ADMIN
+        </span>
+      `;
+    }
+    return `
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 tracking-wider">
+        <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        USER
+      </span>
+    `;
+  }
+
+  function renderUserRows(list) {
+    if (!list || list.length === 0) {
+      return `
+        <tr>
+          <td colspan="5" class="py-12 text-center text-slate-400">
+            <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <p class="font-semibold text-slate-600 text-xs">No matching users found</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Try searching with a different term or clear the role filter.</p>
           </td>
-          <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
-          <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
-          <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
-          <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
-          <td class="py-3 px-4 text-right"><button onclick="openBookingCustomerDrawer('${b.customerName.split(' & ')[0]}')" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</button></td>
         </tr>
-      `).join('');
+      `;
     }
 
-    function renderDashboardFlights(list = state.flights) {
-      const container = document.getElementById('dashboard-flights-body');
-      if (!container) return;
-      container.innerHTML = list.map(f => `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4 font-mono font-bold text-midnight-900"><span class="w-2 h-2 rounded-full inline-block mr-1.5 ${f.status === 'In Flight' ? 'bg-emerald-500' : f.status === 'Delayed' ? 'bg-amber-500' : 'bg-slate-400'}"></span>${f.code}</td>
-          <td class="py-3 px-4"><span class="font-bold text-midnight-900">${f.origin}</span><span class="text-champagne-500 mx-1">→</span><span class="font-bold text-midnight-900">${f.dest}</span><span class="text-[11px] text-slate-400 ml-1">(${f.routeDesc})</span></td>
-          <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.dept}</span><span class="text-[10px] text-slate-400 block">${f.deptGate}</span></td>
-          <td class="py-3 px-4"><span class="font-mono font-bold text-slate-800">${f.arr}</span><span class="text-[10px] text-slate-400 block">${f.arrGate}</span></td>
-          <td class="py-3 px-4"><span class="font-semibold text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
-          <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
-          <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
-          <td class="py-3 px-4 text-right"><button onclick="openFlightDrawer('${f.code}')" class="text-champagne-600 hover:text-champagne-700 font-semibold">Inspect</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function renderAllFlightsTable(list = state.flights) {
-      const container = document.getElementById('all-flights-body');
-      if (!container) return;
-      container.innerHTML = list.map(f => `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${f.code}</td>
-          <td class="py-3 px-4"><span class="font-bold text-midnight-900">${f.origin}</span><span class="text-champagne-500 mx-1">→</span><span class="font-bold text-midnight-900">${f.dest}</span><span class="text-[11px] text-slate-400 block">${f.routeDesc}</span></td>
-          <td class="py-3 px-4"><span class="font-mono font-semibold text-slate-800">${f.dept}</span><span class="text-[10px] text-slate-400 block">${f.deptGate}</span></td>
-          <td class="py-3 px-4"><span class="font-mono font-semibold text-slate-800">${f.arr}</span><span class="text-[10px] text-slate-400 block">${f.arrGate}</span></td>
-          <td class="py-3 px-4"><span class="font-medium text-slate-800">${f.aircraft}</span><span class="text-[10px] text-slate-400 block font-mono">${f.tail}</span></td>
-          <td class="py-3 px-4 font-mono font-bold text-slate-900">${f.fare}</td>
-          <td class="py-3 px-4">${getStatusBadge(f.status)}</td>
-          <td class="py-3 px-4 text-right space-x-2"><button onclick="openFlightDrawer('${f.code}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">Drawer</button><button onclick="promptCancel('flight', '${f.code}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Cancel</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function renderAirports() {
-      const container = document.getElementById('airports-grid');
-      if (!container) return;
-      container.innerHTML = state.airports.map(a => `
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
-          <div class="flex items-start justify-between">
+    return list.map(user => {
+      const safeName = (user.fullName || '').replace(/"/g, '&quot;');
+      const safeId = (user.id || '').replace(/"/g, '&quot;');
+      const role = user.role || 'User';
+      return `
+        <tr class="hover:bg-slate-50/80 transition-colors group">
+          <!-- User Profile: Pic + Name -->
+          <td class="py-3.5 px-4">
             <div class="flex items-center space-x-3">
-              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
-              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
-            </div>
-            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
-            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderFleet() {
-      const container = document.getElementById('fleet-card-container');
-      if (!container) return;
-      container.innerHTML = state.fleet.map(ac => `
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
-          <div class="flex items-start justify-between">
-            <div><h3 class="text-sm font-bold text-midnight-900">${ac.name}</h3><p class="text-xs font-mono text-champagne-600 mt-0.5">Registration: ${ac.tail}</p></div>
-            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">${ac.status}</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2 py-2 border-y border-slate-100 text-xs">
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Capacity</span><span class="font-bold text-midnight-900">${ac.capacity}</span></div>
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Avionics Ready</span><span class="font-bold text-emerald-600">${ac.readiness}</span></div>
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Corridor Cleared</span><span class="font-bold text-slate-700">FAA / EASA / GCAA</span></div>
-          </div>
-          ${ac.cabins ? `
-          <div class="flex items-center justify-around p-2 bg-slate-50 rounded-lg border border-slate-200 text-[11px]">
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-champagne-500 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.first} First</span></div>
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-midnight-700 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.business} Business</span></div>
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-300 inline-block"></span><span class="font-semibold text-slate-700">${ac.cabins.economy} Economy</span></div>
-          </div>` : ''}
-          <div class="flex items-center justify-between pt-1">
-            <button onclick="showToast('Avionics health status 100% nominal', 'info')" class="text-xs text-slate-500 hover:text-slate-800">Telemetry History</button>
-            <button onclick="openManageSeatsModal('${ac.tail}', '${ac.name}')" class="px-3 py-1.5 bg-midnight-800 hover:bg-midnight-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
-              <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              <span>Manage Seats</span>
-            </button>
-          </div>
-        </div>
-      `).join('');
-
-      updateFleetSummaryLabels();
-    }
-
-    function updateFleetSummaryLabels() {
-      const total = state.fleet.length;
-      const kpi = document.getElementById('kpi-total-aircraft');
-      if (kpi) kpi.innerText = total;
-      const rosterLabel = document.getElementById('fleet-roster-count');
-      if (rosterLabel) rosterLabel.innerText = `Total ${total} aircraft active in dispatch roster`;
-      const breakdown = document.getElementById('kpi-aircraft-breakdown');
-      if (breakdown) breakdown.innerText = state.fleet.map(ac => ac.name.split(' ').slice(0, 2).join(' ')).join(' • ');
-    }
-
-    function updateAircraftSeatTotal() {
-      const first = parseInt(document.getElementById('na-seats-first').value, 10) || 0;
-      const business = parseInt(document.getElementById('na-seats-business').value, 10) || 0;
-      const economy = parseInt(document.getElementById('na-seats-economy').value, 10) || 0;
-      document.getElementById('na-seat-total').innerText = first + business + economy;
-    }
-
-    function handleCreateAircraft(e) {
-      e.preventDefault();
-      const name = document.getElementById('na-model').value.trim();
-      const tail = document.getElementById('na-tail').value.trim().toUpperCase();
-      const first = parseInt(document.getElementById('na-seats-first').value, 10) || 0;
-      const business = parseInt(document.getElementById('na-seats-business').value, 10) || 0;
-      const economy = parseInt(document.getElementById('na-seats-economy').value, 10) || 0;
-      const readiness = document.getElementById('na-readiness').value;
-      const status = document.getElementById('na-status').value;
-
-      if (!name || !tail) {
-        showToast('Aircraft model and registration are required', 'error');
-        return;
-      }
-      if (first + business + economy <= 0) {
-        showToast('At least one cabin must have seats configured', 'error');
-        return;
-      }
-      if (state.fleet.some(ac => ac.tail.toUpperCase() === tail)) {
-        showToast(`Registration ${tail} is already in the fleet`, 'error');
-        return;
-      }
-
-      const total = first + business + economy;
-      state.fleet.unshift({
-        name, tail,
-        cabins: { first, business, economy },
-        capacity: `${total} Seats`,
-        readiness: `${readiness}%`,
-        status
-      });
-
-      // Keep the Add Flight modal's aircraft picker in sync with the new fleet member
-      const flightAircraftSelect = document.getElementById('mf-aircraft');
-      if (flightAircraftSelect) {
-        const opt = document.createElement('option');
-        opt.value = `${name} (${tail})`;
-        opt.innerText = `${name} (${tail})`;
-        flightAircraftSelect.prepend(opt);
-      }
-
-      renderFleet();
-      saveFleetToStorage();
-      closeModal('modal-add-aircraft');
-      showToast(`${name} (${tail}) onboarded — ${first}F / ${business}J / ${economy}Y`, 'success');
-      e.target.reset();
-      updateAircraftSeatTotal();
-    }
-
-    function renderBookingsTable(list = state.bookings) {
-      const container = document.getElementById('all-bookings-body');
-      if (!container) return;
-      container.innerHTML = list.map(b => `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
-          <td class="py-3 px-4">
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center">${b.initials}</div>
-              <div><span class="block font-semibold text-slate-800">${b.customerName}</span><span class="text-[10px] text-slate-400 font-normal">${b.tier}</span></div>
+              ${getAvatarHtml(user, 'w-10 h-10', 'text-xs')}
+              <div>
+                <span class="block font-bold text-midnight-900 group-hover:text-champagne-600 transition-colors">${user.fullName}</span>
+              </div>
             </div>
           </td>
-          <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
-          <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
-          <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
-          <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
-          <td class="py-3 px-4 text-right space-x-2">
-            <button onclick="openBookingCustomerDrawer('${b.customerName.split(' & ')[0]}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View Details</button>
-            <button onclick="promptCancel('booking', '${b.pnr}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Cancel</button>
+
+          <!-- Contact Information -->
+          <td class="py-3.5 px-4">
+            <span class="block text-slate-800 font-medium">${user.email}</span>
+            <span class="text-[10px] text-slate-400 font-mono block">${user.phoneNumber || 'N/A'}</span>
+          </td>
+
+          <!-- Country -->
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center gap-1.5 text-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-champagne-500"></span>
+              ${user.country || 'N/A'}
+            </span>
+          </td>
+
+          <!-- Role Badge -->
+          <td class="py-3.5 px-4">
+            ${getRoleBadge(role)}
+          </td>
+
+          <!-- Actions: Details button only -->
+          <td class="py-3.5 px-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button type="button" onclick="openUserDetailsDrawer('${safeId}')" class="btn-details inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight-800 hover:bg-midnight-900 text-champagne-300 hover:text-white text-xs font-bold transition-all shadow-xs border border-midnight-700">
+                <svg class="w-3.5 h-3.5 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span>Details</span>
+              </button>
+            </div>
           </td>
         </tr>
-      `).join('');
+      `;
+    }).join('');
+  }
+
+  function getFilteredUsers() {
+    let list = userState.users;
+    if (userState.roleFilter !== 'ALL') {
+      list = list.filter(u => (u.role || 'User') === userState.roleFilter);
+    }
+    if (userState.searchKeyword) {
+      const q = userState.searchKeyword.toLowerCase();
+      list = list.filter(u => 
+        (u.fullName || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.country || '').toLowerCase().includes(q) ||
+        (u.role || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }
+
+  function renderUsers() {
+    const container = document.getElementById('users-table-body');
+    if (!container) return;
+    const filtered = getFilteredUsers();
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / userState.pageSize) || 1;
+    if (userState.currentPage > totalPages) userState.currentPage = totalPages;
+    if (userState.currentPage < 1) userState.currentPage = 1;
+
+    const startIndex = (userState.currentPage - 1) * userState.pageSize;
+    const endIndex = startIndex + userState.pageSize;
+    const pageSlice = filtered.slice(startIndex, endIndex);
+
+    container.innerHTML = renderUserRows(pageSlice);
+
+    const countLabel = document.getElementById('user-count-label');
+    if (countLabel) {
+      countLabel.innerText = `Total ${filtered.length} of ${userState.users.length} Users`;
     }
 
-    function roleBadge(role) {
-      if (role === 'admin') {
-        return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-midnight-800 text-champagne-300 border border-midnight-600">ADMIN</span>`;
+    const paginationBar = document.getElementById('users-pagination');
+    if (paginationBar) {
+      paginationBar.classList.toggle('hidden', total === 0);
+    }
+
+    const prevBtn = document.getElementById('users-prev-btn');
+    const nextBtn = document.getElementById('users-next-btn');
+    if (prevBtn) prevBtn.disabled = (userState.currentPage <= 1);
+    if (nextBtn) nextBtn.disabled = (userState.currentPage >= totalPages);
+
+    renderUserPageNumbers(totalPages, userState.currentPage);
+  }
+
+  function renderUserPageNumbers(totalPages, current) {
+    const container = document.getElementById('users-page-numbers');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (current > 3) pages.push('...');
+      const start = Math.max(2, current - 1);
+      const end = Math.min(totalPages - 1, current + 1);
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
       }
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">USER</span>`;
+      if (current < totalPages - 2) pages.push('...');
+      if (!pages.includes(totalPages)) pages.push(totalPages);
     }
 
-    function renderCustomerRows(list) {
-      return list.map(c => {
-        const role = c.role || 'user';
-        const safeName = c.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-        const roleBtn = role === 'admin'
-          ? `<button type="button" data-name="${safeName}" data-role="user" class="role-action-btn text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition">Demote to User</button>`
-          : `<button type="button" data-name="${safeName}" data-role="admin" class="role-action-btn text-[11px] font-semibold text-champagne-700 hover:text-champagne-600 transition">Make Admin</button>`;
-        return `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-3 px-4">
-            <div class="flex items-center space-x-2.5">
-              ${c.imageUrl ? `
-                <img src="${c.imageUrl}" alt="${c.name}" class="w-8 h-8 rounded-full object-cover border border-champagne-500/50" onerror="this.outerHTML='<div class=\\\'w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center\\\'>${c.name.split(' ').map(n=>n[0]).join('')}</div>'"/>
-              ` : `
-                <div class="w-8 h-8 rounded-full bg-midnight-800 text-champagne-400 font-bold text-xs flex items-center justify-center">${c.name.split(' ').map(n=>n[0]).join('')}</div>
-              `}
-              <div><span class="block font-bold text-midnight-900">${c.name}</span><span class="text-[10px] font-semibold text-champagne-700">${c.tier}</span></div>
-            </div>
-          </td>
-          <td class="py-3 px-4"><span class="block text-slate-800 font-medium">${c.email}</span><span class="text-[10px] text-slate-400 font-mono">${c.phone}</span></td>
-          <td class="py-3 px-4 text-slate-700">${c.country}</td>
-          <td class="py-3 px-4 font-bold text-champagne-600 font-mono">${c.miles} mi</td>
-          <td class="py-3 px-4 font-bold text-midnight-900">${c.trips} journeys</td>
-          <td class="py-3 px-4">${roleBadge(role)}</td>
-          <td class="py-3 px-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified VIP</span></td>
-          <td class="py-3 px-4 text-right">
-            <div class="flex items-center justify-end gap-2.5">
-              ${roleBtn}
-              <button onclick="openCustomerDrawerByName('${safeName}')" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold">View</button>
-              <button type="button" onclick="openEditCustomerModal('${c.email}')" class="text-xs text-slate-600 hover:text-midnight-900 font-semibold transition">Edit</button>
-              <button type="button" onclick="handleDeleteCustomer('${safeName}')" class="text-xs text-rose-500 hover:text-rose-700 font-semibold transition">Delete</button>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
-    }
-
-    function renderCustomers() {
-      const container = document.getElementById('customers-table-body');
-      if (!container) return;
-      container.innerHTML = renderCustomerRows(state.customers);
-    }
-
-    window.pendingRoleChange = null;
-
-    window.requestRoleChange = function(customerName, newRole) {
-      window.pendingRoleChange = { name: customerName, role: newRole };
-      const title = document.getElementById('role-modal-title');
-      const desc = document.getElementById('role-modal-desc');
-      const confirmBtn = document.getElementById('role-modal-confirm-btn');
-      if (!title || !desc || !confirmBtn) {
-        console.error('Role modal elements missing');
-        return;
-      }
-      if (newRole === 'admin') {
-        title.textContent = 'Promote to Admin?';
-        desc.textContent = customerName + ' will receive full access to the Operations Console — flights, bookings, fleet, and customer data.';
-        confirmBtn.textContent = 'Yes, Make Admin';
-        confirmBtn.className = 'flex-1 py-2.5 text-xs font-bold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg shadow-sm transition';
+    pages.forEach(p => {
+      if (p === '...') {
+        const span = document.createElement('span');
+        span.className = 'px-2 py-1 text-slate-400 text-xs font-mono select-none';
+        span.textContent = '...';
+        container.appendChild(span);
       } else {
-        title.textContent = 'Demote to User?';
-        desc.textContent = customerName + ' will lose admin access to the Operations Console.';
-        confirmBtn.textContent = 'Yes, Demote';
-        confirmBtn.className = 'flex-1 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition';
-      }
-      openModal('modal-confirm-role');
-    };
-
-    window.confirmRoleChange = function() {
-      if (!window.pendingRoleChange) return;
-      const name = window.pendingRoleChange.name;
-      const role = window.pendingRoleChange.role;
-      const cust = state.customers.find(c => c.name.toLowerCase() === name.toLowerCase());
-      if (cust) {
-        cust.role = role;
-        renderCustomers();
-        showToast(role === 'admin' ? (name + ' promoted to Admin') : (name + ' demoted to User'), role === 'admin' ? 'success' : 'info');
-      }
-      window.pendingRoleChange = null;
-      closeModal('modal-confirm-role');
-      saveCustomersToStorage();
-    };
-
-    function saveCustomersToStorage() {
-      try {
-        localStorage.setItem('skybook-admin-customers', JSON.stringify(state.customers));
-      } catch (err) {}
-    }
-
-    function loadCustomersFromStorage() {
-      try {
-        const stored = localStorage.getItem('skybook-admin-customers');
-        if (stored) {
-          state.customers = JSON.parse(stored);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = p;
+        if (p === current) {
+          btn.className = 'w-8 h-8 rounded-lg bg-midnight-900 text-white font-bold text-xs shadow-xs border border-midnight-950 flex items-center justify-center';
+        } else {
+          btn.className = 'w-8 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 hover:border-slate-300 transition flex items-center justify-center';
+          btn.onclick = () => goToUserPage(p);
         }
-      } catch (err) {}
-    }
-
-    function handleCreateCustomer(e) {
-      e.preventDefault();
-      const name = document.getElementById('mc-name').value.trim();
-      const email = document.getElementById('mc-email').value.trim();
-      const phone = document.getElementById('mc-phone').value.trim() || '+971 50 000 0000';
-      const country = document.getElementById('mc-country').value.trim();
-      const tier = document.getElementById('mc-tier').value;
-      const role = document.getElementById('mc-role').value;
-      const trips = parseInt(document.getElementById('mc-trips').value, 10) || 0;
-      const miles = document.getElementById('mc-miles').value.trim() || '0';
-      const imageUrl = document.getElementById('mc-image-url') ? document.getElementById('mc-image-url').value.trim() : '';
-
-      if (!name || !email) {
-        showToast('Name and email are required', 'error');
-        return;
-      }
-
-      state.customers.unshift({
-        name, email, phone, country, tier, trips, miles, role, imageUrl
-      });
-
-      renderCustomers();
-      saveCustomersToStorage();
-      closeModal('modal-add-customer');
-      showToast(`Customer ${name} registered in sovereign directory`, 'success');
-      e.target.reset();
-    }
-
-    function openEditCustomerModal(email) {
-      const c = state.customers.find(x => x.email === email);
-      if (!c) return;
-      document.getElementById('ec-original-email').value = c.email;
-      document.getElementById('ec-name').value = c.name;
-      document.getElementById('ec-email').value = c.email;
-      document.getElementById('ec-phone').value = c.phone || '';
-      document.getElementById('ec-country').value = c.country || '';
-      document.getElementById('ec-tier').value = c.tier || 'SkyClub Sovereign Tier';
-      document.getElementById('ec-role').value = c.role || 'user';
-      document.getElementById('ec-trips').value = c.trips || 0;
-      document.getElementById('ec-miles').value = c.miles || '0';
-      const imgInput = document.getElementById('ec-image-url');
-      if (imgInput) imgInput.value = c.imageUrl || '';
-      openModal('modal-edit-customer');
-    }
-
-    function handleEditCustomer(e) {
-      e.preventDefault();
-      const origEmail = document.getElementById('ec-original-email').value;
-      const name = document.getElementById('ec-name').value.trim();
-      const email = document.getElementById('ec-email').value.trim();
-      const phone = document.getElementById('ec-phone').value.trim();
-      const country = document.getElementById('ec-country').value.trim();
-      const tier = document.getElementById('ec-tier').value;
-      const role = document.getElementById('ec-role').value;
-      const trips = parseInt(document.getElementById('ec-trips').value, 10) || 0;
-      const miles = document.getElementById('ec-miles').value.trim();
-      const imageUrl = document.getElementById('ec-image-url') ? document.getElementById('ec-image-url').value.trim() : '';
-
-      const idx = state.customers.findIndex(x => x.email === origEmail);
-      if (idx !== -1) {
-        state.customers[idx] = { ...state.customers[idx], name, email, phone, country, tier, role, trips, miles, imageUrl };
-        renderCustomers();
-        saveCustomersToStorage();
-        closeModal('modal-edit-customer');
-        showWebsitePopup({
-          title: 'Customer Profile Updated',
-          message: `Profile and credentials for "${name}" have been successfully saved to the ledger.`,
-          type: 'success'
-        });
-      }
-    }
-
-    function handleDeleteCustomer(name) {
-      showWebsiteConfirm({
-        title: 'Delete Customer Profile?',
-        category: 'Guest Ledger Management',
-        message: `Are you sure you want to remove customer <strong>"${name}"</strong> from the sovereign ledger? This action cannot be reversed.`,
-        confirmText: 'Yes, Delete Customer',
-        cancelText: 'Keep Customer',
-        type: 'danger',
-        onConfirm: () => {
-          state.customers = state.customers.filter(c => c.name !== name);
-          renderCustomers();
-          saveCustomersToStorage();
-          showWebsitePopup({
-            title: 'Customer Removed',
-            message: `Customer "${name}" has been deleted from the sovereign ledger.`,
-            type: 'info'
-          });
-        }
-      });
-    }
-
-
-    // role-action-btn-delegation
-    document.addEventListener('click', function(e) {
-      const btn = e.target.closest('.role-action-btn');
-      if (!btn) return;
-      e.preventDefault();
-      const name = btn.getAttribute('data-name');
-      const role = btn.getAttribute('data-role');
-      if (name && role && typeof window.requestRoleChange === 'function') {
-        window.requestRoleChange(name, role);
+        container.appendChild(btn);
       }
     });
+  }
 
-    // Modal & Drawer Interactions
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    
-    function openDrawer(id) {
-      const d = document.getElementById(id);
-      if (!d) return;
-      d.classList.remove('hidden');
-      setTimeout(() => {
-        const b = d.querySelector('.drawer-backdrop');
-        const c = d.querySelector('.drawer-content');
-        if(b) b.classList.remove('opacity-0');
-        if(c) c.classList.remove('translate-x-full');
-      }, 10);
+  function goToUserPage(page) {
+    userState.currentPage = page;
+    renderUsers();
+    scrollToTopUsers();
+  }
+
+  function prevUserPage() {
+    if (userState.currentPage > 1) {
+      userState.currentPage--;
+      renderUsers();
+      scrollToTopUsers();
     }
-    
-    function closeDrawer(id) {
-      const d = document.getElementById(id);
-      if (!d) return;
+  }
+
+  function nextUserPage() {
+    const totalPages = Math.ceil(getFilteredUsers().length / userState.pageSize) || 1;
+    if (userState.currentPage < totalPages) {
+      userState.currentPage++;
+      renderUsers();
+      scrollToTopUsers();
+    }
+  }
+
+  function changeUserPageSize(size) {
+    userState.pageSize = parseInt(size, 10) || 10;
+    userState.currentPage = 1;
+    renderUsers();
+  }
+
+  function scrollToTopUsers() {
+    const el = document.getElementById('view-users');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function filterUserTable(keyword) {
+    userState.searchKeyword = keyword.trim();
+    userState.currentPage = 1;
+    renderUsers();
+  }
+
+  function setUserRoleFilter(role) {
+    userState.roleFilter = role;
+    userState.currentPage = 1;
+    document.querySelectorAll('.user-filter-pill').forEach(btn => {
+      btn.className = 'user-filter-pill px-3 py-1 rounded-md text-slate-600 hover:text-midnight-900 transition-all';
+    });
+    const activeBtn = document.getElementById(`filter-pill-${role.toLowerCase()}`);
+    if (activeBtn) {
+      activeBtn.className = 'user-filter-pill px-3 py-1 rounded-md bg-midnight-800 text-white shadow-xs transition-all';
+    }
+    renderUsers();
+  }
+
+  // ==============================================================
+  // RIGHT-SIDE DRAWER: Open User Details
+  // ==============================================================
+  function openUserDetailsDrawer(userId) {
+    const user = userState.users.find(u => u.id === userId);
+    if (!user) return;
+
+    userState.selectedUser = user;
+
+    // Set User Avatar
+    const avatarBox = document.getElementById('ud-avatar-container');
+    if (avatarBox) {
+      avatarBox.innerHTML = getAvatarHtml(user, 'w-20 h-20', 'text-xl');
+    }
+
+    // Set Name & Email
+    document.getElementById('ud-name').innerText = user.fullName;
+    document.getElementById('ud-email').innerText = user.email;
+    document.getElementById('ud-contact-email').innerText = user.email;
+    document.getElementById('ud-phone').innerText = user.phoneNumber || 'N/A';
+    document.getElementById('ud-country').innerText = user.country || 'N/A';
+
+    // Role badge & privileges in drawer
+    const rolePillBox = document.getElementById('ud-role-pill-container');
+    const privTitle = document.getElementById('ud-privilege-title');
+    const privDesc = document.getElementById('ud-privilege-desc');
+    const promoteBtn = document.getElementById('drawer-btn-promote');
+    const promoteText = document.getElementById('drawer-promote-text');
+
+    const isAdmin = (user.role || 'User') === 'Admin';
+
+    if (rolePillBox) {
+      rolePillBox.innerHTML = getRoleBadge(user.role || 'User');
+    }
+
+    if (isAdmin) {
+      privTitle.innerText = 'Administrator Access Granted';
+      privDesc.innerText = 'Has comprehensive rights to manage flights, aircraft fleets, airport hubs, and the entire user directory.';
+      if (promoteText) promoteText.innerText = 'Demote to Regular User';
+      if (promoteBtn) {
+        promoteBtn.className = 'flex-1 px-4 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs';
+      }
+    } else {
+      privTitle.innerText = 'Standard User Account';
+      privDesc.innerText = 'Restricted access: user can make reservations and view itineraries, but cannot access administrative consoles.';
+      if (promoteText) promoteText.innerText = 'Promote as Admin';
+      if (promoteBtn) {
+        promoteBtn.className = 'flex-1 px-4 py-2.5 rounded-lg bg-midnight-900 hover:bg-midnight-800 text-champagne-300 border border-champagne-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg';
+      }
+    }
+
+    openDrawer('drawer-user-details');
+  }
+
+  // UI-only: Promote/Demote toggle (visual only, no backend call)
+  function handleDrawerPromoteToggle() {
+    if (!userState.selectedUser) return;
+    const user = userState.selectedUser;
+    const isCurrentlyAdmin = (user.role || 'User') === 'Admin';
+    const newRole = isCurrentlyAdmin ? 'User' : 'Admin';
+    const action = isCurrentlyAdmin ? 'demoted to Regular User' : 'promoted to Admin';
+
+    user.role = newRole;
+    renderUsers();
+    openUserDetailsDrawer(user.id); // refresh drawer
+    showToast(`"${user.fullName}" has been ${action} (UI only).`, 'success');
+  }
+
+  // UI-only: Delete user (visual only, no backend call)
+  function handleDrawerDelete() {
+    if (!userState.selectedUser) return;
+    const user = userState.selectedUser;
+    const name = user.fullName;
+
+    userState.users = userState.users.filter(u => u.id !== user.id);
+    userState.selectedUser = null;
+    renderUsers();
+    closeDrawer('drawer-user-details');
+    showToast(`"${name}" removed from list (UI only).`, 'info');
+  }
+
+  // Drawer helper utilities
+  function openDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    d.classList.remove('hidden');
+    setTimeout(() => {
       const b = d.querySelector('.drawer-backdrop');
       const c = d.querySelector('.drawer-content');
-      if(b) b.classList.add('opacity-0');
-      if(c) c.classList.add('translate-x-full');
-      setTimeout(() => d.classList.add('hidden'), 250);
+      if(b) b.classList.remove('opacity-0');
+      if(c) c.classList.remove('translate-x-full');
+    }, 10);
+  }
+
+  function closeDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    const b = d.querySelector('.drawer-backdrop');
+    const c = d.querySelector('.drawer-content');
+    if(b) b.classList.add('opacity-0');
+    if(c) c.classList.add('translate-x-full');
+    setTimeout(() => d.classList.add('hidden'), 250);
+  }
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    const bgColors = { info: 'bg-midnight-900 text-white', success: 'bg-emerald-800 text-white', error: 'bg-rose-800 text-white' };
+    toast.className = `${bgColors[type] || bgColors.info} px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+    toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-champagne-400'}"></span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Check TempData messages from C#
+    @if (TempData["Success"] != null)
+    {
+        @:showToast('@TempData["Success"]', 'success');
+    }
+    @if (TempData["Error"] != null)
+    {
+        @:showToast('@TempData["Error"]', 'error');
     }
 
-    function openFlightDrawer(code) {
-      const flight = state.flights.find(f => f.code === code) || state.flights[0];
-      document.getElementById('df-code').innerText = flight.code;
-      document.getElementById('df-status-pill').innerText = flight.status;
-      document.getElementById('df-origin-iata').innerText = flight.origin;
-      document.getElementById('df-dest-iata').innerText = flight.dest;
-      document.getElementById('df-dept-time').innerText = flight.dept;
-      document.getElementById('df-arr-time').innerText = flight.arr;
-      document.getElementById('df-origin-gate').innerText = flight.deptGate;
-      document.getElementById('df-dest-gate').innerText = flight.arrGate;
-      document.getElementById('df-aircraft-name').innerText = flight.aircraft;
-      document.getElementById('df-tail-no').innerText = flight.tail;
-      document.getElementById('df-fare').innerText = flight.fare;
-      openDrawer('drawer-flight-details');
-    }
-
-    function openManageSeatsModal(tail, planeName) {
-      document.getElementById('ms-plane-title').innerText = `${planeName} (${tail})`;
-      const aircraft = state.fleet.find(ac => ac.tail === tail);
-      renderInspectorSeatMap(aircraft);
-      openModal('modal-manage-seats');
-    }
-
-    const ZONE_STYLES = {
-      first:    { label: 'Zone A: First Sovereign Suites', seatClass: 'bg-champagne-500 text-white hover:brightness-110', cols: 4 },
-      business: { label: 'Zone B: Business Class Suites',  seatClass: 'bg-midnight-700 text-white hover:bg-midnight-600', cols: 4 },
-      economy:  { label: 'Zone C: Economy Prestige',       seatClass: 'bg-slate-200 text-slate-700 hover:bg-slate-300', cols: 9 }
-    };
-
-    function renderInspectorSeatMap(aircraft) {
-      const root = document.getElementById('ms-seatmap-root');
-      if (!root) return;
-
-      if (!aircraft || !aircraft.cabins) {
-        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No cabin configuration on file for this aircraft.</p>`;
-        return;
-      }
-
-      const cabins = buildCabinsFromCounts(aircraft.cabins);
-      if (cabins.length === 0) {
-        root.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">This aircraft has no seats configured yet — edit it from the fleet card to add cabin counts.</p>`;
-        return;
-      }
-
-      root.innerHTML = cabins.map(cabin => {
-        const style = ZONE_STYLES[cabin.typeKey];
-        const seatButtons = cabin.rows.map(rowNum => cabin.groups.flat().map(letter => {
-          const seatId = `${rowNum}${letter}`;
-          // Deterministic demo occupancy so the map isn't 100% empty
-          const isOccupied = (rowNum + letter.charCodeAt(0)) % 7 === 0;
-          if (isOccupied) {
-            return `<button class="p-3 rounded-lg bg-rose-600 text-white font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Occupied — reserved for this flight')">${seatId}<span class="text-[9px] font-normal opacity-90 font-sans">Taken</span></button>`;
-          }
-          return `<button class="p-3 rounded-lg ${style.seatClass} font-bold flex flex-col items-center shadow-xs" onclick="inspectSeat('${seatId}', '${cabin.name}', 'Available for assignment')">${seatId}<span class="text-[9px] uppercase font-normal opacity-80 font-sans">Open</span></button>`;
-        }).join('')).join('');
-
-        return `
-          <div class="w-full space-y-2">
-            <div class="flex items-center justify-between border-b border-slate-200 pb-1">
-              <span class="text-[10px] uppercase font-bold text-slate-600 tracking-wider">${style.label}</span>
-              <span class="text-[10px] text-slate-400 font-mono">${cabin.rows.length * cabin.seatsPerRow} seats • Rows ${cabin.rows[0]}–${cabin.rows[cabin.rows.length - 1]}</span>
-            </div>
-            <div class="grid gap-1.5 px-2 py-2 font-mono max-h-56 overflow-y-auto" style="grid-template-columns: repeat(${style.cols}, minmax(0, 1fr));">
-              ${seatButtons}
-            </div>
-          </div>`;
-      }).join('');
-    }
-
-    function inspectSeat(seatId, cabin, statusInfo) {
-      document.getElementById('inspected-seat-id').innerText = `Seat ${seatId} (${cabin})`;
-      document.getElementById('inspected-seat-desc').innerText = statusInfo;
-    }
-
-    function openCustomerDrawerByName(customerName) {
-      const cust = state.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase()) || state.customers[0];
-      document.getElementById('cd-name').innerText = cust.name;
-      const initialsEl = document.getElementById('cd-initials');
-      if (initialsEl) {
-        if (cust.imageUrl) {
-          initialsEl.innerHTML = `<img src="${cust.imageUrl}" alt="${cust.name}" class="w-full h-full rounded-full object-cover" onerror="this.outerHTML='${cust.name.split(' ').map(n=>n[0]).join('')}'"/>`;
-        } else {
-          initialsEl.innerText = cust.name.split(' ').map(n=>n[0]).join('');
-        }
-      }
-      document.getElementById('cd-email').innerText = cust.email;
-      document.getElementById('cd-tier').innerText = `${cust.tier} • #SK-8829104`;
-      document.getElementById('cd-trips').innerText = cust.trips;
-      document.getElementById('cd-miles').innerText = cust.miles;
-      openDrawer('drawer-customer-details');
-    }
-
-    function openBookingCustomerDrawer(customerName) {
-      openCustomerDrawerByName(customerName);
-    }
-
-    function promptCancel(type, identifier) {
-      state.cancellationTarget = { type, identifier };
-      document.getElementById('cancel-modal-title').innerText = `Cancel ${type === 'flight' ? 'Flight' : 'Booking'} ${identifier}?`;
-      openModal('modal-confirm-cancel');
-    }
-
-    function executeCancellation() {
-      if (!state.cancellationTarget) return;
-      const { type, identifier } = state.cancellationTarget;
-      
-      if (type === 'flight') {
-        const item = state.flights.find(f => f.code === identifier);
-        if (item) item.status = 'Cancelled';
-        renderAllFlightsTable();
-        renderDashboardFlights();
-      } else {
-        const item = state.bookings.find(b => b.pnr === identifier);
-        if (item) item.status = 'Cancelled';
-        renderBookingsTable();
-        renderDashboardBookings();
-      }
-
-      closeModal('modal-confirm-cancel');
-      showToast(`${type.toUpperCase()} ${identifier} has been cancelled`, 'error');
-    }
-
-    // Forms
-    function handleCreateFlight(e) {
-      e.preventDefault();
-      const code = document.getElementById('mf-flightno').value.trim();
-      const aircraftStr = document.getElementById('mf-aircraft').value;
-      const origin = document.getElementById('mf-origin').value;
-      const dest = document.getElementById('mf-destination').value;
-      const dept = document.getElementById('mf-dept-time').value;
-      const arr = document.getElementById('mf-arr-time').value;
-      const fare = document.getElementById('mf-fare').value;
-      const status = document.getElementById('mf-status').value;
-
-      state.flights.unshift({
-        code, origin, dest, routeDesc: `${origin} → ${dest}`, dept, deptGate: `${origin} T1 • Gate G04`, arr, arrGate: `${dest} T2 • Gate B02`,
-        aircraft: aircraftStr.split('(')[0].trim(), tail: aircraftStr.includes('(') ? aircraftStr.split('(')[1].replace(')', '') : 'A6-NEW', fare, status
-      });
-
-      renderAllFlightsTable();
-      renderDashboardFlights();
-      closeModal('modal-add-flight');
-      showToast(`Flight ${code} scheduled and added to sovereign dispatch`, 'success');
-      e.target.reset();
-    }
-
-    function handleCreateAirport(e) {
-      e.preventDefault();
-      const iata = document.getElementById('ma-iata').value.trim().toUpperCase();
-      const name = document.getElementById('ma-name').value.trim();
-      const city = document.getElementById('ma-city').value.trim();
-      const country = document.getElementById('ma-country').value.trim();
-
-      state.airports.unshift({ iata, name, city, country, type: 'Regional Flagship', gates: 36, runways: '2 Active' });
-      renderAirports();
-      closeModal('modal-add-airport');
-      showToast(`Airport ${iata} - ${name} added to route network`, 'success');
-      e.target.reset();
-    }
-
-    // Filtering
-    function filterFlightsTable(keyword) {
-      const q = keyword.toLowerCase();
-      const filtered = state.flights.filter(f => f.code.toLowerCase().includes(q) || f.origin.toLowerCase().includes(q) || f.dest.toLowerCase().includes(q) || f.aircraft.toLowerCase().includes(q));
-      renderAllFlightsTable(filtered);
-    }
-
-    function setFlightFilter(type) {
-      document.querySelectorAll('.flight-filter-pill').forEach(btn => {
-        btn.classList.remove('bg-midnight-800', 'text-white');
-        btn.classList.add('bg-slate-100', 'text-slate-700');
-      });
-      event.target.classList.remove('bg-slate-100', 'text-slate-700');
-      event.target.classList.add('bg-midnight-800', 'text-white');
-
-      if (type === 'ALL') renderAllFlightsTable(state.flights);
-      else if (type === 'IN_FLIGHT') renderAllFlightsTable(state.flights.filter(f => f.status === 'In Flight'));
-      else if (type === 'SCHEDULED') renderAllFlightsTable(state.flights.filter(f => f.status === 'Scheduled'));
-      else if (type === 'DELAYED') renderAllFlightsTable(state.flights.filter(f => f.status === 'Delayed'));
-    }
-
-    function setDashboardFlightFilter(type, btn) {
-      document.querySelectorAll('.dash-flight-filter-pill').forEach(el => {
-        el.classList.remove('bg-white', 'text-midnight-900', 'font-semibold', 'shadow-2xs');
-        el.classList.add('text-slate-500');
-      });
-      if (btn) {
-        btn.classList.remove('text-slate-500');
-        btn.classList.add('bg-white', 'text-midnight-900', 'font-semibold', 'shadow-2xs');
-      }
-
-      if (type === 'IN_FLIGHT') renderDashboardFlights(state.flights.filter(f => f.status === 'In Flight'));
-      else if (type === 'SCHEDULED') renderDashboardFlights(state.flights.filter(f => f.status === 'Scheduled'));
-      else if (type === 'DELAYED') renderDashboardFlights(state.flights.filter(f => f.status === 'Delayed'));
-      else renderDashboardFlights(state.flights);
-    }
-
-    function filterAirports(query) {
-      const q = query.toLowerCase();
-      const filtered = state.airports.filter(a => a.iata.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q));
-      document.getElementById('airports-grid').innerHTML = filtered.map(a => `
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center space-x-3">
-              <span class="text-xl font-extrabold font-mono text-white bg-midnight-900 px-3 py-1.5 rounded-lg">${a.iata}</span>
-              <div><h4 class="text-xs font-bold text-midnight-900">${a.name}</h4><p class="text-[11px] text-slate-500">${a.city}, ${a.country}</p></div>
-            </div>
-            <span class="text-[10px] font-semibold bg-champagne-100 text-champagne-800 px-2 py-0.5 rounded">${a.type}</span>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <div><span class="text-[10px] text-slate-400 block uppercase font-semibold">Sovereign Gates</span><span class="font-bold text-midnight-900">${a.gates} Gates</span></div>
-            <div class="text-right"><span class="text-[10px] text-slate-400 block uppercase font-semibold">Runway Ops</span><span class="text-emerald-600 font-semibold">${a.runways}</span></div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function filterBookingsTable(query) {
-      const q = query.toLowerCase();
-      const filtered = state.bookings.filter(b => b.pnr.toLowerCase().includes(q) || b.customerName.toLowerCase().includes(q) || b.flightCode.toLowerCase().includes(q));
-      renderBookingsTable(filtered);
-    }
-
-    function filterBookingsByStatus(status) {
-      if (status === 'ALL') renderBookingsTable(state.bookings);
-      else renderBookingsTable(state.bookings.filter(b => b.status === status));
-    }
-
-    function filterCustomerTable(query) {
-      const q = query.toLowerCase();
-      const filtered = state.customers.filter(c =>
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.tier.toLowerCase().includes(q) ||
-        (c.role || '').toLowerCase().includes(q)
-      );
-      const container = document.getElementById('customers-table-body');
-      if (container) container.innerHTML = renderCustomerRows(filtered);
-    }
-
-    function handleGlobalSearch(term) {
-      if (!term) return;
-      const q = term.toLowerCase();
-      if (q.startsWith('sb') || q.includes('918') || q.includes('501')) {
-        switchView('flights');
-        filterFlightsTable(term);
-      } else if (q.startsWith('sky-')) {
-        switchView('bookings');
-        filterBookingsTable(term);
-      }
-    }
-
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-
-      const toast = document.createElement('div');
-      const bgColors = { info: 'bg-midnight-900 text-white border-midnight-700', success: 'bg-emerald-800 text-white border-emerald-700', error: 'bg-rose-800 text-white border-rose-700' };
-
-      toast.className = `${bgColors[type] || bgColors.info} border px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
-      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-champagne-400'}"></span><span>${message}</span>`;
-      container.appendChild(toast);
-
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-
-    function openAdminProfile() {
-      openDrawer('drawer-admin-profile');
-    }
-
-    function handleLogout() {
-      localStorage.removeItem('skybook-authenticated');
-      localStorage.removeItem('skybook-role');
-      localStorage.removeItem('skybook-user-name');
-      localStorage.removeItem('skybook-user-email');
-      localStorage.removeItem('skybook-user-initials');
-      window.location.href = '/Account/Login';
-    }
-
-    function refreshDashboardData() {
-      showToast('Refreshing telemetric feed from live sovereign corridor...', 'info');
-      setTimeout(() => showToast('All 142 airborne transponders in sync', 'success'), 800);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      // Demo-only gate: mirrors the [Authorize(Roles = "Admin")] check the real
-      // MVC controller would enforce server-side on every request to this route.
-      const isAuthed = localStorage.getItem('skybook-authenticated') === 'true';
-      const role = localStorage.getItem('skybook-role');
-      if (!isAuthed || role !== 'admin') {
-        window.location.href = '/Account/Login?returnTo=/Admin/UserManagement';
-        return;
-      }
-
-      loadFleetFromStorage();
-      loadCustomersFromStorage();
-      saveFleetToStorage(); // seed storage on first run so seats.html has data to read
-      renderDashboardBookings();
-      renderDashboardFlights();
-      renderAllFlightsTable();
-      renderAirports();
-      renderFleet();
-      renderBookingsTable();
-      renderCustomers();
-      
-      const clockEl = document.getElementById('live-utc-clock');
-      setInterval(() => { if (clockEl) clockEl.innerText = new Date().toUTCString().split(' ')[4]; }, 1000);
-
-      const toggleBtn = document.getElementById('sidebar-toggle-btn');
-      const sidebar = document.getElementById('main-sidebar');
-
-      function applySidebarCollapsed(collapsed) {
-        state.sidebarCollapsed = collapsed;
-        sidebar.classList.toggle('w-64', !collapsed);
-        sidebar.classList.toggle('w-20', collapsed);
-        sidebar.classList.toggle('sidebar-collapsed', collapsed);
-
-        document.querySelectorAll('.sidebar-text').forEach(el => {
-          el.classList.toggle('hidden', collapsed);
-        });
-
-        document.querySelectorAll('#main-sidebar .nav-item').forEach(btn => {
-          btn.classList.toggle('justify-center', collapsed);
-          btn.classList.toggle('px-2', collapsed);
-          btn.classList.toggle('px-3', !collapsed);
-          btn.classList.toggle('space-x-3', !collapsed);
-        });
-
-        const brandContainer = document.getElementById('brand-container');
-        if (brandContainer) {
-          brandContainer.classList.toggle('justify-center', collapsed);
-          brandContainer.classList.toggle('w-full', collapsed);
-        }
-
-        const userCard = document.getElementById('sidebar-user-card');
-        if (userCard) {
-          userCard.classList.toggle('justify-center', collapsed);
-          const logoutBtn = userCard.querySelector('.sidebar-logout-btn');
-          if (logoutBtn) logoutBtn.classList.toggle('hidden', collapsed);
-        }
-
-        const topRow = sidebar.querySelector('.h-16');
-        if (topRow) {
-          topRow.classList.toggle('px-2', collapsed);
-        }
-      }
-
-      toggleBtn.addEventListener('click', () => {
-        applySidebarCollapsed(!state.sidebarCollapsed);
-      });
-
-      window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleBtn.click(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput').focus(); }
-      });
-    });
-  </script>
+    renderUsers();
+  });
+</script>
 }

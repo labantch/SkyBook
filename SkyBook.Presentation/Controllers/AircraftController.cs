@@ -46,7 +46,7 @@ namespace SkyBook.Presentation.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _aircraftService.CreateAircraftAsync(aircraftvm);
+                await _aircraftService.CreateAsync(aircraftvm);
                 return RedirectToAction(nameof(Index));
             }
             return View(aircraftvm);
@@ -72,7 +72,7 @@ namespace SkyBook.Presentation.Controllers
         {
             if (ModelState.IsValid) 
             {
-                await _aircraftService.UpdateAircraftAsync(aircraftvm);
+                await _aircraftService.UpdateAsync(aircraftvm);
                 return RedirectToAction(nameof(Index));
             };
             return View(aircraftvm);
@@ -83,7 +83,7 @@ namespace SkyBook.Presentation.Controllers
         [HttpPost]
         public async Task<IActionResult>Delete(int id)
         {
-            await _aircraftService.DeleteAircraftAsync(id);
+            await _aircraftService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
         #endregion

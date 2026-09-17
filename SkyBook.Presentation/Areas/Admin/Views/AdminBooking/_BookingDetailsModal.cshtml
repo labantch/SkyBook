@@ -1,43 +1,84 @@
-@* Booking details — customer drawer reused for booking inspection *@
-<div class="fixed inset-0 z-40 overflow-hidden hidden" data-purpose="customer-drawer" id="drawer-customer-details">
-  <div class="drawer-backdrop absolute inset-0 bg-midnight-900/60 backdrop-blur-xs transition-opacity duration-200 opacity-0" onclick="closeDrawer('drawer-customer-details')"></div>
+@* Booking Details Drawer *@
+<div class="fixed inset-0 z-40 overflow-hidden hidden" data-purpose="booking-drawer" id="drawer-booking-details">
+  <div class="drawer-backdrop absolute inset-0 bg-midnight-900/60 backdrop-blur-xs transition-opacity duration-200 opacity-0" onclick="closeDrawer('drawer-booking-details')"></div>
   <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
     <div class="drawer-content w-screen max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 translate-x-full">
+      
+      <!-- Header -->
       <div class="h-16 px-6 bg-midnight-800 text-white flex items-center justify-between border-b border-midnight-700">
-        <span class="text-xs font-semibold uppercase tracking-wider text-champagne-400">Sovereign Guest Dossier</span>
-        <button class="text-slate-400 hover:text-white p-1" onclick="closeDrawer('drawer-customer-details')">
+        <span class="text-xs font-semibold uppercase tracking-wider text-champagne-400">Booking Dossier</span>
+        <button class="text-slate-400 hover:text-white p-1" onclick="closeDrawer('drawer-booking-details')">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
         </button>
       </div>
+      
+      <!-- Content -->
       <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
-        <div class="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="w-14 h-14 rounded-full bg-midnight-900 text-champagne-400 font-bold text-lg flex items-center justify-center border-2 border-champagne-500/50" id="cd-initials">JM</div>
+        
+        <!-- Booking PNR & Status -->
+        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <div class="flex items-center space-x-2">
-              <h3 class="text-base font-bold text-midnight-900" id="cd-name">John Mohamed</h3>
-              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Verified</span>
+            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Booking Reference</span>
+            <h2 class="text-2xl font-extrabold font-mono text-midnight-900" id="bd-pnr">SKY-XXXXXX</h2>
+          </div>
+          <div id="bd-status">
+            <!-- Dynamic Status Badge Injected Here -->
+          </div>
+        </div>
+
+        <!-- Passenger Summary -->
+        <div>
+          <span class="text-[10px] uppercase text-slate-400 font-semibold block mb-2">Passenger</span>
+          <div class="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="w-12 h-12 rounded-full bg-midnight-900 text-champagne-400 font-bold text-base flex items-center justify-center border-2 border-champagne-500/50" id="bd-initials">--</div>
+            <div>
+              <h3 class="text-base font-bold text-midnight-900" id="bd-name">Passenger Name</h3>
+              <p class="text-[11px] font-medium text-champagne-700 mt-0.5" id="bd-tier">Tier Level</p>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5" id="cd-email">john.mohamed@@sovereign-sky.com</p>
-            <p class="text-[11px] font-medium text-champagne-700 mt-1" id="cd-tier">SkyClub Sovereign Tier • #SK-8829104</p>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="p-3 bg-white border border-slate-200 rounded-lg">
-            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Total Trips</span>
-            <span class="text-base font-extrabold text-midnight-900" id="cd-trips">18</span>
-          </div>
-          <div class="p-3 bg-white border border-slate-200 rounded-lg">
-            <span class="text-[10px] uppercase text-slate-400 font-semibold block">SkyMiles</span>
-            <span class="text-base font-extrabold text-champagne-600 font-mono" id="cd-miles">142,500</span>
-          </div>
-          <div class="p-3 bg-white border border-slate-200 rounded-lg">
-            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Disruptions</span>
-            <span class="text-base font-extrabold text-emerald-600">0</span>
-          </div>
+
+        <!-- Flight Itinerary -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                <span class="text-[10px] uppercase text-slate-400 font-semibold">Itinerary Details</span>
+            </div>
+            <div class="p-4 space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Flight</span>
+                        <span class="font-bold text-midnight-900 text-sm" id="bd-flight">SB ---</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Route</span>
+                        <span class="font-bold text-midnight-900 text-sm" id="bd-route">--- &rarr; ---</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+                    <div>
+                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Travel Date</span>
+                        <span class="font-semibold text-slate-800" id="bd-date">-- --- ----</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Seat / Cabin</span>
+                        <span class="font-mono text-slate-800 font-semibold" id="bd-seat">--</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Financials -->
+        <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="font-semibold text-slate-600">Total Fare</span>
+            <span class="text-lg font-extrabold font-mono text-midnight-900" id="bd-price">$0.00</span>
+        </div>
+
       </div>
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
-        <button class="px-4 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg" onclick="closeDrawer('drawer-customer-details')">Close Dossier</button>
+      
+      <!-- Footer Actions -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+        <button class="px-3 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors" id="bd-cancel-btn">Cancel Booking</button>
+        <button class="px-4 py-2 text-xs font-semibold text-white bg-midnight-800 hover:bg-midnight-900 rounded-lg transition-colors" onclick="closeDrawer('drawer-booking-details')">Close Dossier</button>
       </div>
     </div>
   </div>

@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using SkyBook.Data.Models;
 
-namespace SkyBook.Business.ViewModels
+namespace SkyBook.Business.ViewModels //hola
 {
     public class AirportVM
     {
         public int Id { get; set; }
-        public int id { get => Id; set => Id = value; }
 
         [Required]
         [StringLength(100)]
@@ -25,5 +25,8 @@ namespace SkyBook.Business.ViewModels
 
         [StringLength(500)]
         public string? ImageUrl { get; set; }
+
+        [Display(Name = "Station Operational Status")]
+        public AirportStatus Status { get; set; } = AirportStatus.Active;
     }
 }

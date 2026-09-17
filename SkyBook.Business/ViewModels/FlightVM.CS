@@ -30,5 +30,16 @@ namespace SkyBook.Business.ViewModels
         public decimal Price { get; set; }
 
         public FlightStatus Status { get; set; }
+
+        // Navigation Display Helpers
+        public string? DepartureAirportCode { get; set; }
+        public string? DepartureAirportName { get; set; }
+        public string? DepartureAirportCity { get; set; }
+
+        public string? ArrivalAirportCode { get; set; }
+        public string? ArrivalAirportName { get; set; }
+        public string? ArrivalAirportCity { get; set; }
+
+        public string? AircraftName { get; set; }
     }
 }

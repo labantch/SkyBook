@@ -27,6 +27,7 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.IAccountService, SkyBook.
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IBookingService, SkyBook.Business.Service.BookingService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.ISeatService, SkyBook.Business.Service.SeatService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBook.Business.Service.DashboardService>();
+builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, SkyBook.Business.Service.ApplicationUserService>();
 
 
 var app = builder.Build();

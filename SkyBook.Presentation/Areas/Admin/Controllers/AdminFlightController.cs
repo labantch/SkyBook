@@ -1,13 +1,116 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using SkyBook.Business.Interfaces;
+using SkyBook.Business.ViewModels;
+using SkyBook.Data.Models;
 
 namespace SkyBook.Presentation.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class AdminFlightController : Controller
     {
-        public IActionResult Index()
+        private readonly IFlightService _flightService;
+        private readonly IAirportService _airportService;
+        private readonly IAircraftService _aircraftService;
+
+        public AdminFlightController(
+            IFlightService flightService,
+            IAirportService airportService,
+            IAircraftService aircraftService)
         {
-            return View();
+            _flightService = flightService;
+            _airportService = airportService;
+            _aircraftService = aircraftService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var flights = await _flightService.GetAllFlightsAsync();
+
+            ViewBag.Airports = await _airportService.GetAllAirportAsync();
+            ViewBag.Aircrafts = await _aircraftService.GetAllAircraftsAsync();
+
+            return View(flights);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(FlightVM flight)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Invalid flight details.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _flightService.CreateFlightAsync(flight);
+                TempData["Success"] = $"Flight {flight.FlightNumber} created successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(FlightVM flight)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Invalid flight details.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _flightService.UpdateFlightAsync(flight);
+                TempData["Success"] = $"Flight {flight.FlightNumber} updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _flightService.DeleteFlightAsync(id);
+                TempData["Success"] = "Flight deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(int id, FlightStatus status)
+        {
+            try
+            {
+                await _flightService.ChangeStatusAsync(id, status);
+                TempData["Success"] = $"Flight status changed to {status}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
+

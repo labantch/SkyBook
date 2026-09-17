@@ -25,7 +25,8 @@ public class AirportService : IAirportService
                 Code = a.Code,
                 City = a.City,
                 Country = a.Country,
-                ImageUrl = a.ImageUrl
+                ImageUrl = a.ImageUrl,
+                Status = a.Status
             })
             .ToListAsync();
     }
@@ -43,7 +44,8 @@ public class AirportService : IAirportService
                 Code = a.Code,
                 City = a.City,
                 Country = a.Country,
-                ImageUrl = a.ImageUrl
+                ImageUrl = a.ImageUrl,
+                Status = a.Status
             })
             .FirstOrDefaultAsync();
 
@@ -71,7 +73,8 @@ public class AirportService : IAirportService
             Code = model.Code,
             City = model.City,
             Country = model.Country,
-            ImageUrl = model.ImageUrl
+            ImageUrl = model.ImageUrl,
+            Status = model.Status
         };
 
         _context.Airports.Add(airport);
@@ -93,6 +96,7 @@ public class AirportService : IAirportService
         airport.Code = model.Code;
         airport.City = model.City;
         airport.ImageUrl = model.ImageUrl;
+        airport.Status = model.Status;
 
         await _context.SaveChangesAsync();
     }

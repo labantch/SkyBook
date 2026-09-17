@@ -1,71 +1,296 @@
-@* Edit aircraft modal *@
-<div class="fixed inset-0 z-50 flex items-center justify-center hidden" data-purpose="modal-aircraft-form" id="modal-edit-aircraft">
-  <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs" onclick="closeModal('modal-edit-aircraft')"></div>
-  <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden border border-slate-200 z-10 animate-scale">
-    <div class="h-14 bg-midnight-800 px-6 flex items-center justify-between text-white flex-shrink-0">
-      <h3 class="text-sm font-bold flex items-center gap-2">
-        <svg class="w-4 h-4 text-champagne-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        Edit Aircraft Configuration
-      </h3>
-      <button class="text-slate-400 hover:text-white" onclick="closeModal('modal-edit-aircraft')">✕</button>
+@model SkyBook.Business.ViewModels.AircraftVM
+
+<div class="fixed inset-0 z-50 flex items-center justify-center hidden"
+     data-purpose="modal-aircraft-form"
+     id="modal-edit-aircraft">
+
+    <div class="absolute inset-0 bg-midnight-900/60 backdrop-blur-xs"
+         onclick="closeModal('modal-edit-aircraft')">
     </div>
-    <form class="p-6 space-y-4 text-xs" id="edit-aircraft-form" onsubmit="handleEditAircraft(event)" method="post">
-      <input type="hidden" id="ea-original-tail">
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Aircraft Model</label>
-          <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="ea-model" maxlength="100" placeholder="e.g. Airbus A380-800" required type="text">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Registration / Tail No.</label>
-          <input class="w-full text-xs font-mono uppercase rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="ea-tail" maxlength="20" placeholder="e.g. A6-SKZ" required type="text">
-        </div>
-      </div>
 
-      <div>
-        <label class="block font-semibold text-slate-700 mb-1">Aircraft Image URL <span class="font-normal text-slate-400">(optional)</span></label>
-        <input class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:ring-champagne-500" id="ea-image-url" maxlength="500" placeholder="https://images.example.com/aircraft.jpg" type="url">
-      </div>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden border border-slate-200 z-10 animate-scale">
 
-      <div>
-        <label class="block font-semibold text-slate-700 mb-2">Cabin Seat Configuration <span class="font-normal text-slate-400">(three cabins)</span></label>
-        <div class="grid grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-          <div>
-            <label class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-champagne-700 mb-1"><span class="w-2 h-2 rounded-full bg-champagne-500 inline-block"></span>First Sovereign</label>
-            <input class="w-full text-xs font-mono rounded-lg border-slate-200" id="ea-seats-first" min="0" oninput="updateEditAircraftSeatTotal()" required type="number" value="12">
-          </div>
-          <div>
-            <label class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-midnight-800 mb-1"><span class="w-2 h-2 rounded-full bg-midnight-700 inline-block"></span>Business</label>
-            <input class="w-full text-xs font-mono rounded-lg border-slate-200" id="ea-seats-business" min="0" oninput="updateEditAircraftSeatTotal()" required type="number" value="48">
-          </div>
-          <div>
-            <label class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1"><span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span>Economy</label>
-            <input class="w-full text-xs font-mono rounded-lg border-slate-200" id="ea-seats-economy" min="0" oninput="updateEditAircraftSeatTotal()" required type="number" value="230">
-          </div>
-        </div>
-        <p class="text-[11px] text-slate-500 mt-2">Total capacity: <span class="font-bold text-midnight-900" id="ea-seat-total">290</span> seats</p>
-      </div>
+        <!-- Header -->
+        <div class="h-14 bg-midnight-800 px-6 flex items-center justify-between text-white flex-shrink-0">
+            <h3 class="text-sm font-bold flex items-center gap-2">
+                <svg class="w-4 h-4 text-champagne-400"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+                    <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2">
+                    </path>
+                </svg>
+                Edit Aircraft Configuration
+            </h3>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Avionics Readiness (%)</label>
-          <input class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50" id="ea-readiness" max="100" min="0" required type="number" value="100">
+            <button type="button"
+                    class="text-slate-400 hover:text-white transition"
+                    onclick="closeModal('modal-edit-aircraft')">
+                ✕
+            </button>
         </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Status</label>
-          <select class="w-full text-xs rounded-lg border-slate-200 bg-slate-50" id="ea-status">
-            <option value="Operational (Ready at Gate)">Operational (Ready at Gate)</option>
-            <option value="Operational (In-Flight)">Operational (In-Flight)</option>
-            <option value="Turnaround Ops">Turnaround Ops</option>
-            <option value="Scheduled Maintenance">Scheduled Maintenance</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
-        <button class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg" onclick="closeModal('modal-edit-aircraft')" type="button">Cancel</button>
-        <button class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm" type="submit">Update Aircraft</button>
-      </div>
-    </form>
-  </div>
+        <!-- Form -->
+        <form action="/Admin/Aircraft/Edit"
+              method="post"
+              id="form-edit-aircraft"
+              class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
+            @Html.AntiForgeryToken()
+
+            <!-- Aircraft ID: pass both Id and id to guarantee model & route binding -->
+            <input type="hidden" name="Id" id="edit-ac-id" value="" />
+            <input type="hidden" name="id" id="edit-ac-id-route" value="" />
+
+            <!-- Aircraft Model -->
+            <div>
+                <label asp-for="Name"
+                       class="block font-semibold text-slate-700 mb-1">
+                    Aircraft Model <span class="text-rose-500">*</span>
+                </label>
+
+                <input asp-for="Name"
+                       name="Name"
+                       id="edit-ac-model"
+                       class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                       maxlength="100"
+                       placeholder="e.g. Boeing 787-9 Dreamliner"
+                       required />
+
+                <span asp-validation-for="Name"
+                      class="text-rose-500 text-[11px]">
+                </span>
+            </div>
+
+            <!-- Image URL -->
+            <div>
+                <label asp-for="ImageUrl"
+                       class="block font-semibold text-slate-700 mb-1">
+                    Aircraft Image URL
+                    <span class="font-normal text-slate-400">
+                        (optional)
+                    </span>
+                </label>
+
+                <input asp-for="ImageUrl"
+                       name="ImageUrl"
+                       id="edit-ac-image-url"
+                       type="text"
+                       class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                       maxlength="500"
+                       placeholder="https://images.unsplash.com/photo-..." />
+
+                <span asp-validation-for="ImageUrl"
+                      class="text-rose-500 text-[11px]">
+                </span>
+            </div>
+
+            <!-- Fleet Operational Status -->
+            <div>
+                <label asp-for="Status" class="block font-semibold text-slate-700 mb-1">
+                    Fleet Operational Status <span class="text-rose-500">*</span>
+                </label>
+                <select asp-for="Status"
+                        name="Status"
+                        id="edit-ac-status"
+                        class="w-full text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                        required>
+                    <option value="@AircraftStatus.Active">Active Fleet (Operational)</option>
+                    <option value="@AircraftStatus.Maintenance">In Maintenance (Grounded)</option>
+                    <option value="@AircraftStatus.Inactive">Inactive Fleet (Stored / Retired)</option>
+                </select>
+                <span asp-validation-for="Status" class="text-rose-500 text-[11px]"></span>
+            </div>
+
+            <!-- Passenger Capacity -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label asp-for="Capacity"
+                           class="block font-semibold text-slate-700">
+                        Passenger Capacity <span class="text-rose-500">*</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400">Total seats (1–1000)</span>
+                </div>
+
+                <input asp-for="Capacity"
+                       name="Capacity"
+                       id="edit-ac-capacity"
+                       type="number"
+                       min="1"
+                       max="1000"
+                       class="w-full text-xs font-mono rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                       placeholder="e.g. 290"
+                       required />
+
+                <span asp-validation-for="Capacity"
+                      class="text-rose-500 text-[11px]">
+                </span>
+            </div>
+
+            <!-- Seat Class Distribution Card -->
+            <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-midnight-900 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-champagne-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        Cabin Seat Distribution
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-500" id="edit-ac-seat-sum-badge">
+                        Sum: <strong class="text-midnight-900 font-bold" id="edit-ac-seat-sum">0</strong> Seats
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Economy Seats -->
+                    <div>
+                        <label asp-for="EconomySeats" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Economy</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">Y</span>
+                        </label>
+                        <input asp-for="EconomySeats"
+                               name="EconomySeats"
+                               id="edit-ac-seats-economy"
+                               type="number"
+                               min="0"
+                               max="1000"
+                               class="w-full text-xs font-mono rounded-lg border-slate-200 bg-white focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                               placeholder="0"
+                               oninput="syncEditAircraftSeatCapacity()" />
+                        <span asp-validation-for="EconomySeats" class="text-rose-500 text-[11px]"></span>
+                    </div>
+
+                    <!-- Business Seats -->
+                    <div>
+                        <label asp-for="BusinessSeats" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Business</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-midnight-800 text-champagne-300 font-bold">J</span>
+                        </label>
+                        <input asp-for="BusinessSeats"
+                               name="BusinessSeats"
+                               id="edit-ac-seats-business"
+                               type="number"
+                               min="0"
+                               max="1000"
+                               class="w-full text-xs font-mono rounded-lg border-slate-200 bg-white focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                               placeholder="0"
+                               oninput="syncEditAircraftSeatCapacity()" />
+                        <span asp-validation-for="BusinessSeats" class="text-rose-500 text-[11px]"></span>
+                    </div>
+
+                    <!-- First Class Seats -->
+                    <div>
+                        <label asp-for="FirstClassSeats" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>First Class</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-champagne-500 text-white font-bold">F</span>
+                        </label>
+                        <input asp-for="FirstClassSeats"
+                               name="FirstClassSeats"
+                               id="edit-ac-seats-first"
+                               type="number"
+                               min="0"
+                               max="1000"
+                               class="w-full text-xs font-mono rounded-lg border-slate-200 bg-white focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500"
+                               placeholder="0"
+                               oninput="syncEditAircraftSeatCapacity()" />
+                        <span asp-validation-for="FirstClassSeats" class="text-rose-500 text-[11px]"></span>
+                    </div>
+                </div>
+
+                <p class="text-[10px] text-slate-500">
+                    Update seats for Economy, Business, and First Class. Total passenger capacity will automatically calculate.
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+                <button type="button"
+                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                        onclick="closeModal('modal-edit-aircraft')">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="px-4 py-2 bg-midnight-800 text-white font-semibold rounded-lg hover:bg-midnight-900 shadow-sm transition">
+                    Update Aircraft
+                </button>
+            </div>
+
+        </form>
+
+    </div>
 </div>
+
+<script>
+    function syncEditAircraftSeatCapacity() {
+        const econ = parseInt(document.getElementById('edit-ac-seats-economy')?.value, 10) || 0;
+        const bus = parseInt(document.getElementById('edit-ac-seats-business')?.value, 10) || 0;
+        const first = parseInt(document.getElementById('edit-ac-seats-first')?.value, 10) || 0;
+        const sum = econ + bus + first;
+
+        const sumEl = document.getElementById('edit-ac-seat-sum');
+        if (sumEl) sumEl.innerText = sum;
+
+        const capInput = document.getElementById('edit-ac-capacity');
+        if (capInput && sum > 0) {
+            capInput.value = sum;
+        }
+    }
+
+    function openEditAircraftModalById(id, name, capacity, imageUrl, economy, business, firstClass, status) {
+        const numericId = parseInt(id, 10);
+        if (!numericId || numericId <= 0) {
+            console.error('openEditAircraftModalById: invalid id', id);
+            return;
+        }
+
+        const form = document.getElementById('form-edit-aircraft') || document.querySelector('#modal-edit-aircraft form');
+        if (form) {
+            form.action = `/Admin/Aircraft/Edit/${numericId}`;
+        }
+
+        const idInput = document.getElementById('edit-ac-id');
+        const idRouteInput = document.getElementById('edit-ac-id-route');
+        const nameInput = document.getElementById('edit-ac-model');
+        const capacityInput = document.getElementById('edit-ac-capacity');
+        const imgInput = document.getElementById('edit-ac-image-url');
+        const statusInput = document.getElementById('edit-ac-status');
+        const econInput = document.getElementById('edit-ac-seats-economy');
+        const busInput = document.getElementById('edit-ac-seats-business');
+        const firstInput = document.getElementById('edit-ac-seats-first');
+
+        if (idInput) idInput.value = numericId;
+        if (idRouteInput) idRouteInput.value = numericId;
+        if (nameInput) nameInput.value = name || '';
+        if (imgInput) imgInput.value = imageUrl || '';
+        if (statusInput && status !== null && status !== undefined && status !== '') {
+            statusInput.value = status;
+        }
+
+        let econVal = parseInt(economy, 10) || 0;
+        let busVal  = parseInt(business, 10) || 0;
+        let firstVal = parseInt(firstClass, 10) || 0;
+        let capVal  = parseInt(capacity, 10) || 0;
+
+        if (econVal === 0 && busVal === 0 && firstVal === 0 && capVal > 0) {
+            econVal = capVal;
+        } else if (capVal === 0) {
+            capVal = econVal + busVal + firstVal;
+        }
+
+        if (econInput) econInput.value = econVal;
+        if (busInput)  busInput.value  = busVal;
+        if (firstInput) firstInput.value = firstVal;
+        if (capacityInput) capacityInput.value = capVal > 0 ? capVal : '';
+
+        const sumEl = document.getElementById('edit-ac-seat-sum');
+        if (sumEl) {
+            const sum = econVal + busVal + firstVal;
+            sumEl.innerText = sum > 0 ? sum : capVal;
+        }
+
+        openModal('modal-edit-aircraft');
+    }
+</script>

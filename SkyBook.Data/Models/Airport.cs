@@ -1,9 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace SkyBook.Data.Models
 {
+    public enum AirportStatus
+    {
+        Active,
+        Maintenance,
+        Inactive
+    }
+
     public class Airport
     {
         public int Id { get; set; }
@@ -12,6 +19,9 @@ namespace SkyBook.Data.Models
         public string City { get; set; }
         public string Country { get; set; }
         public string? ImageUrl { get; set; }
+
+        public AirportStatus Status { get; set; } = AirportStatus.Active;
+
         public ICollection<Flight> DepartingFlights { get; set; }
         public ICollection<Flight> ArrivingFlights { get; set; }
     }
