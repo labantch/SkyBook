@@ -16,15 +16,13 @@ namespace SkyBook.Presentation.Controllers
             _accountService = accountService;
         }
 
-        #region RegisterGet
+        #region Register
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
-        #endregion
 
-        #region Registerpost
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
@@ -33,34 +31,32 @@ namespace SkyBook.Presentation.Controllers
                 return View(model);
 
             var result = await _accountService.RegisterAsync(model);
+
             if (result.Succeeded)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Index", "Home");
             }
+
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError("", error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return View(model);
         }
         #endregion
 
-        #region LoginGet
+        #region Login
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-
             return View();
         }
-        #endregion
 
-        #region LoginPost
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(
-            LoginVM model,
-            string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginVM model, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -69,8 +65,7 @@ namespace SkyBook.Presentation.Controllers
 
             if (result.Succeeded)
             {
-                if (!string.IsNullOrEmpty(returnUrl) &&
-                    Url.IsLocalUrl(returnUrl))
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
                 }
@@ -79,10 +74,11 @@ namespace SkyBook.Presentation.Controllers
 
             if (result.IsLockedOut)
             {
-                ModelState.AddModelError( "","Your account has been locked out. Please try again later.");
+                ModelState.AddModelError(string.Empty, "Your account has been locked out. Please try again later.");
                 return View(model);
             }
-            ModelState.AddModelError( "","Invalid email or password.");
+
+            ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
         #endregion
@@ -98,23 +94,22 @@ namespace SkyBook.Presentation.Controllers
         }
         #endregion
 
-        #region profileGet
+        #region Profile
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Profile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
+            if (string.IsNullOrEmpty(userId))
                 return RedirectToAction("Login");
 
             var model = await _accountService.GetProfileAsync(userId);
             if (model == null)
                 return NotFound();
+
             return View(model);
         }
-        #endregion
 
-        #region ProfilePost
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -124,20 +119,20 @@ namespace SkyBook.Presentation.Controllers
                 return View(model);
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
+            if (string.IsNullOrEmpty(userId))
                 return RedirectToAction("Login");
 
-            var result = await _accountService.UpdateProfileAsync(userId,model);
+            var result = await _accountService.UpdateProfileAsync(userId, model);
 
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] ="Profile updated successfully.";
-                 return RedirectToAction("Profile");
+                TempData["SuccessMessage"] = "Profile updated successfully.";
+                return RedirectToAction("Profile");
             }
 
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError("", error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
             }
 
             return View(model);
