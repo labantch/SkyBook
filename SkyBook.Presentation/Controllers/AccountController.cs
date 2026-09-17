@@ -31,17 +31,14 @@ namespace SkyBook.Presentation.Controllers
                 return View(model);
 
             var result = await _accountService.RegisterAsync(model);
-
             if (result.Succeeded)
             {
                 return RedirectToAction("Login");
             }
-
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError("", error.Description);
             }
-
             return View(model);
         }
 
@@ -74,23 +71,15 @@ namespace SkyBook.Presentation.Controllers
                 {
                     return Redirect(returnUrl);
                 }
-
                 return RedirectToAction("Index", "Home");
             }
 
             if (result.IsLockedOut)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Your account has been locked out. Please try again later.");
-
+                ModelState.AddModelError( "","Your account has been locked out. Please try again later.");
                 return View(model);
             }
-
-            ModelState.AddModelError(
-                "",
-                "Invalid email or password.");
-
+            ModelState.AddModelError( "","Invalid email or password.");
             return View(model);
         }
 
@@ -101,7 +90,6 @@ namespace SkyBook.Presentation.Controllers
         public async Task<IActionResult> Logout()
         {
             await _accountService.LogoutAsync();
-
             return RedirectToAction("Index", "Home");
         }
 
@@ -112,15 +100,12 @@ namespace SkyBook.Presentation.Controllers
         public async Task<IActionResult> Profile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (userId == null)
                 return RedirectToAction("Login");
 
             var model = await _accountService.GetProfileAsync(userId);
-
             if (model == null)
                 return NotFound();
-
             return View(model);
         }
 
@@ -137,16 +122,12 @@ namespace SkyBook.Presentation.Controllers
             if (userId == null)
                 return RedirectToAction("Login");
 
-            var result = await _accountService.UpdateProfileAsync(
-                userId,
-                model);
+            var result = await _accountService.UpdateProfileAsync(userId,model);
 
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] =
-                    "Profile updated successfully.";
-
-                return RedirectToAction("Profile");
+                TempData["SuccessMessage"] ="Profile updated successfully.";
+                 return RedirectToAction("Profile");
             }
 
             foreach (var error in result.Errors)
