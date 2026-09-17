@@ -16,13 +16,15 @@ namespace SkyBook.Presentation.Controllers
             _accountService = accountService;
         }
 
+        #region RegisterGet
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
+        #endregion
 
-
+        #region Registerpost
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
@@ -41,9 +43,9 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(model);
         }
+        #endregion
 
-
-    
+        #region LoginGet
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -51,8 +53,9 @@ namespace SkyBook.Presentation.Controllers
 
             return View();
         }
+        #endregion
 
-
+        #region LoginPost
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(
@@ -82,8 +85,9 @@ namespace SkyBook.Presentation.Controllers
             ModelState.AddModelError( "","Invalid email or password.");
             return View(model);
         }
+        #endregion
 
-
+        #region Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -92,9 +96,9 @@ namespace SkyBook.Presentation.Controllers
             await _accountService.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
+        #endregion
 
-
-        
+        #region profileGet
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Profile()
@@ -108,8 +112,9 @@ namespace SkyBook.Presentation.Controllers
                 return NotFound();
             return View(model);
         }
+        #endregion
 
-
+        #region ProfilePost
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -137,5 +142,6 @@ namespace SkyBook.Presentation.Controllers
 
             return View(model);
         }
+        #endregion
     }
 }

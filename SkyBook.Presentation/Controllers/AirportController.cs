@@ -12,11 +12,15 @@ namespace SkyBook.Presentation.Controllers
         {
             _airportService = airportService;
         }
+        #region Index
         public async Task<IActionResult> Index()
         {
             var airports = await _airportService.GetAllAirportAsync();
             return View(airports);
         }
+        #endregion
+
+        #region Details
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -27,11 +31,17 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(airport);
         }
+        #endregion
+        
+        #region CreateGet
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
+        #endregion
+        
+        #region CreatePost
         [HttpPost]
         public async Task<IActionResult> Create(AirportVM airportvm)
         {
@@ -42,6 +52,9 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(airportvm);
         }
+        #endregion
+        
+        #region EditPost
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -52,6 +65,9 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(airport);
         }
+        #endregion
+        
+        #region EditPost
         [HttpPost]
         public async Task<IActionResult> Edit(AirportVM airportvm)
         {
@@ -62,14 +78,18 @@ namespace SkyBook.Presentation.Controllers
             }
             return View(airportvm);
         }
+        #endregion
+        
+        #region Delete
         [HttpPost]
         public async Task<IActionResult>Delete(int id)
         {
             await _airportService.DeleteAirportAsync(id);
             return RedirectToAction(nameof(Index));
         }
+        #endregion
 
-    
+
 
     }
 }

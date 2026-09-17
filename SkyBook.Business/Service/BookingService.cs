@@ -21,21 +21,13 @@ public class BookingService : IBookingService
     
             var flight = await _context.Flights
                 .FirstOrDefaultAsync(f => f.Id == model.FlightId);
-
             if (flight == null)
                 throw new Exception("Flight not found.");
-
             var seat = await _context.Seats
-                .FirstOrDefaultAsync(s =>
-                    s.Id == model.SeatId &&
-                    s.AircraftId == flight.AircraftId);
-
+                .FirstOrDefaultAsync(s => s.Id == model.SeatId && s.AircraftId == flight.AircraftId);
             if (seat == null)
                 throw new Exception("Seat not found for this aircraft.");
-            var isBooked = await IsSeatAvailableAsync(
-                model.FlightId,
-                model.SeatId);
-
+            var isBooked = await IsSeatAvailableAsync( model.FlightId, model.SeatId);
             if (!isBooked)
                 throw new Exception("This seat is already booked.");
             var passenger = new Passenger
@@ -76,19 +68,13 @@ public class BookingService : IBookingService
         {
             var bookings = await _context.Bookings
                 .Include(b => b.Flight)
-                    .ThenInclude(f => f.DepartureAirport)
-
+                .ThenInclude(f => f.DepartureAirport)
                 .Include(b => b.Flight)
-                    .ThenInclude(f => f.ArrivalAirport)
-
+                .ThenInclude(f => f.ArrivalAirport)
                 .Include(b => b.Seat)
-
                 .Where(b => b.UserId == userId)
-
                 .OrderByDescending(b => b.BookingDate)
-
                 .ToListAsync();
-
 
             var result = bookings.Select(b => new MyBookingVM
             {
@@ -119,9 +105,7 @@ public class BookingService : IBookingService
             .ThenInclude(f => f.DepartureAirport)
             .Include(b => b.Flight)
             .ThenInclude(f => f.ArrivalAirport)
-            .FirstOrDefaultAsync(b =>
-                b.Id == bookingId &&
-                b.UserId == userId);
+            .FirstOrDefaultAsync(b =>  b.Id == bookingId &&b.UserId == userId);
         if (booking == null)
             throw new Exception("Booking not found.");
         var result = new BookingDetailsVm
@@ -131,16 +115,11 @@ public class BookingService : IBookingService
             TotalPrice = booking.TotalPrice,
             Status = booking.Status,
             BookingReference = booking.BookingReference,
-            DepartureAirPort =
-                booking.Flight.DepartureAirport.Name,
-            ArrivalAirPort =
-                booking.Flight.ArrivalAirport.Name,
-            PassengerName =
-                $"{booking.Passenger.FirstName} {booking.Passenger.LastName}",
-            FlightNumber =
-                booking.Flight.FlightNumber,
-            SeatNumber =
-                booking.Seat.SeatNumber
+            DepartureAirPort = booking.Flight.DepartureAirport.Name,
+            ArrivalAirPort =booking.Flight.ArrivalAirport.Name,
+            PassengerName =$"{booking.Passenger.FirstName} {booking.Passenger.LastName}",
+            FlightNumber = booking.Flight.FlightNumber,
+            SeatNumber =booking.Seat.SeatNumber
         };
         return result;
     }
@@ -151,9 +130,7 @@ public class BookingService : IBookingService
     public async Task CancelAsync( int bookingId, string userId)
     {
         var booking = await _context.Bookings
-            .FirstOrDefaultAsync(b =>
-                b.Id == bookingId &&
-                b.UserId == userId);
+            .FirstOrDefaultAsync(b =>b.Id == bookingId &&b.UserId == userId);
         if (booking == null)
             throw new Exception("Booking not found.");
         if (booking.Status == BookingStatus.Cancelled)
@@ -164,12 +141,10 @@ public class BookingService : IBookingService
     #endregion
     
     #region IsSeatAvailable
-    public async Task<bool> IsSeatAvailableAsync(
-        int flightId,
-        int seatId)
+    public async Task<bool> IsSeatAvailableAsync( int flightId, int seatId)
     {
         var isBooked = await _context.Bookings
-            .AnyAsync(b =>
+        .AnyAsync(b =>
                 b.FlightId == flightId &&
                 b.SeatId == seatId &&
                 b.Status != BookingStatus.Cancelled);
@@ -178,8 +153,7 @@ public class BookingService : IBookingService
     #endregion
     
     #region GetAvailableSeatsCount
-    public async Task<int> GetAvailableSeatsCountAsync(
-        int flightId)
+    public async Task<int> GetAvailableSeatsCountAsync(int flightId)
     {
         
         var flight = await _context.Flights
@@ -187,12 +161,8 @@ public class BookingService : IBookingService
             .FirstOrDefaultAsync(f => f.Id == flightId);
         if (flight == null)
             throw new Exception("Flight not found.");        
-        var totalSeats = await _context.Seats
-            .CountAsync(s =>
-                s.AircraftId == flight.AircraftId);
-                
-            var bookedSeats = await _context.Bookings
-                .CountAsync(b =>
+        var totalSeats = await _context.Seats.CountAsync(s =>s.AircraftId == flight.AircraftId);
+        var bookedSeats = await _context.Bookings.CountAsync(b =>
                     b.FlightId == flightId &&
                     b.Status != BookingStatus.Cancelled);
         return totalSeats - bookedSeats;

@@ -21,9 +21,9 @@ public class AccountService : IAccountService
             _userManager = userManager;
             _signInManager = signInManager;
         }
+    #region Register
 
-        
-        public async Task<IdentityResult> RegisterAsync(RegisterVM model)
+    public async Task<IdentityResult> RegisterAsync(RegisterVM model)
         {
             var user = new ApplicationUser
             {
@@ -47,10 +47,10 @@ public class AccountService : IAccountService
 
             return result;
         }
+    #endregion
 
-
-     
-        public async Task<SignInResult> LoginAsync(LoginVM model)
+    #region Login
+    public async Task<SignInResult> LoginAsync(LoginVM model)
         {
             return await _signInManager.PasswordSignInAsync(
                 model.Email,
@@ -59,14 +59,16 @@ public class AccountService : IAccountService
                 lockoutOnFailure: true
             );
         }
-      
-        public async Task LogoutAsync()
+    #endregion
+    #region Logout
+    public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
         }
+    #endregion
 
-
-        public async Task<ProfileVM?> GetProfileAsync(string userId)
+    #region GetProfile
+    public async Task<ProfileVM?> GetProfileAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -82,9 +84,10 @@ public class AccountService : IAccountService
                 ImageUrl = user.ImageUrl
             };
         }
+    #endregion
 
-
-        public async Task<IdentityResult> UpdateProfileAsync(string userId,ProfileVM model)
+    #region UpdateProfile
+    public async Task<IdentityResult> UpdateProfileAsync(string userId,ProfileVM model)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -113,8 +116,8 @@ public class AccountService : IAccountService
                     return usernameResult;
             }
         return await _userManager.UpdateAsync(user);
+
     }
+    #endregion
 }
 
-
-    

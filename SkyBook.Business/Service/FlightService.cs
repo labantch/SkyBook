@@ -185,12 +185,9 @@ public class FlightService : IFlightService
         {
             var totalSeats = await _context.Seats
                 .CountAsync(s => s.AircraftId == flight.AircraftId);
-
             var bookedSeats = await _context.Bookings
                 .CountAsync(b => b.FlightId == flight.Id);
-
             var availableSeats = totalSeats - bookedSeats;
-
             if (availableSeats >= model.PassengerCount)
             {
                 result.Add(new FlightCardVM
@@ -217,8 +214,6 @@ public class FlightService : IFlightService
     {
         var flight = await _context.Flights
             .FirstOrDefaultAsync(f => f.Id == flightId);
-
-
         if (flight == null)
             throw new Exception("Flight not found.");
 

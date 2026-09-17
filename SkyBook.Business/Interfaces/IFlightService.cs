@@ -5,7 +5,6 @@ namespace SkyBook.Business.Interfaces;
 
 public interface IFlightService
 {
-
       public  Task<List<FlightVM>> GetAllFlightsAsync();
       public  Task<FlightDetailsVM?> GetFlightByIdAsync(int id);
       public Task CreateFlightAsync(FlightVM model);
