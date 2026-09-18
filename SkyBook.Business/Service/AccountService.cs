@@ -105,76 +105,77 @@ public class AccountService : IAccountService
     }
     #endregion
 
-    #region GetProfile
-    public async Task<ProfileVM?> GetProfileAsync(string userId)
-    {
-        if (string.IsNullOrEmpty(userId))
-            return null;
+    //#region GetProfile
+    //public async Task<ProfileVM?> GetProfileAsync(string userId)
+    //{
+    //    if (string.IsNullOrEmpty(userId))
+    //        return null;
 
-        var user = await _userManager.FindByIdAsync(userId);
+    //    var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-            return null;
+    //    if (user == null)
+    //        return null;
 
-        return new ProfileVM
-        {
-            FullName = user.FullName,
-            Email = user.Email ?? string.Empty,
-            Country = user.Country,
-            PhoneNumber = user.PhoneNumber,
-            ImageUrl = user.ImageUrl
-        };
-    }
-    #endregion
+    //    return new ProfileVM
+    //    {
+    //        FullName = user.FullName,
+    //        Email = user.Email ?? string.Empty,
+    //        Country = user.Country,
+    //        PhoneNumber = user.PhoneNumber,
+    //        ImageUrl = user.ImageUrl
+    //    };
+    //}
+    //#endregion
 
-    #region UpdateProfile
-    public async Task<IdentityResult> UpdateProfileAsync(string userId, ProfileVM model)
-    {
-        if (string.IsNullOrEmpty(userId) || model == null)
-        {
-            return IdentityResult.Failed(new IdentityError
-            {
-                Code = "InvalidData",
-                Description = "Invalid user ID or model data."
-            });
-        }
+    //#region UpdateProfile
+    //public async Task<IdentityResult> UpdateProfileAsync(string userId, ProfileVM model)
+    //{
+    //    if (string.IsNullOrEmpty(userId) || model == null)
+    //    {
+    //        return IdentityResult.Failed(new IdentityError
+    //        {
+    //            Code = "InvalidData",
+    //            Description = "Invalid user ID or model data."
+    //        });
+    //    }
 
-        var user = await _userManager.FindByIdAsync(userId);
+    //    var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            return IdentityResult.Failed(new IdentityError
-            {
-                Code = "UserNotFound",
-                Description = "User not found."
-            });
-        }
-        user.FullName = model.FullName;
-        user.Country = model.Country;
-        user.PhoneNumber = model.PhoneNumber;
-        user.ImageUrl = model.ImageUrl;
+    //    if (user == null)
+    //    {
+    //        return IdentityResult.Failed(new IdentityError
+    //        {
+    //            Code = "UserNotFound",
+    //            Description = "User not found."
+    //        });
+    //    }
+    //    user.FullName = model.FullName;
+    //    user.Country = model.Country;
+    //    user.PhoneNumber = model.PhoneNumber;
+    //    user.ImageUrl = model.ImageUrl;
 
-        if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
-        {
-            var existingUser = await _userManager.FindByEmailAsync(model.Email);
-            if (existingUser != null && existingUser.Id != userId)
-            {
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Code = "DuplicateEmail",
-                    Description = $"Email '{model.Email}' is already taken by another user."
-                });
-            }
-            var emailResult = await _userManager.SetEmailAsync(user, model.Email);
-            if (!emailResult.Succeeded)
-                return emailResult;
+    //    if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
+    //    {
+    //        var existingUser = await _userManager.FindByEmailAsync(model.Email);
+    //        if (existingUser != null && existingUser.Id != userId)
+    //        {
+    //            return IdentityResult.Failed(new IdentityError
+    //            {
+    //                Code = "DuplicateEmail",
+    //                Description = $"Email '{model.Email}' is already taken by another user."
+    //            });
+    //        }
+    //        var emailResult = await _userManager.SetEmailAsync(user, model.Email);
+    //        if (!emailResult.Succeeded)
+    //            return emailResult;
 
-            var usernameResult = await _userManager.SetUserNameAsync(user, model.Email);
-            if (!usernameResult.Succeeded)
-                return usernameResult;
-            await _userManager.UpdateSecurityStampAsync(user);
-        }
-        return await _userManager.UpdateAsync(user);
-    }
-}
-#endregion
+    //        var usernameResult = await _userManager.SetUserNameAsync(user, model.Email);
+    //        if (!usernameResult.Succeeded)
+    //            return usernameResult;
+    //        await _userManager.UpdateSecurityStampAsync(user);
+    //    }
+    //    return await _userManager.UpdateAsync(user);
+
+
+    //#endregion
+} 

@@ -94,49 +94,49 @@ namespace SkyBook.Presentation.Controllers
         }
         #endregion
 
-        #region Profile
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> Profile()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return RedirectToAction("Login");
+        //#region Profile
+        //[HttpGet]
+        //[Authorize]
+        //public async Task<IActionResult> Profile()
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId))
+        //        return RedirectToAction("Login");
 
-            var model = await _accountService.GetProfileAsync(userId);
-            if (model == null)
-                return NotFound();
+        //    var model = await _accountService.GetProfileAsync(userId);
+        //    if (model == null)
+        //        return NotFound();
 
-            return View(model);
-        }
+        //    return View(model);
+        //}
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Profile(ProfileVM model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
+        //    [HttpPost]
+        //    [ValidateAntiForgeryToken]
+        //    [Authorize]
+        //    public async Task<IActionResult> Profile(ProfileVM model)
+        //    {
+        //        if (!ModelState.IsValid)
+        //            return View(model);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return RedirectToAction("Login");
+        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //        if (string.IsNullOrEmpty(userId))
+        //            return RedirectToAction("Login");
 
-            var result = await _accountService.UpdateProfileAsync(userId, model);
+        //        var result = await _accountService.UpdateProfileAsync(userId, model);
 
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] = "Profile updated successfully.";
-                return RedirectToAction("Profile");
-            }
+        //        if (result.Succeeded)
+        //        {
+        //            TempData["SuccessMessage"] = "Profile updated successfully.";
+        //            return RedirectToAction("Profile");
+        //        }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
+        //        foreach (var error in result.Errors)
+        //        {
+        //            ModelState.AddModelError(string.Empty, error.Description);
+        //        }
 
-            return View(model);
-        }
-        #endregion
+        //        return View(model);
+        //    }
+        //    #endregion
     }
 }

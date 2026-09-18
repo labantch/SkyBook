@@ -11,6 +11,6 @@ namespace SkyBook.Business.Interfaces;
       public Task<IdentityResult> RegisterAsync(RegisterVM model);
       public Task<SignInResult> LoginAsync(LoginVM model);
       public  Task LogoutAsync();
-      public  Task<ProfileVM?> GetProfileAsync(string userId);
-      public   Task<IdentityResult> UpdateProfileAsync(  string userId, ProfileVM model);
+      //public  Task<ProfileVM?> GetProfileAsync(string userId);
+      //public   Task<IdentityResult> UpdateProfileAsync(  string userId, ProfileVM model);
     }
