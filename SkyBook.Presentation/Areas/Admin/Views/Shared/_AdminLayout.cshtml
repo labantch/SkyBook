@@ -1,5 +1,29 @@
+@using Microsoft.AspNetCore.Identity
+@using SkyBook.Data.Models
+@inject UserManager<ApplicationUser> UserManager
 @{
     Layout = null;
+    var appUser = await UserManager.GetUserAsync(User);
+    var adminName = appUser?.FullName;
+    if (string.IsNullOrWhiteSpace(adminName))
+    {
+        adminName = appUser?.UserName ?? User.Identity?.Name ?? "Administrator";
+    }
+    var adminEmail = appUser?.Email ?? User.Identity?.Name ?? "admin@skybook.com";
+    var adminImage = appUser?.ImageUrl ?? "";
+    var adminInitials = "SB";
+    if (!string.IsNullOrWhiteSpace(adminName))
+    {
+        var parts = adminName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length > 1)
+        {
+            adminInitials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1 && parts[0].Length > 0)
+        {
+            adminInitials = parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+    }
 }
 <!DOCTYPE html>
 <html class="h-full bg-slate-100" lang="en">
@@ -79,15 +103,25 @@
     </div>
     <div class="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50">
       <div class="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-4">
-        <div class="w-14 h-14 rounded-full bg-midnight-800 text-champagne-300 font-bold text-lg flex items-center justify-center border-2 border-champagne-400/40">JV</div>
+        <div class="w-14 h-14 rounded-full overflow-hidden bg-midnight-800 text-champagne-300 font-bold text-lg flex items-center justify-center border-2 border-champagne-400/40">
+          @if (!string.IsNullOrEmpty(adminImage))
+          {
+            <img src="@adminImage" alt="@adminName" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <span style="display:none;" class="w-full h-full flex items-center justify-center">@adminInitials</span>
+          }
+          else
+          {
+            <span>@adminInitials</span>
+          }
+        </div>
         <div>
-          <p class="text-base font-extrabold text-midnight-900">Capt. Julian Vance</p>
+          <p class="text-base font-extrabold text-midnight-900">@adminName</p>
           <p class="text-xs text-champagne-700 font-semibold">Chief Flight Dispatcher</p>
           <p class="text-[11px] text-emerald-600 font-medium mt-0.5">● Active · Admin</p>
         </div>
       </div>
       <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 text-sm">
-        <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="font-semibold text-midnight-900">admin@@skybook.com</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="font-semibold text-midnight-900">@adminEmail</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Role</span><span class="font-bold text-champagne-700">ADMIN</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Department</span><span class="font-semibold text-midnight-900">Flight Operations</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Base</span><span class="font-semibold text-midnight-900">DXB Hub</span></div>
@@ -183,13 +217,15 @@
 @await Html.PartialAsync("_AdminModals")
 
 <script>
-  // Ensure demo admin credentials are initialized
-  if (localStorage.getItem('skybook-authenticated') !== 'true') {
-    localStorage.setItem('skybook-authenticated', 'true');
-    localStorage.setItem('skybook-role', 'admin');
-    localStorage.setItem('skybook-user-name', 'Capt. Julian Vance');
-    localStorage.setItem('skybook-user-email', 'admin@skybook.com');
-    localStorage.setItem('skybook-user-initials', 'JV');
+  // Synchronize authenticated admin credentials
+  localStorage.setItem('skybook-authenticated', 'true');
+  localStorage.setItem('skybook-role', 'admin');
+  localStorage.setItem('skybook-user-name', '@adminName');
+  localStorage.setItem('skybook-user-email', '@adminEmail');
+  localStorage.setItem('skybook-user-initials', '@adminInitials');
+  @if (!string.IsNullOrEmpty(adminImage))
+  {
+    <text>localStorage.setItem('skybook-user-avatar', '@adminImage');</text>
   }
 
   function openModal(id) {
@@ -374,7 +410,7 @@
     localStorage.removeItem('skybook-user-name');
     localStorage.removeItem('skybook-user-email');
     localStorage.removeItem('skybook-user-initials');
-    window.location.href = '/Account/Login';
+    window.location.href = '/Account/Logout';
   }
 
   function switchView(viewKey) {
