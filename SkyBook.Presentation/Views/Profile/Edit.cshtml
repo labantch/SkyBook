@@ -1,0 +1,273 @@
+@model SkyBook.Business.ViewModels.ProfileVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Edit Profile";
+    Layout = "_Layout";
+
+    var fullName = Model?.FullName ?? "Member";
+    var initials = "SB";
+    if (!string.IsNullOrWhiteSpace(Model?.FullName))
+    {
+        var parts = Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length > 1)
+        {
+            initials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1 && parts[0].Length > 0)
+        {
+            initials = parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+    }
+}
+
+<div class="min-h-[calc(100vh-5rem)] bg-[#F8F9FA] py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- BREADCRUMB / BACK LINK -->
+    <div class="flex items-center justify-between">
+      <a href="@Url.Action("Index", "Profile")" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0B192C] transition">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Back to Profile</span>
+      </a>
+      <span class="text-xs text-slate-400">SkyBook Account Settings</span>
+    </div>
+
+    <!-- MAIN EDIT CARD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-10 space-y-8">
+      
+      <!-- HEADER -->
+      <div class="border-b border-slate-100 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-2xl">manage_accounts</span>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-[#0B192C]">Edit Your Profile</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Customize your personal passenger credentials and profile picture.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VALIDATION ERRORS -->
+      @if (!ViewData.ModelState.IsValid)
+      {
+        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-1" role="alert">
+          <p class="font-bold flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-rose-600">error</span>
+            <span>Please correct the following errors:</span>
+          </p>
+          <ul class="list-disc list-inside pl-5 space-y-0.5 text-rose-700">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+              <li>@error.ErrorMessage</li>
+            }
+          </ul>
+        </div>
+      }
+
+      <form action="@Url.Action("Edit", "Profile")" method="post" id="profile-edit-form" class="space-y-7">
+        @Html.AntiForgeryToken()
+
+        <!-- SECTION 1: PROFILE PHOTO -->
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-[#0B192C] flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[#D4A017] text-lg">add_a_photo</span>
+                <span>Profile Photo</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">Add an image link to personalize your SkyBook passenger experience.</p>
+            </div>
+            <button type="button" onclick="clearImageUrl()" id="btn-clear-img"
+                    class="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition @(string.IsNullOrEmpty(Model?.ImageUrl) ? "hidden" : "")">
+              <span class="material-symbols-outlined text-sm">delete</span>
+              <span>Remove Photo</span>
+            </button>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <!-- Circular Avatar Live Preview -->
+            <div class="relative flex-shrink-0">
+              <div class="w-24 h-24 rounded-full ring-4 ring-[#D4A017]/60 shadow-md overflow-hidden bg-[#162840] flex items-center justify-center">
+                @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                {
+                  <img id="avatar-preview-img" src="@Model.ImageUrl" alt="@fullName" class="w-full h-full object-cover" onerror="handlePreviewError()" />
+                  <span id="avatar-preview-fallback" class="font-bold text-2xl text-[#C5A880]" style="display:none;">@initials</span>
+                }
+                else
+                {
+                  <img id="avatar-preview-img" src="" alt="@fullName" class="w-full h-full object-cover hidden" onerror="handlePreviewError()" />
+                  <span id="avatar-preview-fallback" class="font-bold text-2xl text-[#C5A880]">@initials</span>
+                }
+              </div>
+            </div>
+
+            <!-- Image Link Input -->
+            <div class="flex-1 w-full space-y-2">
+              <label for="input-profile-img" class="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                Image Web Address (URL)
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg pointer-events-none">link</span>
+                <input type="text"
+                       id="input-profile-img"
+                       name="ImageUrl"
+                       value="@(Model?.ImageUrl ?? "")"
+                       placeholder="https://example.com/your-photo.jpg"
+                       oninput="handleImageUrlInput(this.value)"
+                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 text-xs sm:text-sm font-medium text-[#0B192C] bg-white transition" />
+              </div>
+              <p class="text-[11px] text-slate-400">Paste any public image link (e.g. from Unsplash, LinkedIn, Imgur, or cloud storage).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: PERSONAL INFORMATION -->
+        <div class="space-y-5">
+          <h2 class="text-sm font-bold text-[#0B192C] flex items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span class="material-symbols-outlined text-[#D4A017] text-lg">badge</span>
+            <span>Passenger Details</span>
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <!-- Full Name -->
+            <div class="space-y-1.5">
+              <label for="FullName" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+                <span>Full Legal Name</span>
+                <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg pointer-events-none">person</span>
+                <input type="text"
+                       id="FullName"
+                       name="FullName"
+                       value="@(Model?.FullName ?? "")"
+                       required
+                       placeholder="e.g. John Alexander Smith"
+                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 text-sm font-medium text-[#0B192C] bg-white transition" />
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="space-y-1.5">
+              <label for="Email" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+                <span>Email Address (Login Account)</span>
+                <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg pointer-events-none">mail</span>
+                <input type="email"
+                       id="Email"
+                       name="Email"
+                       value="@(Model?.Email ?? "")"
+                       required
+                       placeholder="name@domain.com"
+                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 text-sm font-medium text-[#0B192C] bg-white transition" />
+              </div>
+            </div>
+
+            <!-- Country -->
+            <div class="space-y-1.5">
+              <label for="Country" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+                <span>Country of Residence</span>
+                <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg pointer-events-none">public</span>
+                <input type="text"
+                       id="Country"
+                       name="Country"
+                       value="@(Model?.Country ?? "")"
+                       required
+                       placeholder="e.g. United Arab Emirates, Egypt, United Kingdom"
+                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 text-sm font-medium text-[#0B192C] bg-white transition" />
+              </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="space-y-1.5">
+              <label for="PhoneNumber" class="text-xs font-bold uppercase tracking-wider text-slate-700">
+                <span>Phone Number</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg pointer-events-none">call</span>
+                <input type="tel"
+                       id="PhoneNumber"
+                       name="PhoneNumber"
+                       value="@(Model?.PhoneNumber ?? "")"
+                       placeholder="e.g. +20 100 123 4567"
+                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 text-sm font-medium text-[#0B192C] bg-white transition" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="pt-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3 border-t border-slate-100">
+          <a href="@Url.Action("Index", "Profile")"
+             class="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold text-center transition">
+            Cancel
+          </a>
+          <button type="submit" id="save-btn"
+                  class="w-full sm:w-auto px-7 py-3 rounded-xl bg-[#0B192C] hover:bg-[#162840] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>Save Profile</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+  function handleImageUrlInput(url) {
+    const trimmed = (url || '').trim();
+    const img = document.getElementById('avatar-preview-img');
+    const fallback = document.getElementById('avatar-preview-fallback');
+    const clearBtn = document.getElementById('btn-clear-img');
+
+    if (trimmed.length > 0) {
+      if (img) {
+        img.src = trimmed;
+        img.classList.remove('hidden');
+        img.style.display = 'block';
+      }
+      if (fallback) fallback.style.display = 'none';
+      if (clearBtn) clearBtn.classList.remove('hidden');
+    } else {
+      if (img) {
+        img.src = '';
+        img.classList.add('hidden');
+        img.style.display = 'none';
+      }
+      if (fallback) fallback.style.display = 'flex';
+      if (clearBtn) clearBtn.classList.add('hidden');
+    }
+  }
+
+  function clearImageUrl() {
+    const input = document.getElementById('input-profile-img');
+    if (input) {
+      input.value = '';
+      handleImageUrlInput('');
+    }
+  }
+
+  function handlePreviewError() {
+    const img = document.getElementById('avatar-preview-img');
+    const fallback = document.getElementById('avatar-preview-fallback');
+    if (img) img.style.display = 'none';
+    if (fallback) fallback.style.display = 'flex';
+  }
+
+  document.getElementById('profile-edit-form')?.addEventListener('submit', function () {
+    const btn = document.getElementById('save-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span><span>Saving Changes…</span>';
+    }
+  });
+</script>
+}

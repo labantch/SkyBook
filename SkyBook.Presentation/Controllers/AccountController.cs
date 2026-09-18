@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
@@ -84,9 +84,8 @@ namespace SkyBook.Presentation.Controllers
         #endregion
 
         #region Logout
+        [HttpGet]
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await _accountService.LogoutAsync();

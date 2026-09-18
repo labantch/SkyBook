@@ -657,7 +657,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Check TempData messages passed from C#
+      
       @if (TempData["Success"] != null)
       {
           @:showToast('@TempData["Success"]', 'success');

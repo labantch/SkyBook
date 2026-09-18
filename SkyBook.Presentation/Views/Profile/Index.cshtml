@@ -1,797 +1,224 @@
+@model SkyBook.Business.ViewModels.ProfileVM
+@using Microsoft.AspNetCore.Identity
+@using SkyBook.Data.Models
+@inject UserManager<ApplicationUser> UserManager
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "My Profile";
     Layout = "_Layout";
+
+    var appUser = await UserManager.GetUserAsync(User);
+    var isUserAdmin = User.IsInRole("Admin") || (appUser != null && await UserManager.IsInRoleAsync(appUser, "Admin"));
+
+    var fullName = Model?.FullName ?? "SkyBook Passenger";
+    var initials = "SB";
+    if (!string.IsNullOrWhiteSpace(Model?.FullName))
+    {
+        var parts = Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length > 1)
+        {
+            initials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1 && parts[0].Length > 0)
+        {
+            initials = parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+    }
 }
 
-@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.FormTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
-@removeTagHelper "Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers"
-@section Styles {
-<style>@@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style>
-}
+<div class="min-h-[calc(100vh-5rem)] bg-[#F8F9FA] py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto space-y-6">
 
-<div class="flex flex-col w-full">
-<div class="max-w-6xl mx-auto w-full py-10 px-gutter flex flex-col gap-space-lg">
-<!-- TOP PROFILE HERO BANNER -->
-<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg relative overflow-hidden">
-<div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-secondary-container/10 via-transparent to-transparent pointer-events-none"></div>
-<div class="flex items-center gap-space-lg z-10">
-<!-- Avatar Ring with initials -->
-<div class="relative flex-shrink-0">
-<div class="w-20 h-20 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md shadow-md overflow-hidden" id="profile-avatar-container">
-            JM
+    <!-- SUCCESS ALERT BANNER -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-sm flex items-center justify-between animate-fade-in" role="alert">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
+          <div>
+            <p class="text-sm font-bold">Success</p>
+            <p class="text-xs text-emerald-700">@TempData["SuccessMessage"]</p>
           </div>
-<span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-600 rounded-full ring-2 ring-surface-container-lowest" title="Active &amp; Verified"></span>
-</div>
-<!-- Identity Credentials -->
-<div class="flex flex-col gap-space-xs">
-<div class="flex flex-wrap items-center gap-space-sm">
-<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">John Mohamed</h1>
-<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-caps text-label-caps">
-<span class="material-symbols-outlined text-[14px]">verified</span>
-              Verified
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 p-1">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+    }
+
+    <!-- PROFILE HERO BANNER -->
+    <div class="bg-[#0B192C] rounded-2xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden">
+      <!-- Decorative golden ambient glow -->
+      <div class="absolute -right-16 -top-16 w-80 h-80 bg-gradient-to-br from-[#D4A017]/25 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -left-10 -bottom-10 w-60 h-60 bg-gradient-to-tr from-sky-500/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6">
+        <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+          
+          <!-- Avatar display -->
+          <div class="relative flex-shrink-0">
+            <div class="w-24 h-24 rounded-full ring-4 ring-[#D4A017]/70 shadow-lg overflow-hidden bg-[#162840] flex items-center justify-center">
+              @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+              {
+                <img src="@Model.ImageUrl" alt="@fullName" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('hero-fallback').style.display='flex';" />
+                <span id="hero-fallback" class="font-bold text-2xl text-[#C5A880]" style="display:none;">@initials</span>
+              }
+              else
+              {
+                <span class="font-bold text-2xl text-[#C5A880]">@initials</span>
+              }
+            </div>
+            <span class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full border-2 border-[#0B192C] flex items-center justify-center" title="Verified Passenger">
+              <span class="material-symbols-outlined text-white text-[14px]">check</span>
             </span>
-</div>
-<div class="flex flex-wrap items-center gap-space-sm text-body-sm font-body-sm text-on-surface-variant">
-<span>john.mohamed@@sovereign-sky.com</span>
-<span class="inline-block w-1 h-1 rounded-full bg-outline-variant"></span>
-<span class="font-label-caps text-label-caps tracking-wider text-on-surface-variant">#SK-8829104</span>
-</div>
-</div>
-</div>
-<!-- Quick Action CTA -->
-<div class="z-10 self-stretch md:self-center flex items-center justify-end">
-<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
-<button class="w-full md:w-auto px-space-lg py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md font-semibold transition-all duration-200 flex items-center justify-center gap-space-xs" id="hero-edit-btn" onclick="togglePersonalEdit(true)">
-<span class="material-symbols-outlined text-[18px]">edit</span>
-          Edit Profile
-        </button>
-<button type="button" onclick="handleProfileSignOut()" class="w-full md:w-auto px-space-lg py-2.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-body-md text-body-md font-semibold transition-all duration-200 flex items-center justify-center gap-space-xs" id="hero-signout-btn">
-<span class="material-symbols-outlined text-[18px]">logout</span>
-          Sign Out
-        </button>
-</div>
-</div>
-</div>
-<!-- QUICK TRAVEL & LOYALTY STATS STRIP -->
-<div class="w-full bg-surface-container-lowest rounded-xl p-space-md shadow-sm grid grid-cols-2 lg:grid-cols-5 gap-space-md items-center">
-<!-- Stat 1 -->
-<div class="flex flex-col p-space-sm bg-surface-container-low rounded-lg">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Total Trips</span>
-<div class="flex items-baseline gap-space-xs mt-1">
-<span class="font-price-lg text-price-lg text-on-surface font-bold">18</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Completed</span>
-</div>
-</div>
-<!-- Stat 2 -->
-<div class="flex flex-col p-space-sm bg-surface-container-low rounded-lg">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Upcoming Trips</span>
-<div class="flex items-baseline gap-space-xs mt-1">
-<span class="font-price-lg text-price-lg text-secondary font-bold">2</span>
-<span class="font-body-sm text-body-sm font-semibold text-secondary">Journeys</span>
-</div>
-</div>
-<!-- Stat 3 -->
-<div class="flex flex-col p-space-sm bg-surface-container-low rounded-lg">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Disruptions</span>
-<div class="flex items-baseline gap-space-xs mt-1">
-<span class="font-price-lg text-price-lg text-on-surface font-bold">0</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Active</span>
-</div>
-</div>
-<!-- Stat 4 -->
-<div class="col-span-2 lg:col-span-1 flex flex-col p-space-sm bg-surface-container-low rounded-lg">
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">SkyMiles</span>
-<span class="font-label-caps text-label-caps text-secondary font-semibold">Tier Sovereign</span>
-</div>
-<div class="flex items-baseline gap-space-xs mt-1">
-<span class="font-price-lg text-price-lg text-on-surface font-bold">142,500</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Miles</span>
-</div>
-</div>
-<!-- Link to Bookings -->
-<div class="col-span-2 lg:col-span-1 flex items-center justify-center lg:justify-end pr-space-xs">
-<a class="w-full lg:w-auto px-space-lg py-2.5 rounded-lg bg-primary-container text-on-primary font-body-md text-body-md font-semibold text-center hover:bg-secondary transition-colors duration-200 flex items-center justify-center gap-space-xs" data-path="my-bookings" href="#">
-<span>View My Bookings</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</a>
-</div>
-</div>
-<!-- TWO-COLUMN MAIN CONTENT GRID -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
-<!-- LEFT COLUMN: Personal & Travel Identity Details -->
-<div class="lg:col-span-7 flex flex-col gap-space-lg">
-<!-- PERSONAL INFORMATION CARD -->
-<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md relative transition-all">
-<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
-<div class="flex items-center gap-space-xs">
-<span class="material-symbols-outlined text-secondary text-[22px]">badge</span>
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Personal Information</h2>
-</div>
-<button class="font-body-sm text-body-sm text-secondary hover:text-on-surface flex items-center gap-1 font-semibold transition-colors" id="personal-edit-btn" onclick="togglePersonalEdit(true)">
-<span class="material-symbols-outlined text-[16px]">edit_note</span>
-              Edit Information
-            </button>
-</div>
-<!-- STATIC READ-ONLY VIEW -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md" id="personal-view-mode">
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Full Legal Name</span>
-<span class="font-body-md text-body-md font-medium text-on-surface" id="display-name">John Mohamed</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Email Address</span>
-<span class="font-body-md text-body-md font-medium text-on-surface" id="display-email">john.mohamed@@sovereign-sky.com</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Phone Number</span>
-<div class="flex items-center gap-2">
-<span class="font-body-md text-body-md">🇦🇪</span>
-<span class="font-body-md text-body-md font-medium text-on-surface" id="display-phone">+971 50 123 4567</span>
-</div>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Country of Residence</span>
-<span class="font-body-md text-body-md font-medium text-on-surface" id="display-country">United Arab Emirates</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Date of Birth</span>
-<span class="font-body-md text-body-md font-medium text-on-surface" id="display-dob">15 May 1988</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Emergency Contact</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">Amina Mohamed (+971 50 987 6543)</span>
-</div>
-</div>
-<!-- INTERACTIVE EDIT VIEW -->
-<form class="hidden flex-col gap-space-md" id="personal-edit-mode" onsubmit="savePersonalChanges(event)" method="post">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Full Legal Name</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-name" maxlength="100" required="" type="text" value="John Mohamed"/>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Email Address</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-email" maxlength="256" required="" type="email" value="john.mohamed@@sovereign-sky.com"/>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Phone Number</label>
-<div class="flex gap-2">
-<span class="inline-flex items-center px-3 bg-surface-container-low rounded-lg text-body-md">🇦🇪 +971</span>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-phone" maxlength="50" required="" type="tel" value="50 123 4567"/>
-</div>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Country of Residence</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-country">
-<option selected="" value="United Arab Emirates">United Arab Emirates</option>
-<option value="Saudi Arabia">Saudi Arabia</option>
-<option value="United Kingdom">United Kingdom</option>
-<option value="United States">United States</option>
-<option value="Egypt">Egypt</option>
-<option value="Switzerland">Switzerland</option>
-</select>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Date of Birth</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-dob" type="date" value="1988-05-15"/>
-</div>
-<div class="flex flex-col gap-1 md:col-span-2">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Profile Photo / Avatar URL <span class="text-xs normal-case text-on-surface-variant/70 font-normal">(optional)</span></label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="input-avatar-url" maxlength="500" placeholder="https://images.example.com/avatar.jpg" type="url"/>
-</div>
-</div>
-<div class="flex items-center justify-end gap-space-sm pt-space-sm">
-<button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md transition-colors" onclick="togglePersonalEdit(false)" type="button">
-                Cancel
-              </button>
-<button class="px-space-lg py-2 rounded-lg bg-primary-container text-on-primary font-body-md text-body-md font-semibold hover:bg-secondary transition-colors" type="submit">
-                Save Changes
-              </button>
-</div>
-</form>
-</div>
-<!-- TRAVEL & IDENTITY INFORMATION CARD -->
-<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
-<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
-<div class="flex items-center gap-space-xs">
-<span class="material-symbols-outlined text-secondary text-[22px]">flight_takeoff</span>
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Travel &amp; Identity Credentials</h2>
-</div>
-<span class="font-label-caps text-label-caps uppercase px-2.5 py-0.5 rounded bg-surface-container text-on-surface-variant">
-              IATA Compliant
-            </span>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Primary Nationality</span>
-<div class="flex items-center gap-2">
-<span class="font-body-md text-body-md">🇪🇬</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">Egyptian (EGY)</span>
-</div>
-</div>
-<div class="flex flex-col gap-space-xs">
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Passport Number</span>
-<button class="text-secondary font-label-caps text-label-caps flex items-center gap-1 hover:underline" onclick="togglePassportMask()" type="button">
-<span class="material-symbols-outlined text-[14px]" id="eye-icon">visibility</span>
-<span id="eye-label">Reveal</span>
-</button>
-</div>
-<span class="font-title-flight-code text-[18px] text-on-surface font-semibold tracking-wider" id="passport-text">A28••••89</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Passport Expiry Date</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">24 Nov 2031 <span class="text-secondary font-body-sm">(Valid for 5+ years)</span></span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Issuing Authority</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">Ministry of Interior, Egypt</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Frequent Flyer Affiliation</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">SkyAlliance Global OnePass</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Known Traveler Number (KTN)</span>
-<span class="font-body-md text-body-md font-medium text-on-surface">KTN-994182471</span>
-</div>
-</div>
-<div class="mt-space-xs p-space-sm bg-surface-container-low rounded-lg flex items-center gap-space-sm text-body-sm font-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0">shield_lock</span>
-<span>Biometric credentials are encrypted at rest with hardware HSM compliant with IATA Sovereign Travel Standards.</span>
-</div>
-</div>
-</div>
-<!-- RIGHT COLUMN: Preferences & Security Settings -->
-<div class="lg:col-span-5 flex flex-col gap-space-lg">
-<!-- TRAVEL PREFERENCES CARD -->
-<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
-<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
-<div class="flex items-center gap-space-xs">
-<span class="material-symbols-outlined text-secondary text-[22px]">tune</span>
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Travel Preferences</h2>
-</div>
-<span class="w-2 h-2 rounded-full bg-secondary"></span>
-</div>
-<div class="flex flex-col gap-space-md">
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Preferred Cabin Class</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2.5 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary transition-all" id="pref-cabin">
-<option value="economy">Economy Comfort</option>
-<option selected="" value="business">Business Class (Flat-Bed Suite)</option>
-<option value="first">First Sovereign Private Suite</option>
-</select>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">In-Flight Dining Choice</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2.5 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary transition-all" id="pref-meal">
-<option selected="" value="halal">Chef's Halal Gourmet &amp; Contemporary</option>
-<option value="international">Standard International Haute Cuisine</option>
-<option value="lacto">Vegetarian Lacto-Ovo Curated</option>
-<option value="low-sodium">Heart-Healthy / Low Sodium</option>
-<option value="vegan">Plant-Based Vegan Masterpiece</option>
-</select>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Seat Preference</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2.5 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary transition-all" id="pref-seat">
-<option selected="" value="window">Window Seat (Port Side / Left)</option>
-<option value="window-starboard">Window Seat (Starboard / Right)</option>
-<option value="aisle">Aisle Direct Access</option>
-<option value="center">Center Couple Suite</option>
-</select>
-</div>
-<div class="grid grid-cols-2 gap-space-sm">
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Language</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary">
-<option selected="">English (US)</option>
-<option>Arabic (العربية)</option>
-<option>French (Français)</option>
-</select>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Settlement</label>
-<select class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary">
-<option selected="">USD ($)</option>
-<option>AED (د.إ)</option>
-<option>EUR (€)</option>
-<option>GBP (£)</option>
-</select>
-</div>
-</div>
-<button class="w-full mt-space-xs py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md font-semibold transition-colors flex items-center justify-center gap-space-xs" onclick="showToast('Travel preferences saved successfully')">
-<span class="material-symbols-outlined text-[18px]">check</span>
-              Update Preferences
-            </button>
-</div>
-</div>
-<!-- ACCOUNT & SECURITY CARD -->
-<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
-<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
-<div class="flex items-center gap-space-xs">
-<span class="material-symbols-outlined text-secondary text-[22px]">lock</span>
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Account &amp; Security</h2>
-</div>
-<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-emerald-700 font-semibold">
-<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-              Secure
-            </span>
-</div>
-<!-- Password Row -->
-<div class="flex items-center justify-between py-1">
-<div class="flex flex-col">
-<span class="font-body-md text-body-md font-medium text-on-surface">Master Password</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Updated 3 months ago</span>
-</div>
-<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm font-semibold transition-colors" onclick="togglePasswordModal(true)">
-              Change
-            </button>
-</div>
-<!-- 2FA Toggle -->
-<div class="flex items-center justify-between py-1">
-<div class="flex flex-col">
-<span class="font-body-md text-body-md font-medium text-on-surface">Two-Factor Authentication</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">SMS &amp; Authenticator App</span>
-</div>
-<label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" id="2fa-toggle" onchange="toggleTwoFactor(this)" type="checkbox"/>
-<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
-</label>
-</div>
-<!-- Active Sessions -->
-<div class="flex flex-col gap-space-xs pt-space-xs border-t border-surface-container">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Active Sessions</span>
-<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-lg">
-<div class="flex items-center gap-space-sm">
-<span class="material-symbols-outlined text-on-surface-variant text-[20px]">laptop_mac</span>
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm font-medium text-on-surface">Chrome on macOS</span>
-<span class="font-label-caps text-[10px] text-on-surface-variant">Dubai, UAE • Active now</span>
-</div>
-</div>
-<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-</div>
-<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-lg">
-<div class="flex items-center gap-space-sm">
-<span class="material-symbols-outlined text-on-surface-variant text-[20px]">smartphone</span>
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm font-medium text-on-surface">Safari on iPhone 15 Pro</span>
-<span class="font-label-caps text-[10px] text-on-surface-variant">Geneva, Switzerland • 3 days ago</span>
-</div>
-</div>
-<button class="text-on-surface-variant hover:text-error text-body-sm" onclick="terminateSession(this)" title="Revoke access">
-<span class="material-symbols-outlined text-[18px]">close</span>
-</button>
-</div>
-</div>
-<!-- Danger Zone -->
-<div class="mt-space-xs pt-space-md border-t border-surface-container flex items-center justify-between">
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm font-medium text-error">Account Deletion</span>
-<span class="font-label-caps text-[10px] text-on-surface-variant">Permanently deactivate profile</span>
-</div>
-<button class="px-space-md py-1.5 rounded text-error bg-error-container/30 hover:bg-error-container text-body-sm font-body-sm font-semibold transition-colors" onclick="toggleDeleteModal(true)">
-              Delete Account
-            </button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- FLOATING TOAST NOTIFICATION -->
-<div class="fixed top-24 right-6 z-50 transform translate-y-[-20px] opacity-0 pointer-events-none transition-all duration-300 ease-out" id="toast">
-<div class="bg-primary-container text-on-primary px-space-lg py-space-sm rounded-xl shadow-xl flex items-center gap-space-sm">
-<span class="material-symbols-outlined text-secondary text-[22px]">check_circle</span>
-<div class="flex flex-col">
-<span class="font-body-md text-body-md font-semibold text-on-primary" id="toast-message">Update successful</span>
-<span class="font-label-caps text-[10px] text-on-primary-container">SkyBook Sovereign Cloud</span>
-</div>
-</div>
-</div>
-<!-- CHANGE PASSWORD MODAL -->
-<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4" id="password-modal">
-<div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-2xl p-space-lg flex flex-col gap-space-md animate-in fade-in zoom-in-95 duration-200">
-<div class="flex items-center justify-between pb-space-xs border-b border-surface-container">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Update Password</h3>
-<button class="text-on-surface-variant hover:text-on-surface" onclick="togglePasswordModal(false)">
-<span class="material-symbols-outlined">close</span>
-</button>
-</div>
-<form class="flex flex-col gap-space-md" onsubmit="saveNewPassword(event)" method="post">
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Current Password</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary" placeholder="••••••••••••" required="" type="password"/>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">New Password</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary" placeholder="Minimum 12 characters" required="" type="password"/>
-</div>
-<div class="flex flex-col gap-1">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Confirm New Password</label>
-<input class="w-full bg-surface-container-low text-on-surface px-3 py-2 rounded-lg font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary" placeholder="Re-enter new password" required="" type="password"/>
-</div>
-<div class="flex items-center justify-end gap-space-sm pt-space-xs">
-<button class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-body-md text-body-md" onclick="togglePasswordModal(false)" type="button">
-            Cancel
-          </button>
-<button class="px-space-lg py-2 rounded-lg bg-primary-container text-on-primary font-body-md text-body-md font-semibold hover:bg-secondary transition-colors" type="submit">
-            Update Password
-          </button>
-</div>
-</form>
-</div>
-</div>
-<!-- DELETE ACCOUNT CONFIRMATION MODAL -->
-<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4" id="delete-modal">
-<div class="bg-surface-container-lowest max-w-lg w-full rounded-xl shadow-2xl p-space-lg flex flex-col gap-space-md">
-<div class="w-12 h-12 rounded-full bg-error-container/40 flex items-center justify-center text-error">
-<span class="material-symbols-outlined text-[28px]">warning</span>
-</div>
-<div class="flex flex-col gap-space-xs">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Permanently Delete Account?</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-          Are you sure you want to delete your SkyBook account? All active booking reservations, concierge entitlements, and your balance of <strong class="text-on-surface">142,500 SkyMiles</strong> will be irrevocably forfeited.
-        </p>
-</div>
-<div class="flex items-center justify-end gap-space-sm pt-space-sm">
-<button class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-body-md text-body-md" onclick="toggleDeleteModal(false)">
-          Cancel &amp; Retain Account
-        </button>
-<button class="px-space-lg py-2 rounded-lg bg-error text-on-error font-body-md text-body-md font-semibold hover:opacity-90 transition-opacity" onclick="confirmAccountDeletion()">
-          Confirm Deletion
-        </button>
-</div>
-</div>
-</div>
-</div>
-<script>
-  // Mask/Unmask Passport
-  let isPassportRevealed = false;
-  function togglePassportMask() {
-    const passportField = document.getElementById('passport-text');
-    const eyeIcon = document.getElementById('eye-icon');
-    const eyeLabel = document.getElementById('eye-label');
+          </div>
 
-    if (isPassportRevealed) {
-      passportField.textContent = 'A28••••89';
-      eyeIcon.textContent = 'visibility';
-      eyeLabel.textContent = 'Reveal';
-      isPassportRevealed = false;
-    } else {
-      passportField.textContent = 'A28491889';
-      eyeIcon.textContent = 'visibility_off';
-      eyeLabel.textContent = 'Hide';
-      isPassportRevealed = true;
-    }
-  }
+          <!-- User Title & Credentials -->
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">@fullName</h1>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#E8C547] border border-[#D4A017]/30">
+                <span class="material-symbols-outlined text-[13px]">verified</span> Verified Passenger
+              </span>
+            </div>
 
-  // Toggle Edit View for Personal Details
-  function togglePersonalEdit(isEditing) {
-    const viewMode = document.getElementById('personal-view-mode');
-    const editMode = document.getElementById('personal-edit-mode');
-    const heroBtn = document.getElementById('hero-edit-btn');
-    const cardBtn = document.getElementById('personal-edit-btn');
+            <p class="text-sm text-slate-300 flex items-center justify-center sm:justify-start gap-2">
+              <span class="material-symbols-outlined text-[16px] text-[#C5A880]">mail</span>
+              <span>@(Model?.Email ?? "No email address")</span>
+            </p>
 
-    if (isEditing) {
-      viewMode.classList.add('hidden');
-      editMode.classList.remove('hidden');
-      editMode.classList.add('flex');
-      if (heroBtn) heroBtn.classList.add('opacity-50', 'pointer-events-none');
-      if (cardBtn) cardBtn.classList.add('hidden');
-    } else {
-      editMode.classList.add('hidden');
-      editMode.classList.remove('flex');
-      viewMode.classList.remove('hidden');
-      if (heroBtn) heroBtn.classList.remove('opacity-50', 'pointer-events-none');
-      if (cardBtn) cardBtn.classList.remove('hidden');
-    }
-  }
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-400 pt-1">
+              @if (!string.IsNullOrEmpty(Model?.Country))
+              {
+                <span class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">public</span>
+                  <span>@Model.Country</span>
+                </span>
+              }
+              @if (!string.IsNullOrEmpty(Model?.PhoneNumber))
+              {
+                <span class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">call</span>
+                  <span>@Model.PhoneNumber</span>
+                </span>
+              }
+            </div>
+          </div>
+        </div>
 
-  // Save Personal Details
-  function savePersonalChanges(event) {
-    event.preventDefault();
-    const newName = document.getElementById('input-name').value;
-    const newEmail = document.getElementById('input-email').value;
-    const newPhone = document.getElementById('input-phone').value;
-    const newCountry = document.getElementById('input-country').value;
-    const newDob = document.getElementById('input-dob').value;
+        <!-- Quick Top Actions -->
+        <div class="flex items-center gap-2.5 self-center sm:self-start">
+          <a href="@Url.Action("Edit", "Profile")"
+             class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#D4A017] hover:bg-[#E8C547] text-[#0B192C] shadow-md transition-all duration-150 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            <span>Edit Profile</span>
+          </a>
+          <a href="@Url.Action("Logout", "Account")"
+             class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-600/80 text-slate-200 hover:text-white border border-white/10 transition-all duration-150 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
 
-    if (newName) document.getElementById('display-name').textContent = newName;
-    if (newEmail) document.getElementById('display-email').textContent = newEmail;
-    if (newPhone) document.getElementById('display-phone').textContent = '+971 ' + newPhone;
-    if (newCountry) document.getElementById('display-country').textContent = newCountry;
-    if (newDob) {
-      const parsedDate = new Date(newDob);
-      const options = { day: 'numeric', month: 'short', year: 'numeric' };
-      document.getElementById('display-dob').textContent = parsedDate.toLocaleDateString('en-GB', options);
-    }
+    <!-- MAIN PROFILE DETAILS CARD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#D4A017] text-2xl">person</span>
+          <div>
+            <h2 class="text-lg font-bold text-[#0B192C]">Personal Information</h2>
+            <p class="text-xs text-slate-500">Your profile credentials registered with SkyBook Luxury Airways.</p>
+          </div>
+        </div>
+        <a href="@Url.Action("Edit", "Profile")" class="text-xs font-bold text-[#0B192C] hover:text-[#D4A017] flex items-center gap-1 transition">
+          <span class="material-symbols-outlined text-[16px]">edit_square</span>
+          <span>Edit Details</span>
+        </a>
+      </div>
 
-    togglePersonalEdit(false);
-    showToast('Personal information updated successfully');
-  }
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- Full Legal Name -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Full Legal Name</span>
+          <p class="text-sm font-semibold text-[#0B192C] flex items-center gap-2">
+            <span class="material-symbols-outlined text-slate-400 text-base">badge</span>
+            <span>@(string.IsNullOrEmpty(Model?.FullName) ? "Not set" : Model.FullName)</span>
+          </p>
+        </div>
 
-  // Toast System
-  let toastTimer;
-  function showToast(message) {
-    const toast = document.getElementById('toast');
-    const msg = document.getElementById('toast-message');
-    msg.textContent = message;
+        <!-- Email Address -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Email Address (Username)</span>
+          <p class="text-sm font-semibold text-[#0B192C] flex items-center gap-2">
+            <span class="material-symbols-outlined text-slate-400 text-base">mail</span>
+            <span>@(string.IsNullOrEmpty(Model?.Email) ? "Not set" : Model.Email)</span>
+          </p>
+        </div>
 
-    clearTimeout(toastTimer);
-    toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-    toast.classList.add('opacity-100', 'translate-y-0');
+        <!-- Country of Residence -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Country of Residence</span>
+          <p class="text-sm font-semibold text-[#0B192C] flex items-center gap-2">
+            <span class="material-symbols-outlined text-slate-400 text-base">public</span>
+            <span>@(string.IsNullOrEmpty(Model?.Country) ? "Not set" : Model.Country)</span>
+          </p>
+        </div>
 
-    toastTimer = setTimeout(() => {
-      toast.classList.remove('opacity-100', 'translate-y-0');
-      toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-    }, 3500);
-  }
+        <!-- Phone Number -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Phone Number</span>
+          <p class="text-sm font-semibold text-[#0B192C] flex items-center gap-2">
+            <span class="material-symbols-outlined text-slate-400 text-base">call</span>
+            <span>@(string.IsNullOrEmpty(Model?.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</span>
+          </p>
+        </div>
 
-  // Password Modal
-  function togglePasswordModal(show) {
-    const modal = document.getElementById('password-modal');
-    if (show) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    } else {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
+        <!-- Profile Photo URL -->
+        <div class="sm:col-span-2 p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Profile Image Link</span>
+          <p class="text-xs text-slate-700 truncate flex items-center gap-2 font-mono">
+            <span class="material-symbols-outlined text-slate-400 text-base">image</span>
+            <span>@(string.IsNullOrEmpty(Model?.ImageUrl) ? "No custom photo set (using default avatar)" : Model.ImageUrl)</span>
+          </p>
+        </div>
+      </div>
+    </div>
 
-  function saveNewPassword(event) {
-    event.preventDefault();
-    togglePasswordModal(false);
-    showToast('Master password updated securely');
-  }
+    <!-- PROFILE SHORTCUTS / ACTION CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <!-- Change Password Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
+        <div class="space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 text-[#0B192C] flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">lock_reset</span>
+          </div>
+          <h3 class="text-base font-bold text-[#0B192C]">Account Security</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">Update your password regularly to protect your flight bookings, frequent flyer status, and travel data.</p>
+        </div>
+        <a href="@Url.Action("ChangePassword", "Profile")"
+           class="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B192C] hover:text-[#D4A017] transition pt-2">
+          <span>Change Password</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
 
-  // Delete Modal
-  function toggleDeleteModal(show) {
-    const modal = document.getElementById('delete-modal');
-    if (show) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    } else {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
+      <!-- My Bookings Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
+        <div class="space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">airplane_ticket</span>
+          </div>
+          <h3 class="text-base font-bold text-[#0B192C]">Flight Bookings</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">View all your confirmed itineraries, check flight schedules, select preferred seats, and download tickets.</p>
+        </div>
+        <a href="@Url.Action("MyBookings", "Profile")"
+           class="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B192C] hover:text-[#D4A017] transition pt-2">
+          <span>View My Bookings</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </div>
 
-  function confirmAccountDeletion() {
-    toggleDeleteModal(false);
-    showToast('Account closure request logged with concierge');
-  }
-
-  // 2FA Toggle
-  function toggleTwoFactor(checkbox) {
-    if (checkbox.checked) {
-      showToast('Two-Factor Authentication enabled');
-    } else {
-      showToast('Security warning: 2FA disabled');
-    }
-  }
-
-  // Terminate session
-  function terminateSession(button) {
-    const row = button.closest('.flex.items-center.justify-between');
-    if (row) {
-      row.style.opacity = '0';
-      setTimeout(() => {
-        row.remove();
-        showToast('Remote device session terminated');
-      }, 200);
-    }
-  }
-</script>
-
-@section Scripts {
-<script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "background": "#f8f9fa", "on-secondary-fixed": "#281800", "on-tertiary-container": "#6886ae", "on-surface-variant": "#44474c", "error": "#ba1a1a", "surface": "#f8f9fa", "surface-container-low": "#f3f4f5", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "on-surface": "#191c1d", "outline": "#75777d", "tertiary-fixed-dim": "#aac9f4", "primary-container": "#0e1c2f", "on-primary-fixed": "#0e1c2f", "inverse-on-surface": "#f0f1f2", "on-tertiary-fixed": "#001c38", "on-primary-container": "#77849c", "on-secondary-container": "#78603e", "surface-bright": "#f8f9fa", "primary-fixed-dim": "#bac7e1", "surface-container-high": "#e7e8e9", "inverse-surface": "#2e3132", "tertiary-fixed": "#d3e4ff", "secondary-fixed-dim": "#e0c298", "on-secondary-fixed-variant": "#584323", "tertiary": "#000000", "outline-variant": "#c5c6cd", "on-tertiary": "#ffffff", "tertiary-container": "#001c38", "surface-tint": "#525f75", "surface-dim": "#d9dadb", "surface-variant": "#e1e3e4", "secondary-fixed": "#fedeb2", "on-background": "#191c1d", "secondary-container": "#fedeb2", "primary": "#000000", "on-error-container": "#93000a", "inverse-primary": "#bac7e1", "on-tertiary-fixed-variant": "#29486d", "on-primary": "#ffffff", "on-primary-fixed-variant": "#3a475c", "on-error": "#ffffff", "secondary": "#725b38", "surface-container-highest": "#e1e3e4", "primary-fixed": "#d6e3fe", "surface-container": "#edeeef", "error-container": "#ffdad6" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter-mobile": "1rem", "margin-mobile": "1.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "gutter": "1.5rem", "space-xs": "0.25rem", "space-md": "1rem", "margin": "3rem", "space-xl": "2.5rem" }, "fontFamily": { "price-lg": [ "Space Grotesk" ], "display-hero-mobile": [ "Plus Jakarta Sans" ], "headline-lg": [ "Plus Jakarta Sans" ], "display-hero": [ "Plus Jakarta Sans" ], "title-flight-code": [ "Space Grotesk" ], "body-lg": [ "Plus Jakarta Sans" ], "body-sm": [ "Plus Jakarta Sans" ], "label-caps": [ "Space Grotesk" ], "headline-sm": [ "Plus Jakarta Sans" ], "body-md": [ "Plus Jakarta Sans" ], "headline-md": [ "Plus Jakarta Sans" ] }, "fontSize": { "price-lg": [ "24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "display-hero-mobile": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" } ], "display-hero": [ "56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "title-flight-code": [ "28px", { "lineHeight": "32px", "letterSpacing": "0.04em", "fontWeight": "700" } ], "body-lg": [ "18px", { "lineHeight": "28px", "fontWeight": "400" } ], "body-sm": [ "13px", { "lineHeight": "18px", "fontWeight": "400" } ], "label-caps": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" } ], "headline-sm": [ "20px", { "lineHeight": "28px", "fontWeight": "600" } ], "body-md": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" } ] } } } };</script>
-<script>
-  // Mask/Unmask Passport
-  let isPassportRevealed = false;
-  function togglePassportMask() {
-    const passportField = document.getElementById('passport-text');
-    const eyeIcon = document.getElementById('eye-icon');
-    const eyeLabel = document.getElementById('eye-label');
-
-    if (isPassportRevealed) {
-      passportField.textContent = 'A28••••89';
-      eyeIcon.textContent = 'visibility';
-      eyeLabel.textContent = 'Reveal';
-      isPassportRevealed = false;
-    } else {
-      passportField.textContent = 'A28491889';
-      eyeIcon.textContent = 'visibility_off';
-      eyeLabel.textContent = 'Hide';
-      isPassportRevealed = true;
-    }
-  }
-
-  // Toggle Edit View for Personal Details
-  function togglePersonalEdit(isEditing) {
-    const viewMode = document.getElementById('personal-view-mode');
-    const editMode = document.getElementById('personal-edit-mode');
-    const heroBtn = document.getElementById('hero-edit-btn');
-    const cardBtn = document.getElementById('personal-edit-btn');
-
-    if (isEditing) {
-      viewMode.classList.add('hidden');
-      editMode.classList.remove('hidden');
-      editMode.classList.add('flex');
-      if (heroBtn) heroBtn.classList.add('opacity-50', 'pointer-events-none');
-      if (cardBtn) cardBtn.classList.add('hidden');
-    } else {
-      editMode.classList.add('hidden');
-      editMode.classList.remove('flex');
-      viewMode.classList.remove('hidden');
-      if (heroBtn) heroBtn.classList.remove('opacity-50', 'pointer-events-none');
-      if (cardBtn) cardBtn.classList.remove('hidden');
-    }
-  }
-
-  // Save Personal Details
-  function savePersonalChanges(event) {
-    event.preventDefault();
-    const newName = document.getElementById('input-name').value;
-    const newEmail = document.getElementById('input-email').value;
-    const newPhone = document.getElementById('input-phone').value;
-    const newCountry = document.getElementById('input-country').value;
-    const newDob = document.getElementById('input-dob').value;
-
-    if (newName) document.getElementById('display-name').textContent = newName;
-    if (newEmail) document.getElementById('display-email').textContent = newEmail;
-    if (newPhone) document.getElementById('display-phone').textContent = '+971 ' + newPhone;
-    if (newCountry) document.getElementById('display-country').textContent = newCountry;
-    if (newDob) {
-      const parsedDate = new Date(newDob);
-      const options = { day: 'numeric', month: 'short', year: 'numeric' };
-      document.getElementById('display-dob').textContent = parsedDate.toLocaleDateString('en-GB', options);
-    }
-
-    const newAvatar = document.getElementById('input-avatar-url') ? document.getElementById('input-avatar-url').value.trim() : '';
-    if (newAvatar) {
-      localStorage.setItem('skybook-user-avatar', newAvatar);
-      if (typeof window.updateProfileAvatar === 'function') window.updateProfileAvatar(newAvatar);
-    } else {
-      localStorage.removeItem('skybook-user-avatar');
-      const initials = localStorage.getItem('skybook-user-initials') || 'JM';
-      const c = document.getElementById('profile-avatar-container');
-      if (c) c.textContent = initials;
-    }
-
-    togglePersonalEdit(false);
-    showToast('Personal information updated successfully');
-  }
-
-  // Toast System
-  let toastTimer;
-  function showToast(message) {
-    const toast = document.getElementById('toast');
-    const msg = document.getElementById('toast-message');
-    msg.textContent = message;
-
-    clearTimeout(toastTimer);
-    toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-    toast.classList.add('opacity-100', 'translate-y-0');
-
-    toastTimer = setTimeout(() => {
-      toast.classList.remove('opacity-100', 'translate-y-0');
-      toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-    }, 3500);
-  }
-
-  // Password Modal
-  function togglePasswordModal(show) {
-    const modal = document.getElementById('password-modal');
-    if (show) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    } else {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
-
-  function saveNewPassword(event) {
-    event.preventDefault();
-    togglePasswordModal(false);
-    showToast('Master password updated securely');
-  }
-
-  // Delete Modal
-  function toggleDeleteModal(show) {
-    const modal = document.getElementById('delete-modal');
-    if (show) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    } else {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
-
-  function confirmAccountDeletion() {
-    toggleDeleteModal(false);
-    showToast('Account closure request logged with concierge');
-  }
-
-  // 2FA Toggle
-  function toggleTwoFactor(checkbox) {
-    if (checkbox.checked) {
-      showToast('Two-Factor Authentication enabled');
-    } else {
-      showToast('Security warning: 2FA disabled');
-    }
-  }
-
-  // Terminate session
-  function terminateSession(button) {
-    const row = button.closest('.flex.items-center.justify-between');
-    if (row) {
-      row.style.opacity = '0';
-      setTimeout(() => {
-        row.remove();
-        showToast('Remote device session terminated');
-      }, 200);
-    }
-  }
-</script>
-<script>
-window.updateProfileAvatar = function(url) {
-  const c = document.getElementById('profile-avatar-container');
-  if (c && url) {
-    const initials = localStorage.getItem('skybook-user-initials') || 'JM';
-    c.innerHTML = `<img src="${url}" alt="Profile" class="w-full h-full rounded-full object-cover" onerror="this.outerHTML='${initials}'"/>`;
-  }
-};
-
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('hero-signout-btn');
-  if (btn) btn.addEventListener('click', function(e){ e.preventDefault(); window.handleProfileSignOut(); });
-  const name = localStorage.getItem('skybook-user-name');
-  const initials = localStorage.getItem('skybook-user-initials');
-  const email = localStorage.getItem('skybook-user-email');
-  const avatar = localStorage.getItem('skybook-user-avatar');
-
-  if (name) {
-    document.querySelectorAll('h1.font-headline-md, #display-name').forEach(el => { el.textContent = name; });
-    const input = document.getElementById('input-name');
-    if (input) input.value = name;
-  }
-  if (initials) {
-    const av = document.querySelector('.w-10.h-10.rounded-full, .rounded-full.bg-primary');
-    // update common avatar text nodes that are just initials
-    document.querySelectorAll('div').forEach(el => {
-      if (el.children.length === 0 && (el.textContent || '').trim() === 'JM') el.textContent = initials;
-    });
-  }
-  if (email) {
-    const em = document.getElementById('display-email') || document.getElementById('input-email');
-    if (em) {
-      if (em.tagName === 'INPUT') em.value = email;
-      else em.textContent = email;
-    }
-  }
-  if (avatar) {
-    const avInput = document.getElementById('input-avatar-url');
-    if (avInput) avInput.value = avatar;
-    window.updateProfileAvatar(avatar);
-  }
-});
-</script>
-<script>
-window.handleProfileSignOut = function () {
-  try {
-    localStorage.removeItem('skybook-authenticated');
-    localStorage.removeItem('skybook-role');
-    localStorage.removeItem('skybook-user-name');
-    localStorage.removeItem('skybook-user-email');
-    localStorage.removeItem('skybook-user-initials');
-    localStorage.removeItem('skybook-auth-user');
-  } catch (e) {}
-  window.location.href = '/Account/Login';
-};
-</script>
-}
+  </div>
+</div>

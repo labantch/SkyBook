@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -21,7 +21,6 @@ namespace SkyBook.Business.ViewModels
             [StringLength(100)]
             public string Country { get; set; } = string.Empty;
 
-            [Url]
             [StringLength(500)]
             public string? ImageUrl { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
 using SkyBook.Data.Models;

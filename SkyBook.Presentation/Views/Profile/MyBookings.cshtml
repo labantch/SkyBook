@@ -2,7 +2,7 @@
 @using SkyBook.Data.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "My Bookings";
+    ViewData["Title"] = "My Flight Bookings";
     Layout = "_Layout";
 
     var bookingsList = Model?.ToList() ?? new List<SkyBook.Business.ViewModels.MyBookingVM>();
@@ -39,33 +39,18 @@
       <span class="text-xs text-slate-400 font-medium">Passenger Travel Desk</span>
     </div>
 
-    <!-- SUCCESS / ERROR ALERT BANNERS -->
-    @if (TempData["Success"] != null)
+    <!-- SUCCESS ALERT BANNER -->
+    @if (TempData["SuccessMessage"] != null)
     {
       <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-sm flex items-center justify-between animate-fade-in" role="alert">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
           <div>
             <p class="text-sm font-bold">Confirmed</p>
-            <p class="text-xs text-emerald-700">@TempData["Success"]</p>
+            <p class="text-xs text-emerald-700">@TempData["SuccessMessage"]</p>
           </div>
         </div>
         <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 p-1">
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
-      </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-      <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 shadow-sm flex items-center justify-between animate-fade-in" role="alert">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-rose-600 text-2xl">error</span>
-          <div>
-            <p class="text-sm font-bold">Notice</p>
-            <p class="text-xs text-rose-700">@TempData["Error"]</p>
-          </div>
-        </div>
-        <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-800 p-1">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
@@ -161,7 +146,7 @@
                data-is-upcoming='@(isUpcoming ? "true" : "false")'
                data-is-past='@(isPast ? "true" : "false")'
                data-is-cancelled='@(isCancelled ? "true" : "false")'
-               data-cancel-url='@Url.Action("Cancel", "Booking", new { id = item.BookingId })'>
+               data-cancel-url='@Url.Action("CancelBooking", "Profile", new { id = item.BookingId })'>
 
             <!-- CARD TOP HEADER -->
             <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
@@ -282,7 +267,7 @@
 
                 @if (isUpcoming)
                 {
-                  <form action="@Url.Action("Cancel", "Booking", new { id = item.BookingId })"
+                  <form action="@Url.Action("CancelBooking", "Profile", new { id = item.BookingId })"
                         method="post"
                         onsubmit="return confirmCancel(event, '@item.BookingReference');">
                     @Html.AntiForgeryToken()

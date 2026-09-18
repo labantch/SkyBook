@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -6,6 +7,7 @@ using SkyBook.Data.Models;
 namespace SkyBook.Presentation.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminFlightController : Controller
     {
         private readonly IFlightService _flightService;

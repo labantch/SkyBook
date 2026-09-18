@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -5,6 +6,7 @@ using SkyBook.Business.ViewModels;
 namespace SkyBook.Presentation.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class AirportController : Controller
     {
         private readonly IAirportService _airportService;

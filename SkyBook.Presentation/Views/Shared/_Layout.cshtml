@@ -1,3 +1,40 @@
+@using Microsoft.AspNetCore.Identity
+@using SkyBook.Data.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    bool isUserAdmin = false;
+    string displayName = "";
+    string userEmail = "";
+    string userInitials = "SB";
+    string userRole = "user";
+    string userImage = "";
+
+    if (isAuthenticated)
+    {
+        var appUser = await UserManager.GetUserAsync(User);
+        displayName = appUser?.FullName;
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = appUser?.UserName ?? User.Identity?.Name ?? "User";
+        }
+        userEmail = appUser?.Email ?? User.Identity?.Name ?? "";
+        isUserAdmin = User.IsInRole("Admin") || (appUser != null && await UserManager.IsInRoleAsync(appUser, "Admin"));
+        userRole = isUserAdmin ? "admin" : "user";
+        userImage = appUser?.ImageUrl ?? "";
+
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length > 1)
+        {
+            userInitials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1 && parts[0].Length > 0)
+        {
+            userInitials = parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+    }
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,16 +51,22 @@
     @await RenderSectionAsync("Styles", required: false)
     @RenderSection("HeadScripts", required: false)
 </head>
-<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col"
+      data-authenticated="@(isAuthenticated ? "true" : "false")"
+      data-user-name="@displayName"
+      data-user-email="@userEmail"
+      data-user-role="@userRole"
+      data-user-initials="@userInitials"
+      data-user-image="@userImage">
     <!-- Global header is injected by skybook-global.js; keep a noscript fallback -->
     <noscript>
         <header class="border-b border-slate-200 bg-white">
             <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 <a href="@@Url.Action("Index", "Home")" class="font-bold text-[#0B192C]">SkyBook</a>
                 <nav class="flex gap-4 text-sm">
-                    <a href="@@Url.Action("Index", "Home")">Flights</a>
-                    <a href="@@Url.Action("MyBookings", "Booking")">My Bookings</a>
-                    <a href="@@Url.Action("About", "Home")">About</a>
+                    <a href="@Url.Action("Index", "Home")">Flights</a>
+                    <a href="@Url.Action("MyBookings", "Booking")">My Bookings</a>
+                    <a href="@Url.Action("About", "Home")">About</a>
                 </nav>
             </div>
         </header>
@@ -51,7 +94,7 @@
         </div>
     </footer>
 
-    <script src="~/js/skybook-global.js" defer></script>
+    <script src="~/js/skybook-global.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -67,6 +67,7 @@ public class BookingService : IBookingService
             string userId)
         {
             var bookings = await _context.Bookings
+                .Include(b => b.Passenger)
                 .Include(b => b.Flight)
                 .ThenInclude(f => f.DepartureAirport)
                 .Include(b => b.Flight)
@@ -80,13 +81,16 @@ public class BookingService : IBookingService
             {
                 BookingId = b.Id,
                 BookingReference = b.BookingReference,
-                FlightNumber = b.Flight.FlightNumber,
-                DepartureAirPort =  b.Flight.DepartureAirport.Name,
-                ArrivalAirPort = b.Flight.ArrivalAirport.Name,
-                DepartureTime = b.Flight.DepartureTime,
-                SeatNumber =   b.Seat.SeatNumber,
-                Status =  b.Status
-
+                FlightNumber = b.Flight?.FlightNumber ?? "",
+                DepartureAirPort = b.Flight?.DepartureAirport?.Name ?? "",
+                ArrivalAirPort = b.Flight?.ArrivalAirport?.Name ?? "",
+                DepartureTime = b.Flight?.DepartureTime ?? DateTime.Now,
+                ArrivalTime = b.Flight?.ArrivalTime ?? DateTime.Now,
+                SeatNumber = b.Seat?.SeatNumber ?? "",
+                Status = b.Status,
+                TotalPrice = b.TotalPrice,
+                PassengerName = b.Passenger != null ? $"{b.Passenger.FirstName} {b.Passenger.LastName}".Trim() : "",
+                BookingDate = b.BookingDate
             }).ToList();
             return result;
         }

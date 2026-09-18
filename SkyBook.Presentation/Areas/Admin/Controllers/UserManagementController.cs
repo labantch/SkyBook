@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 
 namespace SkyBook.Presentation.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class UserManagementController : Controller
     {
         private readonly IApplicationUserService _userService;
