@@ -25,7 +25,7 @@ namespace SkyBook.Business.Service
             {
                 throw new Exception("Booking not found");
             }
-            if (booking.Status != BookingStatus.Pending)
+            if (booking.Status != BookingStatus.PendingPayment)
             {
                 throw new Exception("Booking already processd");
             }
@@ -40,7 +40,7 @@ namespace SkyBook.Business.Service
             }
             else
             {
-                booking.Payment.PaymentStatus = PaymentStatus.Faild;
+                booking.Payment.PaymentStatus = PaymentStatus.Failed;
                 booking.Payment.PaymentMethod = paymentMethod;
             }
             await _context.SaveChangesAsync();

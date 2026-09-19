@@ -6,7 +6,7 @@ namespace SkyBook.Data.Models
 {
     public enum BookingStatus
     {
-        Pending = 1,
+        PendingPayment = 1,
         Confirmed = 2,
         Cancelled = 3
     }

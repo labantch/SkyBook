@@ -56,7 +56,7 @@ public class BookingService : IBookingService
                 BookingDate = DateTime.Now,
                 TotalPrice = flight.Price,
                 BookingReference = bookingReference,
-                Status = BookingStatus.Pending
+                Status = BookingStatus.PendingPayment
             };
            var payment = new Payment
                {Booking= booking,
