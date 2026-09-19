@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -55,10 +56,18 @@ public class BookingService : IBookingService
                 BookingDate = DateTime.Now,
                 TotalPrice = flight.Price,
                 BookingReference = bookingReference,
-                Status = BookingStatus.Confirmed
+                Status = BookingStatus.Pending
             };
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
+           var payment = new Payment
+               {Booking= booking,
+                Amount=booking.TotalPrice,
+                PaymentStatus=PaymentStatus.Pending,
+                CreatedAt=DateTime.Now,
+
+        };
+        _context.Bookings.Add(booking);
+        _context.payments.Add(payment);
+         await _context.SaveChangesAsync();
         }
     #endregion
 

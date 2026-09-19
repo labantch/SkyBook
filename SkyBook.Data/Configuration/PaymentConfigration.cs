@@ -33,6 +33,8 @@ namespace SkyBook.Data.Configuration
                    .WithOne(x => x.Payment)
                    .HasForeignKey<Payment>(x => x.BookingId)
                    .OnDelete(DeleteBehavior.Cascade);
+            builder.HasIndex(x => x.BookingId)
+                .IsUnique();
         }
     }
 }
