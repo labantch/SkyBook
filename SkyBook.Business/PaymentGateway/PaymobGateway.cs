@@ -1,5 +1,4 @@
-﻿using SkyBook.Business.Interfaces;
-using SkyBook.Data.Models;
+﻿using SkyBook.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
