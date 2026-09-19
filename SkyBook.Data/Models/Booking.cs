@@ -25,5 +25,6 @@ namespace SkyBook.Data.Models
         public Passenger Passenger { get; set; }
         public Flight Flight { get; set; }
         public Seat Seat { get; set; }
+        public Payment Payment { get; set; }
     }
 }

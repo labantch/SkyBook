@@ -31,7 +31,7 @@ public class AirportService : IAirportService
             .ToListAsync();
     }
     #endregion
-    
+
     #region GetAirportById
     public async Task<AirportVM> GetAirportByIdAsync(int id)
     {
@@ -57,7 +57,7 @@ public class AirportService : IAirportService
         return airport;
     }
     #endregion
-    
+
     #region Create
     public async Task CreateAsync(AirportVM model)
     {
@@ -81,7 +81,7 @@ public class AirportService : IAirportService
         await _context.SaveChangesAsync();
     }
     #endregion
-    
+
     #region  UpdateAirport
     public async Task UpdateAirportAsync(AirportVM model)
     {
@@ -102,7 +102,7 @@ public class AirportService : IAirportService
     }
 
     #endregion
-    
+
     #region DeleteAirport
     public async Task DeleteAirportAsync(int id)
     {
