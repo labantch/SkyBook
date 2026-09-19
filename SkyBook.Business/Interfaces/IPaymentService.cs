@@ -8,8 +8,8 @@ namespace SkyBook.Business.Interfaces
 {
     public  interface IPaymentService
     {
-        Task<PaymentResult>ProcessPaymentAsync(int bookingId,PaymentMethod paymentMethod);
+        Task<PaymentResult>CreatePaymentAsync(int bookingId,PaymentMethod paymentMethod);
         Task UpdatePaymentStatusAsync(String transationId, PaymentStatus status);
-
+        Task<Payment> GetPaymentByBookingIdAsync(int bookingId);
     }
 }
