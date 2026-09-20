@@ -18,4 +18,5 @@ public interface IBookingService
     public Task UncancelAsync(int bookingId);
     public Task<object> ConfirmBookingAsync(string? userId, ConfirmBookingDto model);
     public Task<List<string>> GetOccupiedSeatNumbersAsync(int? flightId, string? flightNumber);
+    public Task<FlightSeatLayoutDto?> GetFlightSeatLayoutAsync(int? flightId, string? flightNumber);
 }

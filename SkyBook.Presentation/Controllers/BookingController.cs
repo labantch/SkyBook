@@ -148,5 +148,19 @@ namespace SkyBook.Presentation.Controllers
             return Json(seats);
         }
         #endregion
+
+        #region GetFlightSeatLayout
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFlightSeatLayout(int? flightId, string? flightNumber)
+        {
+            var layout = await _bookingService.GetFlightSeatLayoutAsync(flightId, flightNumber);
+            if (layout == null)
+            {
+                return NotFound(new { message = "Flight not found or has no seat configuration." });
+            }
+            return Json(layout);
+        }
+        #endregion
     }
 }

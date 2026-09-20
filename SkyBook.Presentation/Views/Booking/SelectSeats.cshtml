@@ -515,6 +515,73 @@
       };
     }
 
+    function buildDynamicAircraftFromDb(data) {
+      if (!data) return null;
+      const cabinDefs = [
+        { key: 'first', name: 'FIRST CLASS', baseBadge: '2-2 SOVEREIGN SUITES', groups: [['A', 'B'], ['C', 'D']], count: data.firstClassSeats || 0 },
+        { key: 'business', name: 'BUSINESS CLASS', baseBadge: '3-3 DIRECT AISLE ACCESS', groups: [['A', 'B', 'C'], ['D', 'E', 'F']], count: data.businessSeats || 0 },
+        { key: 'economy', name: 'ECONOMY CLASS', baseBadge: '3-3 MODERN LAYOUT', groups: [['A', 'B', 'C'], ['D', 'E', 'F']], count: data.economySeats || 0 }
+      ];
+
+      const dbSeats = Array.isArray(data.seats) ? data.seats : [];
+      const occupiedList = Array.isArray(data.occupiedSeats) ? data.occupiedSeats : [];
+      const occupiedSet = new Set(occupiedList);
+
+      const cabins = [];
+      let fallbackNextRow = 1;
+
+      cabinDefs.forEach(cDef => {
+        const matchingDbSeats = dbSeats.filter(s => s.cabinClass === cDef.key);
+        const count = matchingDbSeats.length > 0 ? matchingDbSeats.length : cDef.count;
+        if (count <= 0) return;
+
+        let rows = [];
+        if (matchingDbSeats.length > 0) {
+          rows = [...new Set(matchingDbSeats.map(s => s.row).filter(r => r > 0))].sort((a, b) => a - b);
+        }
+
+        if (rows.length === 0) {
+          const seatsPerRow = cDef.groups.reduce((sum, g) => sum + g.length, 0);
+          const rowCount = Math.max(1, Math.ceil(count / seatsPerRow));
+          rows = Array.from({ length: rowCount }, (_, i) => fallbackNextRow + i);
+          fallbackNextRow = rows[rows.length - 1] + 1;
+        }
+
+        const occupiedInCabin = [];
+        matchingDbSeats.forEach(s => {
+          if (occupiedSet.has(s.seatNumber)) {
+            occupiedInCabin.push(s.seatNumber);
+          }
+        });
+
+        cabins.push({
+          typeKey: cDef.key,
+          name: cDef.name,
+          badge: `${count} Seats • ${cDef.baseBadge}`,
+          groups: cDef.groups,
+          rows: rows,
+          validSeats: matchingDbSeats.length > 0 ? matchingDbSeats.map(s => s.seatNumber) : null,
+          occupied: occupiedInCabin,
+          extraLegroomRows: cDef.key === 'economy' && rows.length > 0 ? [rows[0]] : undefined,
+          seatsPerRow: cDef.groups.reduce((sum, g) => sum + g.length, 0),
+          exactCount: count
+        });
+      });
+
+      const totalSeats = cabins.reduce((sum, c) => sum + (c.exactCount || 0), 0) || data.capacity || 0;
+      const cabinSummary = cabins.map(c => `${c.exactCount} ${c.name.split(' ')[0]}`).join(' • ');
+
+      return {
+        model: data.aircraftName || 'Configured Aircraft',
+        category: `${totalSeats} Seats • Sovereign Fleet`,
+        flightNum: data.flightNumber || '',
+        totalSeats: totalSeats,
+        configLabel: `${cabins.length} Cabins • ${cabinSummary}`,
+        shortSpecs: `${totalSeats} Seats • ${cabinSummary}`,
+        cabins: cabins
+      };
+    }
+
     const aircraftConfigs = {
       'B777-300ER': buildAircraft({
         model: 'Boeing 777-300ER',
@@ -647,6 +714,7 @@
               };
             }
           });
+          loadOccupiedSeatsForSegment(bookingState.segments[1]);
           return;
         }
 
@@ -720,7 +788,9 @@
           bookingState.totalFare = data.totalPrice;
         }
 
-        loadOccupiedSeatsForSegment(bookingState.segments[1]);
+        Object.values(bookingState.segments).forEach(seg => {
+          loadOccupiedSeatsForSegment(seg);
+        });
       } catch (e) {
         console.warn('Error reading stored flight selections:', e);
       }
@@ -731,16 +801,35 @@
       try {
         const flightId = seg.flightId || '';
         const flightNum = encodeURIComponent(seg.flightNum || '');
-        const res = await fetch(`/Booking/GetOccupiedSeats?flightId=${flightId}&flightNumber=${flightNum}`);
+        const res = await fetch(`/Booking/GetFlightSeatLayout?flightId=${flightId}&flightNumber=${flightNum}`);
         if (res.ok) {
-          const occupiedList = await res.json();
-          if (Array.isArray(occupiedList)) {
-            seg.serverOccupied = occupiedList;
-            renderSeatMap();
+          const layoutData = await res.json();
+          if (layoutData && layoutData.capacity > 0) {
+            const dynamicConfigKey = `flight-${layoutData.flightId || seg.flightId || seg.flightNum}`;
+            const dynamicAircraft = buildDynamicAircraftFromDb(layoutData);
+            if (dynamicAircraft && dynamicAircraft.cabins && dynamicAircraft.cabins.length > 0) {
+              aircraftConfigs[dynamicConfigKey] = dynamicAircraft;
+              seg.aircraftId = dynamicConfigKey;
+              seg.aircraftName = layoutData.aircraftName || seg.aircraftName;
+            }
+          }
+          if (Array.isArray(layoutData.occupiedSeats)) {
+            seg.serverOccupied = layoutData.occupiedSeats;
+          }
+          updateAllViews();
+          renderSeatMap();
+        } else {
+          const fallbackRes = await fetch(`/Booking/GetOccupiedSeats?flightId=${flightId}&flightNumber=${flightNum}`);
+          if (fallbackRes.ok) {
+            const occupiedList = await fallbackRes.json();
+            if (Array.isArray(occupiedList)) {
+              seg.serverOccupied = occupiedList;
+              renderSeatMap();
+            }
           }
         }
       } catch (e) {
-        console.warn('Could not load occupied seats:', e);
+        console.warn('Could not load seat configuration:', e);
       }
     }
 
@@ -842,6 +931,10 @@
 
             group.forEach(letter => {
               const seatId = `${rowNum}${letter}`;
+              if (cabin.validSeats && !cabin.validSeats.includes(seatId)) {
+                rowHtml += `<div class="h-9 rounded-md opacity-0 pointer-events-none" aria-hidden="true"></div>`;
+                return;
+              }
               const isOccupied = (cabin.occupied && cabin.occupied.includes(seatId)) || (seg.serverOccupied && seg.serverOccupied.includes(seatId));
 
               let pos = 'Aisle';
@@ -1221,6 +1314,7 @@
         for (const group of targetCabin.groups) {
           for (const letter of group) {
             const seatId = `${rowNum}${letter}`;
+            if (targetCabin.validSeats && !targetCabin.validSeats.includes(seatId)) continue;
             if (!targetCabin.occupied.includes(seatId) && !serverOcc.includes(seatId) && !assignedInSeg.includes(seatId)) {
               let pos = 'Aisle';
               if (letter === group[0] && group === targetCabin.groups[0]) pos = 'Window';
@@ -1239,6 +1333,7 @@
           for (const group of cabin.groups) {
             for (const letter of group) {
               const seatId = `${rowNum}${letter}`;
+              if (cabin.validSeats && !cabin.validSeats.includes(seatId)) continue;
               if (!serverOcc.includes(seatId) && !assignedInSeg.includes(seatId)) {
                 return { seatId, type: 'Seat', pos: `Row ${rowNum}` };
               }

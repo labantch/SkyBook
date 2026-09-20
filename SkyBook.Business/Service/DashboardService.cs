@@ -13,17 +13,18 @@ namespace SkyBook.Business.Service;
 public class DashboardService : IDashboardService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IBookingService _bookingService;
 
-    public DashboardService(ApplicationDbContext context)
+    public DashboardService(ApplicationDbContext context, IBookingService bookingService)
     {
         _context = context;
+        _bookingService = bookingService;
     }
 
     public async Task<DashboardVM> GetDashboardDataAsync()
     {
         var totalUsers = await _context.Users.CountAsync();
         var totalFlights = await _context.Flights.CountAsync();
-        var totalBookings = await _context.Bookings.CountAsync();
         var totalPassengers = await _context.Passengers.CountAsync();
         var totalAircrafts = await _context.Aircrafts.CountAsync();
         var totalAirports = await _context.Airports.CountAsync();
@@ -31,6 +32,11 @@ public class DashboardService : IDashboardService
         var bookedSeats = await _context.Bookings.CountAsync(b => b.Status != BookingStatus.Cancelled);
 
         var availableSeats = Math.Max(0, totalSeats - bookedSeats);
+
+        // Grouped bookings identical to Admin Bookings management page
+        var allBookings = await _bookingService.GetAllBookingsAsync();
+        var totalBookings = allBookings.Count;
+        var recentBookings = allBookings.Take(6).ToList();
 
         // Card 1
         var inFlightCount = await _context.Flights.CountAsync(f => f.Status == FlightStatus.Departed || f.Status == FlightStatus.Boarding);
@@ -56,39 +62,8 @@ public class DashboardService : IDashboardService
 
         // Card 5
         var totalRevenueGross = await _context.Bookings.Where(b => b.Status != BookingStatus.Cancelled).SumAsync(b => (decimal?)b.TotalPrice) ?? 0m;
-        var confirmedBookingsCount = await _context.Bookings.CountAsync(b => b.Status == BookingStatus.Confirmed);
+        var confirmedBookingsCount = allBookings.Count(b => b.Status == BookingStatus.Confirmed);
         double seatLoadPercentage = totalSeats > 0 ? Math.Round((double)bookedSeats / totalSeats * 100, 1) : 0;
-
-        
-        var recentBookingsEntities = await _context.Bookings
-            .Include(b => b.User)
-            .Include(b => b.Flight)
-                .ThenInclude(f => f.DepartureAirport)
-            .Include(b => b.Flight)
-                .ThenInclude(f => f.ArrivalAirport)
-            .Include(b => b.Passenger)
-            .Include(b => b.Seat)
-            .OrderByDescending(b => b.BookingDate)
-            .Take(6)
-            .ToListAsync();
-
-        var recentBookings = recentBookingsEntities.Select(b => new BookingDetailsVm
-        {
-            BookingId = b.Id,
-            BookingDate = b.BookingDate,
-            TotalPrice = b.TotalPrice,
-            Status = b.Status,
-            BookingReference = b.BookingReference ?? "",
-            DepartureAirPort = b.Flight?.DepartureAirport?.Name ?? b.Flight?.DepartureAirport?.Code ?? "N/A",
-            ArrivalAirPort = b.Flight?.ArrivalAirport?.Name ?? b.Flight?.ArrivalAirport?.Code ?? "N/A",
-            PassengerName = b.Passenger != null ? $"{b.Passenger.FirstName} {b.Passenger.LastName}".Trim() : "Valued Customer",
-            FlightNumber = b.Flight?.FlightNumber ?? "N/A",
-            SeatNumber = b.Seat?.SeatNumber ?? "",
-            UserImageUrl = b.User?.ImageUrl,
-            UserName = b.User?.UserName ?? "",
-            UserFullName = !string.IsNullOrWhiteSpace(b.User?.FullName) ? b.User.FullName : (b.User?.UserName ?? "Valued Customer"),
-            UserEmail = b.User?.Email ?? ""
-        }).ToList();
 
         var recentFlightsEntities = await _context.Flights
             .Include(f => f.DepartureAirport)

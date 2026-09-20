@@ -89,20 +89,22 @@
         <!-- Card 3: Total Aircraft -->
         <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-slate-300 transition-all">
           <div class="flex items-center justify-between">
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700">
+            <div class="w-8 h-8 rounded-lg @(Model.TotalAircrafts > 0 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500") flex items-center justify-center">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             </div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Fleet Ready</span>
+            <span class="text-[10px] font-semibold @(Model.TotalAircrafts > 0 ? "text-emerald-700 bg-emerald-50" : "text-slate-600 bg-slate-100") px-1.5 py-0.5 rounded">
+              @(Model.TotalAircrafts > 0 ? "Fleet Ready" : "No Aircraft")
+            </span>
           </div>
           <div class="mt-3">
             <h3 class="text-2xl font-extrabold text-midnight-900 tracking-tight" id="kpi-total-aircraft">@Model.TotalAircrafts</h3>
             <p class="text-xs font-semibold text-slate-700 mt-0.5">Total Aircraft</p>
-            <p class="text-[11px] text-slate-500 mt-1 truncate" id="kpi-aircraft-breakdown" title="@(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "Fleet")">
-              @(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "Active Fleet Roster")
+            <p class="text-[11px] text-slate-500 mt-1 truncate" id="kpi-aircraft-breakdown" title="@(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "No aircraft in database")">
+              @(Model.AircraftModels != null && Model.AircraftModels.Any() ? string.Join(" • ", Model.AircraftModels) : "No aircraft in database")
             </p>
           </div>
           <div class="w-full bg-slate-100 h-1 rounded-full mt-3 overflow-hidden">
-            <div class="bg-midnight-800 h-full rounded-full" style="width: 100%"></div>
+            <div class="bg-midnight-800 h-full rounded-full" style="width: @(Model.TotalAircrafts > 0 ? "100%" : "0%")"></div>
           </div>
         </div>
 
@@ -152,16 +154,17 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-bookings-body">
               @if (Model.RecentBookings != null && Model.RecentBookings.Any())
               {
                 foreach (var b in Model.RecentBookings)
                 {
-                  var initials = !string.IsNullOrWhiteSpace(b.PassengerName)
-                    ? string.Concat(b.PassengerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper()
-                    : "PA";
+                  var customerDisplayName = !string.IsNullOrWhiteSpace(b.UserFullName) ? b.UserFullName : (!string.IsNullOrWhiteSpace(b.UserName) ? b.UserName : (!string.IsNullOrWhiteSpace(b.PassengerName) ? b.PassengerName : "Customer"));
+                  var initials = !string.IsNullOrWhiteSpace(customerDisplayName)
+                    ? string.Concat(customerDisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper()
+                    : "CU";
                   if (initials.Length > 2) initials = initials.Substring(0, 2);
 
                   <tr class="hover:bg-slate-50/70 transition-colors">
@@ -170,13 +173,13 @@
                       <div class="flex items-center space-x-2.5">
                         @if (!string.IsNullOrEmpty(b.UserImageUrl))
                         {
-                          <img src="@b.UserImageUrl" alt="@b.PassengerName" class="w-6 h-6 rounded-full object-cover border border-champagne-500/50 shrink-0 shadow-2xs" onerror="this.outerHTML='<div class=\'w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0\'>@initials</div>'"/>
+                          <img src="@b.UserImageUrl" alt="@customerDisplayName" class="w-7 h-7 rounded-full object-cover border border-champagne-500/50 shrink-0 shadow-2xs" onerror="this.outerHTML='<div class=\'w-7 h-7 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0\'>@initials</div>'"/>
                         }
                         else
                         {
-                          <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0">@initials</div>
+                          <div class="w-7 h-7 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0">@initials</div>
                         }
-                        <div><span class="block font-semibold text-slate-800">@b.PassengerName</span><span class="text-[10px] text-slate-400 font-normal">Customer</span></div>
+                        <div><span class="block font-semibold text-slate-800">@customerDisplayName</span><span class="text-[10px] text-slate-400 font-normal">Customer</span></div>
                       </div>
                     </td>
                     <td class="py-3 px-4 font-mono text-slate-700">
@@ -184,7 +187,7 @@
                       <span class="text-[10px] text-slate-400 ml-1">(@b.DepartureAirPort → @b.ArrivalAirPort)</span>
                     </td>
                     <td class="py-3 px-4 text-slate-600">@b.BookingDate.ToString("dd MMM yyyy")</td>
-                    <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">@(string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber)</span></td>
+                    <td class="py-3 px-4"><span class="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-mono text-[11px] font-semibold">@(string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber)</span></td>
                     <td class="py-3 px-4 font-mono font-bold text-slate-900">$@b.TotalPrice.ToString("N2")</td>
                     <td class="py-3 px-4">
                       @if (b.Status == SkyBook.Data.Models.BookingStatus.Confirmed)
@@ -201,7 +204,7 @@
                       }
                     </td>
                     <td class="py-3 px-4 text-right">
-                      <a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</a>
+                      <a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View Details</a>
                     </td>
                   </tr>
                 }
@@ -542,27 +545,30 @@
       )),
 
       bookings: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        (Model.RecentBookings ?? new List<SkyBook.Business.ViewModels.BookingDetailsVm>()).Select(b => new {
-          pnr = b.BookingReference,
-          customerName = b.PassengerName,
-          initials = !string.IsNullOrWhiteSpace(b.PassengerName) ? string.Concat(b.PassengerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper() : "PA",
-          tier = "Customer",
-          flightCode = b.FlightNumber,
-          routeSummary = $"{b.DepartureAirPort} → {b.ArrivalAirPort}",
-          travelDate = b.BookingDate.ToString("dd MMM yyyy"),
-          seat = string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber,
-          price = $"${b.TotalPrice:N2}",
-          status = b.Status.ToString()
+        (Model.RecentBookings ?? new List<SkyBook.Business.ViewModels.BookingDetailsVm>()).Select(b => {
+          var customerDisplayName = !string.IsNullOrWhiteSpace(b.UserFullName) ? b.UserFullName : (!string.IsNullOrWhiteSpace(b.UserName) ? b.UserName : (!string.IsNullOrWhiteSpace(b.PassengerName) ? b.PassengerName : "Customer"));
+          var initials = !string.IsNullOrWhiteSpace(customerDisplayName)
+            ? string.Concat(customerDisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => n[0])).ToUpper()
+            : "CU";
+          if (initials.Length > 2) initials = initials.Substring(0, 2);
+          return new {
+            pnr = b.BookingReference,
+            customerName = customerDisplayName,
+            userImageUrl = b.UserImageUrl ?? "",
+            initials = initials,
+            tier = "Customer",
+            flightCode = b.FlightNumber,
+            routeSummary = $"{b.DepartureAirPort} → {b.ArrivalAirPort}",
+            travelDate = b.BookingDate.ToString("dd MMM yyyy"),
+            seat = string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber,
+            price = $"${b.TotalPrice:N2}",
+            status = b.Status.ToString()
+          };
         })
       )),
 
 
-      fleet: [
-        { name: 'Boeing 787-9 Dreamliner', tail: 'A6-SKB', cabins: { first: 12, business: 48, economy: 230 }, capacity: '290 Seats', readiness: '98.5%', status: 'Operational (In-Flight)' },
-        { name: 'Airbus A350-1000 Flagship', tail: 'A6-SKA', cabins: { first: 14, business: 62, economy: 290 }, capacity: '366 Seats', readiness: '100%', status: 'Operational (Ready at Gate)' },
-        { name: 'Boeing 777-300ER Prestige', tail: 'A6-SKX', cabins: { first: 8, business: 68, economy: 320 }, capacity: '396 Seats', readiness: '94.2%', status: 'Turnaround Ops' },
-        { name: 'Gulfstream G700 SkySovereign', tail: 'A6-G71', cabins: { first: 19, business: 0, economy: 0 }, capacity: '19 VIP Berths', readiness: '100%', status: 'Ready on Apron' }
-      ],
+      fleet: [],
 
       customers: [
         { name: 'John Mohamed', email: 'john.mohamed@@sovereign-sky.com', phone: '+971 50 123 4567', country: 'United Arab Emirates', tier: 'SkyClub Sovereign Tier', trips: 18, miles: '142,500', role: 'user' },
@@ -630,17 +636,17 @@
         <tr class="hover:bg-slate-50/70 transition-colors">
           <td class="py-3 px-4 font-mono font-bold text-midnight-900">${b.pnr}</td>
           <td class="py-3 px-4">
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center">${b.initials}</div>
+            <div class="flex items-center space-x-2.5">
+              ${b.userImageUrl ? `<img src="${b.userImageUrl}" alt="${b.customerName}" class="w-7 h-7 rounded-full object-cover border border-champagne-500/50 shrink-0 shadow-2xs" onerror="this.outerHTML='<div class=\\'w-7 h-7 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0\\'>${b.initials}</div>'"/>` : `<div class="w-7 h-7 rounded-full bg-champagne-100 text-champagne-800 text-[10px] font-bold flex items-center justify-center shrink-0">${b.initials}</div>`}
               <div><span class="block font-semibold text-slate-800">${b.customerName}</span><span class="text-[10px] text-slate-400 font-normal">${b.tier}</span></div>
             </div>
           </td>
           <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
           <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
+          <td class="py-3 px-4"><span class="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-mono text-[11px] font-semibold">${b.seat}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
           <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
-          <td class="py-3 px-4 text-right"><a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View</a></td>
+          <td class="py-3 px-4 text-right"><a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View Details</a></td>
         </tr>
       `).join('');
     }
@@ -711,6 +717,23 @@
     function renderFleet() {
       const container = document.getElementById('fleet-card-container');
       if (!container) return;
+      if (!state.fleet || state.fleet.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-xl border border-dashed border-slate-200 p-8 text-center">
+            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </div>
+            <h3 class="text-sm font-bold text-midnight-900">No Aircraft in Database</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">There are currently no aircraft registered in your fleet database. Add your first aircraft to configure cabins and flight schedules.</p>
+            <a href="/Admin/Aircraft" class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 bg-midnight-800 text-white rounded-lg text-xs font-semibold hover:bg-midnight-900 transition-colors">
+              <span>Go to Aircraft Management</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        `;
+        updateFleetSummaryLabels();
+        return;
+      }
       container.innerHTML = state.fleet.map(ac => `
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
           ${ac.imageUrl ? `
@@ -752,13 +775,12 @@
     }
 
     function updateFleetSummaryLabels() {
-      const total = state.fleet.length;
-      const kpi = document.getElementById('kpi-total-aircraft');
-      if (kpi) kpi.innerText = total;
       const rosterLabel = document.getElementById('fleet-roster-count');
-      if (rosterLabel) rosterLabel.innerText = `Total ${total} aircraft active in dispatch roster`;
-      const breakdown = document.getElementById('kpi-aircraft-breakdown');
-      if (breakdown) breakdown.innerText = state.fleet.map(ac => ac.name.split(' ').slice(0, 2).join(' ')).join(' • ');
+      if (rosterLabel) {
+        rosterLabel.innerText = state.fleet.length > 0 
+          ? `Total ${state.fleet.length} aircraft active in dispatch roster`
+          : 'No aircraft in dispatch roster';
+      }
     }
 
     function updateAircraftSeatTotal() {
@@ -1637,6 +1659,7 @@
 
       try { localStorage.removeItem('skybook_airports'); } catch (e) {}
       try { localStorage.removeItem('skybook_flights'); } catch (e) {}
+      try { localStorage.removeItem('skybook_fleet'); } catch (e) {}
 
       loadFleetFromStorage();
       loadCustomersFromStorage();

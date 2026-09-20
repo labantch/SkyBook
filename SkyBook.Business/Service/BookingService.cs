@@ -611,6 +611,89 @@ public class BookingService : IBookingService
             .ToListAsync();
     }
     #endregion
+
+    #region GetFlightSeatLayoutAsync
+    public async Task<FlightSeatLayoutDto?> GetFlightSeatLayoutAsync(int? flightId, string? flightNumber)
+    {
+        Flight? flight = null;
+        if (flightId.HasValue && flightId.Value > 0)
+        {
+            flight = await _context.Flights
+                .Include(f => f.Aircraft)
+                    .ThenInclude(a => a.Seats)
+                .FirstOrDefaultAsync(f => f.Id == flightId.Value);
+        }
+
+        if (flight == null && !string.IsNullOrWhiteSpace(flightNumber))
+        {
+            var cleanNum = System.Text.RegularExpressions.Regex.Replace(flightNumber, @"[^\w\-]", "").Trim();
+            flight = await _context.Flights
+                .Include(f => f.Aircraft)
+                    .ThenInclude(a => a.Seats)
+                .FirstOrDefaultAsync(f => f.FlightNumber == cleanNum || f.FlightNumber.Contains(cleanNum) || cleanNum.Contains(f.FlightNumber));
+        }
+
+        if (flight == null)
+        {
+            return null;
+        }
+
+        var occupiedSeats = await _context.Bookings
+            .Where(b => b.FlightId == flight.Id && b.Status != BookingStatus.Cancelled && b.Seat != null)
+            .Select(b => b.Seat.SeatNumber)
+            .Where(s => !string.IsNullOrEmpty(s))
+            .Distinct()
+            .ToListAsync();
+
+        var aircraft = flight.Aircraft;
+        var seats = aircraft?.Seats?.OrderBy(s => s.Id).ToList() ?? new List<Seat>();
+
+        var seatDetails = new List<SeatDetailDto>();
+        foreach (var s in seats)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(s.SeatNumber ?? "", @"^(\d+)([A-Z])$");
+            int row = 0;
+            string letter = "";
+            if (match.Success)
+            {
+                int.TryParse(match.Groups[1].Value, out row);
+                letter = match.Groups[2].Value;
+            }
+
+            string cabin = s.Class switch
+            {
+                SeatClass.FirstClass => "first",
+                SeatClass.Business => "business",
+                _ => "economy"
+            };
+
+            seatDetails.Add(new SeatDetailDto
+            {
+                SeatNumber = s.SeatNumber ?? "",
+                CabinClass = cabin,
+                Row = row,
+                Letter = letter
+            });
+        }
+
+        int firstCount = seats.Count(s => s.Class == SeatClass.FirstClass);
+        int busCount = seats.Count(s => s.Class == SeatClass.Business);
+        int econCount = seats.Count(s => s.Class == SeatClass.Economy);
+
+        return new FlightSeatLayoutDto
+        {
+            FlightId = flight.Id,
+            FlightNumber = flight.FlightNumber,
+            AircraftName = aircraft?.Name ?? "Sovereign Aircraft",
+            Capacity = aircraft?.Capacity ?? (firstCount + busCount + econCount),
+            FirstClassSeats = firstCount,
+            BusinessSeats = busCount,
+            EconomySeats = econCount,
+            Seats = seatDetails,
+            OccupiedSeats = occupiedSeats
+        };
+    }
+    #endregion
 }
 
 

@@ -32,11 +32,14 @@
     var qDestCity = Context.Request.Query["destinationCity"].ToString();
     if (string.IsNullOrWhiteSpace(qDestCity)) qDestCity = qDest == "DXB" ? "Dubai" : qDest;
 
+    var today = DateTime.Today;
+    var defaultReturn = today.AddDays(3);
+
     var qDep = Context.Request.Query["departure"].ToString();
-    if (string.IsNullOrWhiteSpace(qDep)) qDep = "Oct 24";
+    if (string.IsNullOrWhiteSpace(qDep)) qDep = today.ToString("MMM dd");
 
     var qRet = Context.Request.Query["return"].ToString();
-    if (string.IsNullOrWhiteSpace(qRet)) qRet = "Nov 02";
+    if (string.IsNullOrWhiteSpace(qRet)) qRet = defaultReturn.ToString("MMM dd");
 
     var qPax = Context.Request.Query["passengers"].ToString();
     if (string.IsNullOrWhiteSpace(qPax)) qPax = "1 Passenger, Business Class";
@@ -280,6 +283,11 @@
 </script>
 
 <script>
+    // Global calendar date name constants
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
     // Live Server Flights serialized from Database (100% Real SQL Server Data)
     const SERVER_FLIGHTS = @Html.Raw(flightsJson);
 
@@ -540,9 +548,9 @@
     }
 
     function setupSegmentsForMode(mode, originCode, originCity, destCode, destCity, depDateLabel, depShortDate, retDateLabel, retShortDate) {
-      // Use searched codes if provided, otherwise fall back to first DB corridor or placeholder
+      // Use searched codes if provided, otherwise fall back to first DB corridor or active flight
       const hasCodes = originCode && destCode;
-      const defaultKey = hasCodes ? `${originCode}-${destCode}` : (activeCorridors.length > 0 ? activeCorridors[0].key : 'CAI-DXB');
+      const defaultKey = hasCodes ? `${originCode}-${destCode}` : (activeCorridors.length > 0 ? activeCorridors[0].key : 'DOH-JFK');
       const [defFrom, defTo] = defaultKey.split('-');
       const sample = (FLIGHT_DATABASE[defaultKey] && FLIGHT_DATABASE[defaultKey][0]) || null;
       const fromCity = (hasCodes ? originCity : (sample ? sample.depCity : defFrom)) || defFrom;
@@ -589,19 +597,72 @@
           }
         ];
       } else if (mode === 'multi-city') {
-        appState.segments = [
-          {
-            key: defaultKey,
-            fromCode: defFrom,
-            fromCity: fromCity,
-            toCode: defTo,
-            toCity: toCity,
-            dateStr: depDateLabel || 'Saturday, 2026 • Oct 24',
-            shortDate: depShortDate || 'Oct 24',
-            title: `${defFrom} → ${defTo}`,
-            selectedFlight: null
+        let foundSegments = null;
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const rawUrlSegs = urlParams.get('segments');
+          if (rawUrlSegs) foundSegments = JSON.parse(rawUrlSegs);
+          else {
+            const ctx = JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null');
+            if (ctx && Array.isArray(ctx.segments) && ctx.segments.length > 0) {
+              foundSegments = ctx.segments;
+            }
           }
-        ];
+        } catch (e) {}
+
+        if (foundSegments && Array.isArray(foundSegments) && foundSegments.length > 0) {
+          appState.segments = foundSegments.map(s => {
+            const from = (s.fromCode || s.origin || 'CAI').trim();
+            const to = (s.toCode || s.destination || 'DOH').trim();
+            const fromC = s.fromCity || s.originCity || from;
+            const toC = s.toCity || s.destinationCity || to;
+            const routeKey = `${from}-${to}`;
+            const sSample = (FLIGHT_DATABASE[routeKey] && FLIGHT_DATABASE[routeKey][0]) || null;
+            const dStr = s.departureSub ? `${s.departureSub} • ${s.departure}` : (s.departure || s.dateStr || 'Scheduled Departure');
+            const sDate = s.shortDate || s.departure || 'Departure';
+
+            return {
+              key: routeKey,
+              fromCode: from,
+              fromCity: sSample ? sSample.depCity : fromC,
+              toCode: to,
+              toCity: sSample ? sSample.arrCity : toC,
+              dateStr: dStr,
+              shortDate: sDate,
+              title: `${from} → ${to}`,
+              selectedFlight: null
+            };
+          });
+        } else {
+          const seg1From = originCode || 'CAI';
+          const seg1To = destCode || 'DOH';
+          const seg2From = seg1To;
+          const seg2To = (seg1From !== 'JFK') ? 'JFK' : 'CAI';
+          appState.segments = [
+            {
+              key: `${seg1From}-${seg1To}`,
+              fromCode: seg1From,
+              fromCity: originCity || seg1From,
+              toCode: seg1To,
+              toCity: destCity || seg1To,
+              dateStr: depDateLabel || 'Scheduled Departure',
+              shortDate: depShortDate || 'Departure',
+              title: `${seg1From} → ${seg1To}`,
+              selectedFlight: null
+            },
+            {
+              key: `${seg2From}-${seg2To}`,
+              fromCode: seg2From,
+              fromCity: seg2From,
+              toCode: seg2To,
+              toCity: seg2To,
+              dateStr: retDateLabel || 'Scheduled Departure',
+              shortDate: retShortDate || 'Return',
+              title: `${seg2From} → ${seg2To}`,
+              selectedFlight: null
+            }
+          ];
+        }
       }
       appState.activeSegmentIndex = 0;
     }
@@ -663,8 +724,43 @@
 
       const outboundKey = `${originCode}-${destCode}`;
 
-      // Check if searched route exists in the FLIGHT_DATABASE
-      if (originCode && destCode && FLIGHT_DATABASE[outboundKey] && FLIGHT_DATABASE[outboundKey].length > 0) {
+      // Check if multi-city mode or standard route exists in FLIGHT_DATABASE
+      if (tripMode === 'multi-city') {
+        let segs = context.segments;
+        if (!segs || !Array.isArray(segs) || segs.length === 0) {
+          try {
+            const urlP = new URLSearchParams(window.location.search);
+            const rawSegs = urlP.get('segments');
+            if (rawSegs) segs = JSON.parse(rawSegs);
+          } catch (e) {}
+        }
+
+        if (segs && Array.isArray(segs) && segs.length > 0) {
+          appState.segments = segs.map(s => {
+            const from = (s.fromCode || s.origin || 'CAI').trim();
+            const to = (s.toCode || s.destination || 'DOH').trim();
+            const fromC = s.fromCity || s.originCity || from;
+            const toC = s.toCity || s.destinationCity || to;
+            const routeKey = `${from}-${to}`;
+            const sSample = (FLIGHT_DATABASE[routeKey] && FLIGHT_DATABASE[routeKey][0]) || null;
+            const dStr = s.departureSub ? `${s.departureSub} • ${s.departure}` : (s.departure || s.dateStr || 'Scheduled Departure');
+            const sDate = s.shortDate || s.departure || 'Departure';
+
+            return {
+              key: routeKey,
+              fromCode: from,
+              fromCity: sSample ? sSample.depCity : fromC,
+              toCode: to,
+              toCity: sSample ? sSample.arrCity : toC,
+              dateStr: dStr,
+              shortDate: sDate,
+              title: `${from} → ${to}`,
+              selectedFlight: null
+            };
+          });
+        }
+        dismissRouteNotice();
+      } else if (originCode && destCode && FLIGHT_DATABASE[outboundKey] && FLIGHT_DATABASE[outboundKey].length > 0) {
         // Route found — set segments accurately
         const sample = FLIGHT_DATABASE[outboundKey][0];
         appState.segments[0] = {
@@ -698,6 +794,15 @@
         }
         dismissRouteNotice();
       } else if (originCode && destCode) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasUrlSearch = (urlParams.has('origin') && urlParams.get('origin')) || (urlParams.has('originCode') && urlParams.get('originCode'));
+        if (!hasUrlSearch && activeCorridors.length > 0) {
+          // Navigated directly to Results with stale sessionStorage for an unserved route
+          appState.noResultsRoute = null;
+          selectCorridor(activeCorridors[0].key);
+          return;
+        }
+
         // Route searched but NO flights found in DB — show empty state
         appState.noResultsRoute = { originCode, originCity, destCode, destCity };
         appState.segments[0] = {
@@ -1655,10 +1760,14 @@
       const originCity = urlParams.get('originCity') || storedContext?.originCity || originCode;
       const destinationCode = (urlParams.get('destination') || urlParams.get('destinationCode') || storedContext?.destinationCode || '').trim();
       const destinationCity = urlParams.get('destinationCity') || storedContext?.destinationCity || destinationCode;
-      const departure = urlParams.get('departure') || urlParams.get('departureDate') || storedContext?.departure || 'Oct 24';
-      const departureSub = urlParams.get('departureSub') || storedContext?.departureSub || 'Saturday, 2026';
-      const returnDate = urlParams.get('return') || urlParams.get('returnDate') || storedContext?.returnDate || 'Nov 02';
-      const returnSub = urlParams.get('returnSub') || storedContext?.returnSub || 'Monday, 2026';
+      const now = new Date();
+      const defDep = `${monthShortNames[now.getMonth()]} ${String(now.getDate()).padStart(2, '0')}`;
+      const retD = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+      const defRet = `${monthShortNames[retD.getMonth()]} ${String(retD.getDate()).padStart(2, '0')}`;
+      const departure = urlParams.get('departure') || urlParams.get('departureDate') || storedContext?.departure || defDep;
+      const departureSub = urlParams.get('departureSub') || storedContext?.departureSub || `${dayNames[now.getDay()]}, ${now.getFullYear()}`;
+      const returnDate = urlParams.get('return') || urlParams.get('returnDate') || storedContext?.returnDate || defRet;
+      const returnSub = urlParams.get('returnSub') || storedContext?.returnSub || `${dayNames[retD.getDay()]}, ${retD.getFullYear()}`;
       const depDateLabel = departureSub ? `${departureSub} • ${departure}` : departure;
       const retDateLabel = returnSub ? `${returnSub} • ${returnDate}` : returnDate;
 
@@ -1668,8 +1777,17 @@
       const depDate = urlParams.get('depDate') || storedContext?.depDate || '';
       const retDate = urlParams.get('retDate') || storedContext?.retDate || '';
 
+      let segments = storedContext?.segments;
+      if (!segments) {
+        const rawSegs = urlParams.get('segments');
+        if (rawSegs) {
+          try { segments = JSON.parse(rawSegs); } catch (e) {}
+        }
+      }
+
       const context = {
         mode: validMode,
+        segments: segments,
         originCode: originCode,
         originCity: originCity,
         destinationCode: destinationCode,

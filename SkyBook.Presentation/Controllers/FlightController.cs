@@ -189,6 +189,17 @@ namespace SkyBook.Presentation.Controllers
                 }
             }
 
+            var isMultiCity = string.Equals(mode, "multi-city", StringComparison.OrdinalIgnoreCase) ||
+                              string.Equals(mode, "multicity", StringComparison.OrdinalIgnoreCase);
+
+            if (isMultiCity)
+            {
+                // Multi-city itineraries span multiple legs. Return all available flights for the requested passenger count
+                // so the client-side FLIGHT_DATABASE can resolve flights for every segment.
+                var mcFlights = allFlights.Where(f => f.AvailableSeats >= paxCount).ToList();
+                return View(mcFlights);
+            }
+
             if (!string.IsNullOrWhiteSpace(origin) && !string.IsNullOrWhiteSpace(destination))
             {
                 var originUpper = origin.Trim().ToUpper();

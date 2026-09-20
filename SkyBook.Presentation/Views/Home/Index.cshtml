@@ -3,7 +3,33 @@
     Layout = "_Layout";
     var dbAirports = ViewBag.Airports as List<SkyBook.Business.ViewModels.AirportVM> ?? new List<SkyBook.Business.ViewModels.AirportVM>();
     var defaultOrigin = dbAirports.FirstOrDefault(a => a.Code == "CAI") ?? dbAirports.FirstOrDefault();
-    var defaultDest = dbAirports.FirstOrDefault(a => a.Code == "DXB") ?? dbAirports.Skip(1).FirstOrDefault() ?? defaultOrigin;
+    var defaultDest = dbAirports.FirstOrDefault(a => a.Code == "DXB") 
+                   ?? dbAirports.FirstOrDefault(a => a.Code == "DOH") 
+                   ?? dbAirports.FirstOrDefault(a => a.Code == "JFK") 
+                   ?? dbAirports.FirstOrDefault(a => a.Code != defaultOrigin?.Code) 
+                   ?? defaultOrigin;
+
+    // Ensure origin and destination are distinct if database has multiple airports
+    if (defaultOrigin != null && defaultDest != null && defaultOrigin.Code == defaultDest.Code && dbAirports.Count > 1)
+    {
+        defaultDest = dbAirports.FirstOrDefault(a => a.Code != defaultOrigin.Code) ?? defaultDest;
+    }
+
+    var today = DateTime.Today;
+    var defaultReturn = today.AddDays(3);
+    var todayShort = today.ToString("MMM dd");
+    var todaySub = today.ToString("dddd, yyyy");
+    var returnShort = defaultReturn.ToString("MMM dd");
+    var returnSub = defaultReturn.ToString("dddd, yyyy");
+
+    // Multi-city defaults
+    var mcDate1 = today.ToString("dd MMM yyyy");
+    var mcDate2 = defaultReturn.ToString("dd MMM yyyy");
+    var mcAirport1From = defaultOrigin;
+    var mcAirport1To = defaultDest;
+    var mcAirport2From = defaultDest;
+    var mcAirport2To = dbAirports.FirstOrDefault(a => a.Code != mcAirport1From?.Code && a.Code != mcAirport1To?.Code) ?? mcAirport1From;
+
     var airportDataJson = System.Text.Json.JsonSerializer.Serialize(
         dbAirports.Select(a => new {
             code = a.Code,
@@ -126,8 +152,8 @@
 <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Departure</span>
 <span class="material-symbols-outlined text-[16px] text-secondary group-hover:scale-110 transition-transform">calendar_month</span>
 </div>
-<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="departure-date-display">Oct 24</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="departure-sub-display">Saturday, 2026</span>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="departure-date-display">@todayShort</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="departure-sub-display">@todaySub</span>
 </div>
 <!-- Return Date Container -->
 <div class="relative flex flex-col justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-transparent hover:border-outline-variant/40" id="return-date-container">
@@ -135,8 +161,8 @@
 <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Return</span>
 <span class="material-symbols-outlined text-[16px] text-secondary group-hover:scale-110 transition-transform">calendar_month</span>
 </div>
-<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="return-date-display">Nov 02</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="return-sub-display">Monday, 2026</span>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tabular-nums" id="return-date-display">@returnShort</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant tabular-nums" id="return-sub-display">@returnSub</span>
 </div>
 </div>
 <!-- Passengers / Class Trigger (Standard Mode) -->
@@ -161,7 +187,7 @@
 <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
 <div class="flex items-baseline gap-1.5">
-<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" readonly="" type="text" value="Cairo CAI">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" readonly="" type="text" value="@($"{mcAirport1From?.City ?? "Cairo"} {mcAirport1From?.Code ?? "CAI"}")">
 </div>
 </div>
 <!-- Swap Arrow -->
@@ -174,7 +200,7 @@
 <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
 <div class="flex items-baseline gap-1.5">
-<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" readonly="" type="text" value="A Coruña YJC">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" readonly="" type="text" value="@($"{mcAirport1To?.City ?? "Doha"} {mcAirport1To?.Code ?? "DOH"}")">
 </div>
 </div>
 <!-- Vertical Divider -->
@@ -182,7 +208,7 @@
 <!-- Departure Date Field -->
 <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-1">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
-<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">11 Sep 2026</span>
+<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">@mcDate1</span>
 </div>
 <!-- Vertical Divider -->
 <div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
@@ -190,7 +216,7 @@
 <div class="relative w-full md:w-60 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer flex items-center justify-between multicity-passenger-trigger">
 <div>
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Passengers / Class</span>
-<span class="text-sm md:text-base font-semibold text-primary block truncate mc-passenger-label">1 Passenger, Economy</span>
+<span class="text-sm md:text-base font-semibold text-primary block truncate mc-passenger-label">1 Passenger, Business Class</span>
 </div>
 <span class="material-symbols-outlined text-[18px] text-on-surface-variant ml-1">expand_more</span>
 </div>
@@ -201,7 +227,7 @@
 <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
 <div class="flex items-baseline gap-1.5">
-<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin airport or city" readonly="" type="text" value="A Coruña YJC">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin airport or city" readonly="" type="text" value="@($"{mcAirport2From?.City ?? "Doha"} {mcAirport2From?.Code ?? "DOH"}")">
 </div>
 </div>
 <!-- Swap Arrow -->
@@ -214,7 +240,7 @@
 <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
 <div class="flex items-baseline gap-1.5">
-<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination airport or city" readonly="" type="text" value="Dubai DXB">
+<input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination airport or city" readonly="" type="text" value="@($"{mcAirport2To?.City ?? "New York"} {mcAirport2To?.Code ?? "JFK"}")">
 </div>
 </div>
 <!-- Vertical Divider -->
@@ -222,7 +248,7 @@
 <!-- Departure Date Field -->
 <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-2">
 <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
-<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">12 Sep 2026</span>
+<span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">@mcDate2</span>
 </div>
 <!-- Optional Delete Button for Segment 2+ -->
 <div class="flex items-center justify-end px-2">
@@ -798,10 +824,11 @@
     let activeMulticityDateBox = null;
     let activeAnchorElement = null;
 
-    let selectedDepartureDate = new Date(2026, 9, 24);
-    let selectedReturnDate = new Date(2026, 10, 2);
-    let currentCalViewMonth = 9;
-    let currentCalViewYear = 2026;
+    const now = new Date();
+    let selectedDepartureDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let selectedReturnDate = new Date(selectedDepartureDate.getTime() + (3 * 24 * 60 * 60 * 1000));
+    let currentCalViewMonth = selectedDepartureDate.getMonth();
+    let currentCalViewYear = selectedDepartureDate.getFullYear();
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -820,7 +847,7 @@
         calDaysGrid.appendChild(emptyCell);
       }
 
-      const minSelectableDate = new Date(2026, 0, 1);
+      const minSelectableDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
       for (let day = 1; day <= totalDays; day++) {
         const thisDate = new Date(currentCalViewYear, currentCalViewMonth, day);
@@ -829,9 +856,9 @@
         dayBtn.textContent = day;
         dayBtn.className = 'h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all';
 
-        const isPast2026 = thisDate < minSelectableDate;
+        const isPastDate = thisDate < minSelectableDate;
 
-        if (isPast2026) {
+        if (isPastDate) {
           dayBtn.className += ' text-on-surface-variant/30 cursor-not-allowed';
           dayBtn.disabled = true;
         } else {
@@ -863,8 +890,8 @@
         depDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
         depSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
 
-        if (selectedReturnDate < selectedDepartureDate) {
-          selectedReturnDate = new Date(selectedDepartureDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        if (selectedReturnDate <= selectedDepartureDate) {
+          selectedReturnDate = new Date(selectedDepartureDate.getTime() + (3 * 24 * 60 * 60 * 1000));
           retDateDisplay.textContent = `${monthShortNames[selectedReturnDate.getMonth()]} ${String(selectedReturnDate.getDate()).padStart(2, '0')}`;
           retSubDisplay.textContent = `${dayNames[selectedReturnDate.getDay()]}, ${selectedReturnDate.getFullYear()}`;
         }
@@ -884,7 +911,8 @@
 
     btnPrevMonth.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (currentCalViewYear === 2026 && currentCalViewMonth === 0) return;
+      const currentToday = new Date();
+      if (currentCalViewYear < currentToday.getFullYear() || (currentCalViewYear === currentToday.getFullYear() && currentCalViewMonth <= currentToday.getMonth())) return;
       if (currentCalViewMonth === 0) {
         currentCalViewMonth = 11;
         currentCalViewYear--;
@@ -985,7 +1013,13 @@
         dateBox.addEventListener('click', (e) => {
           e.stopPropagation();
           activeMulticityDateBox = dateBox;
-          openCalendar('multicity', new Date(2026, 8, 11), dateBox);
+          let initDate = selectedDepartureDate;
+          const valElem = dateBox.querySelector('.segment-date-val');
+          if (valElem && valElem.textContent.trim()) {
+            const parsed = new Date(valElem.textContent.trim());
+            if (!isNaN(parsed.getTime())) initDate = parsed;
+          }
+          openCalendar('multicity', initDate, dateBox);
         });
       }
 
@@ -1050,7 +1084,21 @@
 
       multicityFlightCount++;
       const lastRow = currentRows[currentRows.length - 1];
-      const lastToVal = lastRow.querySelector('.segment-to-input')?.value || 'Dubai DXB';
+      const lastToVal = lastRow.querySelector('.segment-to-input')?.value || '@($"{defaultDest?.City ?? "Doha"} {defaultDest?.Code ?? "DOH"}")';
+
+      let nextDateStr = '';
+      const lastDateVal = lastRow.querySelector('.segment-date-val')?.textContent.trim();
+      if (lastDateVal) {
+        const d = new Date(lastDateVal);
+        if (!isNaN(d.getTime())) {
+          const nextD = new Date(d.getTime() + 3 * 24 * 60 * 60 * 1000);
+          nextDateStr = `${String(nextD.getDate()).padStart(2, '0')} ${monthShortNames[nextD.getMonth()]} ${nextD.getFullYear()}`;
+        }
+      }
+      if (!nextDateStr) {
+        const d = new Date(selectedDepartureDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+        nextDateStr = `${String(d.getDate()).padStart(2, '0')} ${monthShortNames[d.getMonth()]} ${d.getFullYear()}`;
+      }
 
       const newRow = document.createElement('div');
       newRow.className = 'multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group';
@@ -1071,13 +1119,13 @@
         <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
           <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
           <div class="flex items-baseline gap-1.5">
-            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination" readonly type="text" value="Tokyo HND"/>
+            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination" readonly type="text" value="@($"{defaultOrigin?.City ?? "Cairo"} {defaultOrigin?.Code ?? "CAI"}")"/>
           </div>
         </div>
         <div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
         <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-${multicityFlightCount}">
           <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
-          <span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">15 Sep 2026</span>
+          <span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">${nextDateStr}</span>
         </div>
         <div class="flex items-center justify-end px-2">
           <button class="w-8 h-8 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/40 flex items-center justify-center transition-colors btn-remove-segment" title="Remove Flight" type="button">
@@ -1230,6 +1278,86 @@
     const searchBtn = document.getElementById('btn-search-flights');
     if (searchBtn) {
       searchBtn.addEventListener('click', () => {
+        function toIsoDate(d) {
+          if (!d || isNaN(d.getTime())) return '';
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+
+        const guestsText = (document.getElementById('guests-display')?.textContent.trim()) || '1 Passenger, Business Class';
+
+        if (currentTripMode === 'multi-city') {
+          const rows = document.querySelectorAll('#multicity-rows-container .multicity-row');
+          const segments = [];
+
+          function parseCodeAndCity(val) {
+            if (!val) return { code: 'CAI', city: 'Cairo' };
+            const m = val.match(/\b([A-Z]{3})\b/);
+            const code = m ? m[1] : val.trim().slice(-3).toUpperCase();
+            let city = val.replace(code, '').trim();
+            if (!city) city = code;
+            return { code, city };
+          }
+
+          rows.forEach((row, idx) => {
+            const fromInput = row.querySelector('.segment-from-input');
+            const toInput = row.querySelector('.segment-to-input');
+            const dateVal = row.querySelector('.segment-date-val')?.textContent.trim() || '';
+
+            const fromInfo = parseCodeAndCity(fromInput?.value || '');
+            const toInfo = parseCodeAndCity(toInput?.value || '');
+
+            segments.push({
+              fromCode: fromInfo.code,
+              fromCity: fromInfo.city,
+              toCode: toInfo.code,
+              toCity: toInfo.city,
+              departure: dateVal,
+              departureSub: '',
+              shortDate: dateVal
+            });
+          });
+
+          const searchContext = {
+            mode: 'multi-city',
+            segments: segments,
+            originCode: segments[0]?.fromCode || 'CAI',
+            originCity: segments[0]?.fromCity || 'Cairo',
+            destinationCode: segments[segments.length - 1]?.toCode || 'JFK',
+            destinationCity: segments[segments.length - 1]?.toCity || 'New York',
+            departure: segments[0]?.departure || '',
+            departureSub: '',
+            passengers: guestsText,
+            passengerCount: passengerCount,
+            cabin: currentCabinChoice
+          };
+
+          sessionStorage.setItem('skybook-search-context', JSON.stringify(searchContext));
+          sessionStorage.setItem('skybook-trip-mode', 'multi-city');
+
+          const params = new URLSearchParams({
+            mode: 'multi-city',
+            segments: JSON.stringify(segments),
+            origin: segments[0]?.fromCode || 'CAI',
+            originCity: segments[0]?.fromCity || 'Cairo',
+            destination: segments[segments.length - 1]?.toCode || 'JFK',
+            destinationCity: segments[segments.length - 1]?.toCity || 'New York',
+            departure: segments[0]?.departure || '',
+            passengers: guestsText,
+            passengerCount: passengerCount,
+            cabin: currentCabinChoice
+          });
+
+          searchBtn.classList.add('scale-95');
+          setTimeout(() => {
+            searchBtn.classList.remove('scale-95');
+            window.location.href = '/Flight/Results?' + params.toString();
+          }, 150);
+          return;
+        }
+
         const originCode = (document.getElementById('origin-code')?.textContent.trim()) || 'CAI';
         const originCity = (document.getElementById('origin-city')?.textContent.trim()) || 'Cairo';
         const destinationCode = (document.getElementById('destination-code')?.textContent.trim()) || 'DXB';
@@ -1238,15 +1366,7 @@
         const departureSub = (document.getElementById('departure-sub-display')?.textContent.trim()) || 'Saturday, 2026';
         const returnDate = (document.getElementById('return-date-display')?.textContent.trim()) || 'Nov 02';
         const returnSub = (document.getElementById('return-sub-display')?.textContent.trim()) || 'Monday, 2026';
-        const guestsText = (document.getElementById('guests-display')?.textContent.trim()) || '1 Passenger, Business Class';
 
-        function toIsoDate(d) {
-          if (!d || isNaN(d.getTime())) return '';
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${y}-${m}-${day}`;
-        }
         const depIso = toIsoDate(selectedDepartureDate);
         const retIso = toIsoDate(selectedReturnDate);
 
