@@ -24,10 +24,11 @@ namespace SkyBook.Business.PaymentGateway
             PaymentRequest request)
         {
             var secretKey =
-                _configuration["Paymob:SecretKey"];
+                _configuration["Paymob:ApiKey"];
 
             var integrationId =
                 _configuration["Paymob:IntegrationId"];
+            var hmacSecret = _configuration["Paymob:Hmac"];
 
             var baseUrl =
                 _configuration["Paymob:BaseUrl"];
@@ -44,6 +45,7 @@ namespace SkyBook.Business.PaymentGateway
                 {
                     int.Parse(integrationId!)
                 },
+                notification_url=_configuration["Paymob:NotificationUrl"],
 
                 items = new[]
                 {

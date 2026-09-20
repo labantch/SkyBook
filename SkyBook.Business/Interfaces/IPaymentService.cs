@@ -10,6 +10,6 @@ namespace SkyBook.Business.Interfaces
     {
         Task<PaymentResult>CreatePaymentAsync(int bookingId,PaymentMethod paymentMethod);
         Task UpdatePaymentStatusAsync(String transationId, PaymentStatus status);
-        Task<Payment> GetPaymentByBookingIdAsync(int bookingId);
+        Task<Payment?> GetPaymentByBookingIdAsync(int bookingId);
     }
 }

@@ -56,28 +56,31 @@ namespace SkyBook.Presentation.Controllers
         #region CreatePost
         [HttpPost]
             [ValidateAntiForgeryToken]
-            public async Task<IActionResult> Create(
-                CreateBookingVM model)
+    
+        public async Task<IActionResult> Create(  CreateBookingVM model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var userId = _userManager.GetUserId(User);
+
+            try
             {
-                if (!ModelState.IsValid)
-                    return View(model);
-
-                var userId = _userManager.GetUserId(User);
-
-                try
-                {
-                    await _bookingService .CreateBookingAsync( userId,model);
-
-                    TempData["Success"] ="Booking created successfully.";
-
-                    return RedirectToAction(nameof(MyBookings));
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError( "",ex.Message);
-                    return View(model);
-                }
+                var bookingId =
+                    await _bookingService.CreateBookingAsync( userId, model);
+                return RedirectToAction( "Pay","Payment",
+                    new
+                    {
+                        bookingId = bookingId,
+                        paymentMethod = PaymentMethod.Card
+                    });
             }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(  "",ex.Message);
+                return View(model);
+            }
+        }
         #endregion
 
         #region Cancel

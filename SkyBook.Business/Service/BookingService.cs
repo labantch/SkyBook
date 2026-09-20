@@ -17,7 +17,7 @@ public class BookingService : IBookingService
             _context = context;
         }
     #region CreateBooking
-    public async Task CreateBookingAsync( string userId, CreateBookingVM model)
+    public async Task<int> CreateBookingAsync( string userId, CreateBookingVM model)
         {
     
             var flight = await _context.Flights
@@ -58,16 +58,10 @@ public class BookingService : IBookingService
                 BookingReference = bookingReference,
                 Status = BookingStatus.PendingPayment
             };
-           var payment = new Payment
-               {Booking= booking,
-                Amount=booking.TotalPrice,
-                PaymentStatus=PaymentStatus.Pending,
-                CreatedAt=DateTime.Now,
-
-        };
+       
         _context.Bookings.Add(booking);
-        _context.payments.Add(payment);
          await _context.SaveChangesAsync();
+        return booking.Id;
         }
     #endregion
 
