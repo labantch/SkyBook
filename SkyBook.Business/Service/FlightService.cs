@@ -20,6 +20,8 @@ public class FlightService : IFlightService
             .Include(f => f.DepartureAirport)
             .Include(f => f.ArrivalAirport)
             .Include(f => f.Aircraft)
+            .Include(f => f.Stops)
+                .ThenInclude(s => s.Airport)
             .Select(f => new FlightVM
             {
                 Id = f.Id,
@@ -30,6 +32,9 @@ public class FlightService : IFlightService
                 DepartureTime = f.DepartureTime,
                 ArrivalTime = f.ArrivalTime,
                 Price = f.Price,
+                EconomyPrice = f.EconomyPrice,
+                BusinessPrice = f.BusinessPrice,
+                FirstClassPrice = f.FirstClassPrice,
                 Status = f.Status,
                 DepartureAirportCode = f.DepartureAirport.Code,
                 DepartureAirportName = f.DepartureAirport.Name,
@@ -37,7 +42,20 @@ public class FlightService : IFlightService
                 ArrivalAirportCode = f.ArrivalAirport.Code,
                 ArrivalAirportName = f.ArrivalAirport.Name,
                 ArrivalAirportCity = f.ArrivalAirport.City,
-                AircraftName = f.Aircraft.Name
+                AircraftName = f.Aircraft.Name,
+                AvailableSeats = f.Aircraft.Seats.Count - f.Bookings.Count(b => b.Status != BookingStatus.Cancelled),
+                Stops = f.Stops
+                    .OrderBy(s => s.StopOrder)
+                    .Select(s => new FlightStopVM
+                    {
+                        Id = s.Id,
+                        FlightId = s.FlightId,
+                        AirportId = s.AirportId,
+                        AirportCode = s.Airport.Code,
+                        AirportName = s.Airport.Name,
+                        AirportCity = s.Airport.City,
+                        StopOrder = s.StopOrder
+                    }).ToList()
             }).ToListAsync();
 
     }
@@ -73,6 +91,9 @@ public class FlightService : IFlightService
             ArrivalAirport = flights.ArrivalAirport.Name,
             DepartureAirport = flights.DepartureAirport.Name,
             Price = flights.Price,
+            EconomyPrice = flights.EconomyPrice,
+            BusinessPrice = flights.BusinessPrice,
+            FirstClassPrice = flights.FirstClassPrice,
             Status = flights.Status,
             AvaliableSeats = avaliablesSeats,
             Seats = seats
@@ -135,9 +156,14 @@ public class FlightService : IFlightService
             ArrivalAirportId = model.ArrivalAirportId,
             DepartureTime = model.DepartureTime,
             ArrivalTime = model.ArrivalTime,
-            Price = model.Price,
+            Price = model.Price > 0 ? model.Price : model.EconomyPrice,
+            EconomyPrice = model.EconomyPrice,
+            BusinessPrice = model.BusinessPrice,
+            FirstClassPrice = model.FirstClassPrice,
             Status = model.Status != 0 ? model.Status : FlightStatus.Scheduled
         };
+
+        AssignFlightStops(flight, model.Stops, model.DepartureAirportId, model.ArrivalAirportId);
 
         _context.Flights.Add(flight);
         await _context.SaveChangesAsync();
@@ -149,6 +175,7 @@ public class FlightService : IFlightService
     public async Task UpdateFlightAsync(FlightVM model)
     {
         var flight = await _context.Flights
+            .Include(f => f.Stops)
             .FirstOrDefaultAsync(f => f.Id == model.Id);
 
         if (flight == null)
@@ -198,14 +225,20 @@ public class FlightService : IFlightService
         if (flightNumberExists)
             throw new Exception("Flight number already exists.");
 
-        flight.FlightNumber = model.FlightNumber;
+        flight.FlightNumber = model.FlightNumber.Trim().ToUpper();
         flight.DepartureAirportId = model.DepartureAirportId;
         flight.ArrivalAirportId = model.ArrivalAirportId;
         flight.AircraftId = model.AircraftId;
         flight.DepartureTime = model.DepartureTime;
         flight.ArrivalTime = model.ArrivalTime;
-        flight.Price = model.Price;
+        flight.Price = model.Price > 0 ? model.Price : model.EconomyPrice;
+        flight.EconomyPrice = model.EconomyPrice;
+        flight.BusinessPrice = model.BusinessPrice;
+        flight.FirstClassPrice = model.FirstClassPrice;
         flight.Status = model.Status;
+
+        // Synchronize intermediate stops
+        AssignFlightStops(flight, model.Stops, model.DepartureAirportId, model.ArrivalAirportId);
 
         await _context.SaveChangesAsync();
     }
@@ -270,6 +303,9 @@ public class FlightService : IFlightService
                     ArrivalTime = flight.ArrivalTime,
 
                     Price = flight.Price,
+                    EconomyPrice = flight.EconomyPrice,
+                    BusinessPrice = flight.BusinessPrice,
+                    FirstClassPrice = flight.FirstClassPrice,
                     AvailableSeat = availableSeats
                 });
             }
@@ -299,6 +335,8 @@ public class FlightService : IFlightService
             .Include(f => f.DepartureAirport)
             .Include(f => f.ArrivalAirport)
             .Include(f => f.Aircraft)
+            .Include(f => f.Stops)
+                .ThenInclude(s => s.Airport)
             .Select(f => new FlightVM
             {
                 Id = f.Id,
@@ -309,6 +347,9 @@ public class FlightService : IFlightService
                 DepartureTime = f.DepartureTime,
                 ArrivalTime = f.ArrivalTime,
                 Price = f.Price,
+                EconomyPrice = f.EconomyPrice,
+                BusinessPrice = f.BusinessPrice,
+                FirstClassPrice = f.FirstClassPrice,
                 Status = f.Status,
                 DepartureAirportCode = f.DepartureAirport.Code,
                 DepartureAirportName = f.DepartureAirport.Name,
@@ -316,11 +357,45 @@ public class FlightService : IFlightService
                 ArrivalAirportCode = f.ArrivalAirport.Code,
                 ArrivalAirportName = f.ArrivalAirport.Name,
                 ArrivalAirportCity = f.ArrivalAirport.City,
-                AircraftName = f.Aircraft.Name
+                AircraftName = f.Aircraft.Name,
+                Stops = f.Stops
+                    .OrderBy(s => s.StopOrder)
+                    .Select(s => new FlightStopVM
+                    {
+                        Id = s.Id,
+                        FlightId = s.FlightId,
+                        AirportId = s.AirportId,
+                        AirportCode = s.Airport.Code,
+                        AirportName = s.Airport.Name,
+                        AirportCity = s.Airport.City,
+                        StopOrder = s.StopOrder
+                    }).ToList()
             })
             .FirstOrDefaultAsync();
     }
     #endregion
+
+    private static void AssignFlightStops(Flight flight, List<FlightStopVM>? stops, int departureAirportId, int arrivalAirportId)
+    {
+        flight.Stops.Clear();
+        if (stops == null || !stops.Any()) return;
+
+        int order = 1;
+        var seen = new HashSet<int>();
+        foreach (var stop in stops.Where(s => s.AirportId > 0))
+        {
+            if (stop.AirportId == departureAirportId || stop.AirportId == arrivalAirportId)
+                continue;
+            if (!seen.Add(stop.AirportId))
+                continue;
+
+            flight.Stops.Add(new FlightStop
+            {
+                AirportId = stop.AirportId,
+                StopOrder = order++
+            });
+        }
+    }
 }
 
 

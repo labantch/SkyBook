@@ -86,7 +86,7 @@
                 <th class="py-3 px-4">Departure Time</th>
                 <th class="py-3 px-4">Arrival Time</th>
                 <th class="py-3 px-4">Assigned Aircraft</th>
-                <th class="py-3 px-4">Base Fare</th>
+                <th class="py-3 px-4">Fares by Class</th>
                 <th class="py-3 px-4">Status</th>
                 <th class="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -97,7 +97,8 @@
                 var statusStr = flight.Status.ToString();
                 var deptTimeIso = flight.DepartureTime.ToString("yyyy-MM-ddTHH:mm");
                 var arrTimeIso = flight.ArrivalTime.ToString("yyyy-MM-ddTHH:mm");
-                var searchIndex = $"{flight.FlightNumber} {flight.DepartureAirportCode} {flight.DepartureAirportCity} {flight.ArrivalAirportCode} {flight.ArrivalAirportCity} {flight.AircraftName}".ToLower();
+                var stopSearch = string.Join(" ", flight.Stops?.Select(s => $"{s.AirportCode} {s.AirportCity}") ?? Enumerable.Empty<string>());
+                var searchIndex = $"{flight.FlightNumber} {flight.DepartureAirportCode} {flight.DepartureAirportCity} {flight.ArrivalAirportCode} {flight.ArrivalAirportCity} {flight.AircraftName} {stopSearch}".ToLower();
 
                 <tr class="flight-row hover:bg-slate-50/70 transition-colors" 
                     data-search="@searchIndex" 
@@ -106,12 +107,38 @@
                     <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-midnight-900">@flight.FlightNumber</span>
                   </td>
                   <td class="py-3.5 px-4">
-                    <div class="flex items-center space-x-1.5">
+                    <div class="flex items-center space-x-1.5 flex-wrap">
                       <span class="font-bold text-midnight-900 font-mono">@(flight.DepartureAirportCode ?? "N/A")</span>
                       <span class="text-[11px] text-slate-400">(@(flight.DepartureAirportCity ?? "Unknown"))</span>
                       <span class="text-champagne-500 font-bold">&rarr;</span>
+                      @if (flight.Stops != null && flight.Stops.Any())
+                      {
+                        foreach (var s in flight.Stops.OrderBy(x => x.StopOrder))
+                        {
+                          <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono font-bold cursor-help" 
+                                title="@s.AirportCode: @s.AirportName (@s.AirportCity)">
+                            <span>@s.AirportCode</span>
+                          </span>
+                          <span class="text-champagne-500 font-bold">&rarr;</span>
+                        }
+                      }
                       <span class="font-bold text-midnight-900 font-mono">@(flight.ArrivalAirportCode ?? "N/A")</span>
                       <span class="text-[11px] text-slate-400">(@(flight.ArrivalAirportCity ?? "Unknown"))</span>
+                    </div>
+                    <div class="mt-1 flex items-center gap-1.5">
+                      @if (flight.IsDirect)
+                      {
+                        <span class="inline-flex items-center text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                          Non-stop Direct
+                        </span>
+                      }
+                      else
+                      {
+                        <span class="inline-flex items-center text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60" 
+                              title="@string.Join(" → ", flight.Stops.OrderBy(x => x.StopOrder).Select(x => $"{x.AirportCode} ({x.AirportCity})"))">
+                          @(flight.Stops.Count == 1 ? $"1 Transit Stop ({flight.Stops.First().AirportCode})" : $"{flight.Stops.Count} Transit Stops")
+                        </span>
+                      }
                     </div>
                   </td>
                   <td class="py-3.5 px-4">
@@ -125,8 +152,21 @@
                   <td class="py-3.5 px-4">
                     <span class="font-semibold text-slate-800">@(flight.AircraftName ?? "Unassigned")</span>
                   </td>
-                  <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-                    $@flight.Price.ToString("N2")
+                  <td class="py-3 px-4">
+                    <div class="space-y-1 font-mono text-[11px] leading-tight min-w-[110px]">
+                      <div class="flex items-center justify-between text-slate-600">
+                        <span class="text-[10px] font-semibold text-slate-400">ECO</span>
+                        <span class="font-bold text-slate-800">$@((flight.EconomyPrice > 0 ? flight.EconomyPrice : flight.Price).ToString("N0"))</span>
+                      </div>
+                      <div class="flex items-center justify-between text-indigo-700">
+                        <span class="text-[10px] font-semibold text-indigo-400">BIZ</span>
+                        <span class="font-bold">$@((flight.BusinessPrice > 0 ? flight.BusinessPrice : flight.Price * 2.5m).ToString("N0"))</span>
+                      </div>
+                      <div class="flex items-center justify-between text-champagne-600">
+                        <span class="text-[10px] font-semibold text-champagne-400">FIRST</span>
+                        <span class="font-bold text-midnight-900">$@((flight.FirstClassPrice > 0 ? flight.FirstClassPrice : flight.Price * 4m).ToString("N0"))</span>
+                      </div>
+                    </div>
                   </td>
                   <td class="py-3.5 px-4">
                     @if (flight.Status == SkyBook.Data.Models.FlightStatus.Departed || flight.Status == SkyBook.Data.Models.FlightStatus.Boarding)
@@ -171,7 +211,11 @@
                             data-dept-time="@deptTimeIso"
                             data-arr-time="@arrTimeIso"
                             data-price="@flight.Price"
+                            data-economy-price="@(flight.EconomyPrice > 0 ? flight.EconomyPrice : flight.Price)"
+                            data-business-price="@(flight.BusinessPrice > 0 ? flight.BusinessPrice : flight.Price * 2.5m)"
+                            data-first-price="@(flight.FirstClassPrice > 0 ? flight.FirstClassPrice : flight.Price * 4m)"
                             data-status="@((int)flight.Status)"
+                            data-stops='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(flight.Stops?.OrderBy(s => s.StopOrder).Select(s => new { s.AirportId }) ?? Enumerable.Empty<object>()))'
                             onclick="handleEditFlightClick(this)">
                       Edit
                     </button>
@@ -263,6 +307,9 @@
 </div>
 
 @section Scripts {
+<script id="active-airports-data" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize((ViewBag.Airports as IEnumerable<SkyBook.Business.ViewModels.AirportVM>)?.Select(a => new { a.Id, a.Code, a.Name, a.City, a.Country }) ?? Enumerable.Empty<object>()))
+</script>
 <script>
     let activeFilter = 'ALL';
 
@@ -386,6 +433,122 @@
         }
     }
 
+    // --- Active Airports Data for Dynamic Transit Stops ---
+    let activeAirports = [];
+    try {
+        const rawAirports = document.getElementById('active-airports-data')?.textContent;
+        if (rawAirports) activeAirports = JSON.parse(rawAirports);
+    } catch (e) {
+        console.error('Failed to parse airports', e);
+    }
+
+    function getAvailableStopAirports(mode) {
+        const deptId = document.getElementById(mode === 'add' ? 'add-departure-airport' : 'ef-origin')?.value;
+        const arrId = document.getElementById(mode === 'add' ? 'add-arrival-airport' : 'ef-destination')?.value;
+        return activeAirports.filter(a => String(a.Id) !== String(deptId) && String(a.Id) !== String(arrId));
+    }
+
+    function filterStopAirports(mode) {
+        // When origin or destination changes, re-sync stop dropdowns and json
+        syncStopsJson(mode);
+    }
+
+    function addStopRow(mode, stopData = null) {
+        const container = document.getElementById(mode === 'add' ? 'add-stops-container' : 'edit-stops-container');
+        const emptyMsg = document.getElementById(mode === 'add' ? 'add-stops-empty-msg' : 'edit-stops-empty-msg');
+        if (!container) return;
+
+        if (emptyMsg) emptyMsg.classList.add('hidden');
+
+        const rows = container.querySelectorAll('.stop-row');
+        const order = rows.length + 1;
+
+        const availablePorts = getAvailableStopAirports(mode);
+        const selectedAirportId = stopData ? String(stopData.AirportId || stopData.airportId || '') : '';
+
+        let optionsHtml = '<option value="" disabled' + (!selectedAirportId ? ' selected' : '') + '>Select transit stop</option>';
+        availablePorts.forEach(port => {
+            const isSel = String(port.Id) === selectedAirportId ? ' selected' : '';
+            optionsHtml += `<option value="${port.Id}"${isSel}>${port.Code} - ${port.City} (${port.Name})</option>`;
+        });
+
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'stop-row flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 shadow-2xs';
+        rowDiv.setAttribute('data-stop-order', order);
+        rowDiv.innerHTML = `
+          <span class="w-5 h-5 rounded-full bg-champagne-100 text-champagne-800 flex items-center justify-center text-[10px] font-bold stop-order-badge shrink-0">${order}</span>
+          <select class="stop-airport flex-1 text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required onchange="syncStopsJson('${mode}')">
+            ${optionsHtml}
+          </select>
+          <button type="button" onclick="removeStopRow(this, '${mode}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer" title="Remove stop">
+            ✕
+          </button>
+        `;
+
+        container.appendChild(rowDiv);
+        reindexStops(mode);
+        syncStopsJson(mode);
+    }
+
+    function removeStopRow(btn, mode) {
+        const row = btn.closest('.stop-row');
+        if (row) {
+            row.remove();
+            reindexStops(mode);
+            syncStopsJson(mode);
+        }
+    }
+
+    function reindexStops(mode) {
+        const container = document.getElementById(mode === 'add' ? 'add-stops-container' : 'edit-stops-container');
+        const emptyMsg = document.getElementById(mode === 'add' ? 'add-stops-empty-msg' : 'edit-stops-empty-msg');
+        if (!container) return;
+
+        const rows = container.querySelectorAll('.stop-row');
+        if (rows.length === 0 && emptyMsg) {
+            emptyMsg.classList.remove('hidden');
+        }
+
+        rows.forEach((row, index) => {
+            const order = index + 1;
+            row.setAttribute('data-stop-order', order);
+            const badge = row.querySelector('.stop-order-badge');
+            if (badge) badge.textContent = order;
+        });
+    }
+
+    function syncStopsJson(mode) {
+        const container = document.getElementById(mode === 'add' ? 'add-stops-container' : 'edit-stops-container');
+        const jsonInput = document.getElementById(mode === 'add' ? 'add-stops-json' : 'edit-stops-json');
+        const badge = document.getElementById(mode === 'add' ? 'add-stops-count-badge' : 'edit-stops-count-badge');
+        if (!container || !jsonInput) return;
+
+        const rows = container.querySelectorAll('.stop-row');
+        const stops = [];
+
+        rows.forEach((row, index) => {
+            const airportSelect = row.querySelector('.stop-airport');
+            const airportId = parseInt(airportSelect?.value || '0', 10);
+            if (airportId > 0) {
+                stops.push({
+                    StopOrder: index + 1,
+                    AirportId: airportId
+                });
+            }
+        });
+
+        jsonInput.value = JSON.stringify(stops);
+        if (badge) {
+            if (stops.length === 0) {
+                badge.textContent = 'Direct (0 Stops)';
+                badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700';
+            } else {
+                badge.textContent = stops.length === 1 ? '1 Transit Stop' : `${stops.length} Transit Stops`;
+                badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+            }
+        }
+    }
+
     function openAddFlightModal() {
         const form = document.getElementById('form-add-flight');
         if (form) {
@@ -404,6 +567,14 @@
             const arrInput = document.getElementById('add-arr-time');
             if (deptInput && !deptInput.value) deptInput.value = formatForInput(dept);
             if (arrInput && !arrInput.value) arrInput.value = formatForInput(arr);
+
+            // Reset stops in add modal
+            const addContainer = document.getElementById('add-stops-container');
+            if (addContainer) {
+                addContainer.querySelectorAll('.stop-row').forEach(r => r.remove());
+                reindexStops('add');
+                syncStopsJson('add');
+            }
         }
         openModal('modal-add-flight');
     }
@@ -417,6 +588,9 @@
         const deptTime = btn.getAttribute('data-dept-time');
         const arrTime = btn.getAttribute('data-arr-time');
         const price = btn.getAttribute('data-price');
+        const economyPrice = btn.getAttribute('data-economy-price');
+        const businessPrice = btn.getAttribute('data-business-price');
+        const firstPrice = btn.getAttribute('data-first-price');
         const status = btn.getAttribute('data-status');
 
         const efId = document.getElementById('ef-id');
@@ -427,6 +601,9 @@
         const efDeptTime = document.getElementById('ef-dept-time');
         const efArrTime = document.getElementById('ef-arr-time');
         const efFare = document.getElementById('ef-fare');
+        const efEconomyFare = document.getElementById('ef-economy-fare');
+        const efBusinessFare = document.getElementById('ef-business-fare');
+        const efFirstFare = document.getElementById('ef-firstclass-fare');
         const efStatus = document.getElementById('ef-status');
 
         if (efId) efId.value = id || '';
@@ -437,7 +614,30 @@
         if (efDeptTime) efDeptTime.value = deptTime || '';
         if (efArrTime) efArrTime.value = arrTime || '';
         if (efFare) efFare.value = price || '';
+        if (efEconomyFare) efEconomyFare.value = economyPrice || price || '';
+        if (efBusinessFare) efBusinessFare.value = businessPrice || '';
+        if (efFirstFare) efFirstFare.value = firstPrice || '';
         if (efStatus) efStatus.value = status || '1';
+
+        // Populate stops in edit modal
+        const editContainer = document.getElementById('edit-stops-container');
+        if (editContainer) {
+            editContainer.querySelectorAll('.stop-row').forEach(r => r.remove());
+            let stops = [];
+            try {
+                const stopsAttr = btn.getAttribute('data-stops');
+                if (stopsAttr) stops = JSON.parse(stopsAttr);
+            } catch (e) {
+                console.error('Error parsing stops', e);
+            }
+
+            if (stops && stops.length > 0) {
+                stops.forEach(st => addStopRow('edit', st));
+            } else {
+                reindexStops('edit');
+                syncStopsJson('edit');
+            }
+        }
 
         openModal('modal-edit-flight');
     }

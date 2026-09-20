@@ -25,13 +25,23 @@ namespace SkyBook.Business.ViewModels
         [Required]
         public DateTime ArrivalTime { get; set; }
 
-        [Required]
-        [Range(0.01, 100000.00)]
+        [Range(0.00, 100000.00)]
         public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "Economy fare is required.")]
+        [Range(0.01, 100000.00, ErrorMessage = "Economy fare must be greater than zero.")]
+        public decimal EconomyPrice { get; set; }
+
+        [Required(ErrorMessage = "Business fare is required.")]
+        [Range(0.01, 100000.00, ErrorMessage = "Business fare must be greater than zero.")]
+        public decimal BusinessPrice { get; set; }
+
+        [Required(ErrorMessage = "First Class fare is required.")]
+        [Range(0.01, 100000.00, ErrorMessage = "First Class fare must be greater than zero.")]
+        public decimal FirstClassPrice { get; set; }
 
         public FlightStatus Status { get; set; }
 
-        // Navigation Display Helpers
         public string? DepartureAirportCode { get; set; }
         public string? DepartureAirportName { get; set; }
         public string? DepartureAirportCity { get; set; }
@@ -41,5 +51,10 @@ namespace SkyBook.Business.ViewModels
         public string? ArrivalAirportCity { get; set; }
 
         public string? AircraftName { get; set; }
+
+        public int AvailableSeats { get; set; }
+
+        public List<FlightStopVM> Stops { get; set; } = new();
+        public bool IsDirect => Stops == null || Stops.Count == 0;
     }
 }

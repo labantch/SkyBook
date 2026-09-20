@@ -84,7 +84,10 @@ public class DashboardService : IDashboardService
             PassengerName = b.Passenger != null ? $"{b.Passenger.FirstName} {b.Passenger.LastName}".Trim() : "Valued Customer",
             FlightNumber = b.Flight?.FlightNumber ?? "N/A",
             SeatNumber = b.Seat?.SeatNumber ?? "",
-            UserImageUrl = b.User?.ImageUrl
+            UserImageUrl = b.User?.ImageUrl,
+            UserName = b.User?.UserName ?? "",
+            UserFullName = !string.IsNullOrWhiteSpace(b.User?.FullName) ? b.User.FullName : (b.User?.UserName ?? "Valued Customer"),
+            UserEmail = b.User?.Email ?? ""
         }).ToList();
 
         var recentFlightsEntities = await _context.Flights

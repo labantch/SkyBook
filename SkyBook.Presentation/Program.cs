@@ -20,6 +20,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IAirportService, SkyBook.Business.Service.AirportService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IAircraftService, SkyBook.Business.Service.AircraftService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IFlightService, SkyBook.Business.Service.FlightService>();
@@ -29,6 +36,7 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.ISeatService, SkyBook.Bus
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBook.Business.Service.DashboardService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, SkyBook.Business.Service.ApplicationUserService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IProfileService, SkyBook.Business.Service.ProfileService>();
+builder.Services.AddScoped<SkyBook.Business.Interfaces.IPassengerService, SkyBook.Business.Service.PassengerService>();
 
 
 

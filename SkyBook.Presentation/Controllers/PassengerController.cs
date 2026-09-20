@@ -5,40 +5,44 @@ using SkyBook.Business.ViewModels;
 
 namespace SkyBook.Presentation.Controllers
 {
-       
-        [Authorize(Roles = "Admin")]
-        public class PassengerController : Controller
-        {
-            private readonly IPassengerService _passengerService;
+    public class PassengerController : Controller
+    {
+        private readonly IPassengerService? _passengerService;
 
-            public PassengerController(
-                IPassengerService passengerService)
-            {
-                _passengerService = passengerService;
-            }
+        public PassengerController(
+            IPassengerService? passengerService = null)
+        {
+            _passengerService = passengerService;
+        }
+
         #region Index
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
-            {
-                var passengers = await _passengerService.GetAllPassengersAsync();
-                return View(passengers);
-            }
+        {
+            if (_passengerService == null) return View(new List<PassengerVM>());
+            var passengers = await _passengerService.GetAllPassengersAsync();
+            return View(passengers);
+        }
         #endregion
 
-
         #region Details
-        public async Task<IActionResult> Details(int id)
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id.HasValue && id.Value > 0)
             {
                 try
                 {
-                    var passenger =await _passengerService.GetPassengerByIdAsync(id);
+                    var passenger = await _passengerService.GetPassengerByIdAsync(id.Value);
                     return View(passenger);
                 }
                 catch (Exception ex)
                 {
                     TempData["Error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
                 }
             }
+            return View();
+        }
         #endregion
     }
 }

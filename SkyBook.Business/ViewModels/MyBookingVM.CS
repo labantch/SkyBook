@@ -18,5 +18,9 @@ namespace SkyBook.Business.ViewModels
         public decimal TotalPrice { get; set; }
         public string PassengerName { get; set; } = string.Empty;
         public DateTime BookingDate { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string UserFullName { get; set; } = string.Empty;
+        public string? UserImageUrl { get; set; }
+        public List<PassengerBookingVm> Passengers { get; set; } = new();
     }
 }

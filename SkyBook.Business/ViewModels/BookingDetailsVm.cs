@@ -15,5 +15,9 @@ namespace SkyBook.Business.ViewModels
         public string FlightNumber {  get; set; }
         public string SeatNumber {  get; set; }
         public string? UserImageUrl { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string UserFullName { get; set; } = string.Empty;
+        public string UserEmail { get; set; } = string.Empty;
+        public List<PassengerBookingVm> Passengers { get; set; } = new();
     }
 }

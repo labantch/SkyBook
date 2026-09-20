@@ -39,15 +39,21 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
         {
             try
             {
-                var newStatus = await _bookingService.ToggleStatusAsync(id);
-                var message = newStatus == BookingStatus.Cancelled
+                var status = await _bookingService.ToggleStatusAsync(id);
+                var message = status == BookingStatus.Cancelled
                     ? "Booking canceled successfully."
                     : "Booking restored successfully.";
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers.Accept.ToString().Contains("application/json"))
                 {
-                    return Json(new { success = true, status = (int)newStatus, statusName = newStatus.ToString(), message });
+                    return Json(new
+                    {
+                        success = true,
+                        status = status.ToString(),
+                        statusInt = (int)status,
+                        message
+                    });
                 }
 
                 TempData["Success"] = message;
@@ -66,13 +72,6 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
-        [ActionName("ToggleStatus")]
-        public IActionResult ToggleStatusGet(int id)
-        {
-            return RedirectToAction(nameof(Index));
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
@@ -80,10 +79,29 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             try
             {
                 await _bookingService.CancelAsync(id);
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        status = BookingStatus.Cancelled.ToString(),
+                        statusInt = (int)BookingStatus.Cancelled,
+                        message = "Booking canceled successfully."
+                    });
+                }
+
                 TempData["Success"] = "Booking canceled successfully.";
             }
             catch (Exception ex)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+
                 TempData["Error"] = ex.Message;
             }
 
@@ -97,10 +115,29 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             try
             {
                 await _bookingService.UncancelAsync(id);
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        status = BookingStatus.Confirmed.ToString(),
+                        statusInt = (int)BookingStatus.Confirmed,
+                        message = "Booking restored successfully."
+                    });
+                }
+
                 TempData["Success"] = "Booking restored successfully.";
             }
             catch (Exception ex)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+
                 TempData["Error"] = ex.Message;
             }
 

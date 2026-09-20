@@ -7,1100 +7,1102 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/confirm-pay-mobile.css" />
-<style>@@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
-@@keyframes softShake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
-}
-.animate-shake {
-  animation: softShake 0.45s ease-in-out;
-}
-</style>
+    <style>
+        @@layer base {
+            html, body {
+                margin: 0;
+                padding: 0;
+                min-height: 100%;
+            }
+            body {
+                overscroll-behavior-y: auto;
+                overflow-y: auto;
+            }
+        }
+        @@keyframes softShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake {
+            animation: softShake 0.45s ease-in-out;
+        }
+        .payment-tab-active {
+            border-color: #C5A880 !important;
+            background-color: #F8F5EE !important;
+            box-shadow: 0 2px 8px rgba(197, 168, 128, 0.15);
+        }
+    </style>
 }
 
-<div class="flex flex-col w-full">
-<div class="w-full bg-surface-container-low py-4">
-</div>
-<div class="max-w-7xl mx-auto px-6 lg:px-12 py-8 w-full">
-<div class="mb-8">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/60 text-secondary font-label-caps text-label-caps uppercase tracking-wider mb-2">
-<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-        Step 4 of 4 • Final Verification &amp; Secure Checkout
-      </span>
-<h1 class="font-headline-lg text-headline-lg text-primary-container tracking-tight">Review your trip</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-3xl">Review your flight schedule and verified guest credentials, then finalize your booking via our multi-tiered encrypted settlement portal.</p>
-</div>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-<div class="lg:col-span-8 flex flex-col gap-6">
-<section class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm">
-<div class="flex flex-wrap items-center justify-between gap-3 pb-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
-<span class="material-symbols-outlined text-[22px]">flight_takeoff</span>
-</div>
-<div>
-<h2 class="font-headline-sm text-headline-sm text-primary-container">Flight Itinerary</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Confirmed non-stop direct route • Cairo ↔ Dubai</p>
-</div>
-</div>
-<span class="font-label-caps text-label-caps px-3 py-1 rounded-full bg-primary-container text-on-primary uppercase tracking-wider">
-              Horizon Flex
+<div class="flex flex-col w-full bg-[#f8f9fa] min-h-screen">
+    <!-- Header Banner -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-6 pb-2 w-full">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fedeb2]/70 text-[#725b38] font-mono text-xs uppercase tracking-wider font-semibold border border-[#e0c298]/60">
+                <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
+                Step 4 of 4 • Final Review &amp; Payment
             </span>
-</div>
-<div class="flex flex-col gap-6">
-<div class="bg-surface-container-low rounded-lg p-5">
-<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-<div class="flex items-center gap-2">
-<span class="font-label-caps text-label-caps px-2.5 py-0.5 rounded bg-surface-container-highest text-primary-container uppercase font-semibold">Outbound</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">Fri, 11 Sep 2026 • Non-stop direct</span>
-</div>
-<span class="font-label-caps text-label-caps text-secondary font-semibold uppercase tracking-wider">Flight SB 918</span>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-<div class="md:col-span-4">
-<div class="font-title-flight-code text-title-flight-code text-primary-container tracking-wider">20:05 CAI</div>
-<div class="font-body-sm text-body-sm font-semibold text-on-surface">Cairo International Airport</div>
-<div class="font-body-sm text-body-sm text-on-surface-variant">Terminal 2 • Gate TBA</div>
-</div>
-<div class="md:col-span-4 flex flex-col items-center justify-center my-2 md:my-0">
-<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">3h 40m duration</span>
-<div class="w-full flex items-center gap-2 px-2">
-<span class="w-2 h-2 rounded-full bg-secondary"></span>
-<div class="h-0.5 flex-1 bg-outline-variant relative flex items-center justify-center">
-<span class="material-symbols-outlined text-[16px] text-primary-container rotate-90 absolute">flight</span>
-</div>
-<span class="w-2 h-2 rounded-full bg-primary-container"></span>
-</div>
-<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Airspace Direct</span>
-</div>
-<div class="md:col-span-4 text-left md:text-right">
-<div class="font-title-flight-code text-title-flight-code text-primary-container tracking-wider">01:45 <span class="text-body-sm font-label-caps text-secondary">+1 day</span> DXB</div>
-<div class="font-body-sm text-body-sm font-semibold text-on-surface">Dubai International Airport</div>
-<div class="font-body-sm text-body-sm text-on-surface-variant">Terminal 3 • Baggage Belt 4</div>
-</div>
-</div>
-<div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-2">
-<div class="flex items-center gap-3 font-body-sm text-body-sm text-on-surface-variant">
-<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">flight</span> Boeing 787-9 Dreamliner</span>
-<span class="">•</span>
-<span class="text-primary-container font-medium">Economy (Horizon Flex)</span>
-</div>
-<button class="flex items-center gap-1 font-body-sm text-body-sm text-secondary hover:text-primary-container transition-colors font-semibold" onclick="openFlightDrawer(1)" type="button">
-<span class="">View flight details</span>
-<span class="material-symbols-outlined text-[18px] transition-transform duration-200">expand_more</span>
-</button>
-</div>
-<div class="hidden" id="flight-details-1" style="display:none!important">
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-container-lowest p-3 rounded-lg">
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">luggage</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">2x 23kg Checked</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Included per guest</div>
-</div>
-</div>
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">restaurant</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">Artisan Dining</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Complimentary multi-course</div>
-</div>
-</div>
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">wifi</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">High-Speed Wi-Fi</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Messaging &amp; streaming aloft</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-5">
-<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-<div class="flex items-center gap-2">
-<span class="font-label-caps text-label-caps px-2.5 py-0.5 rounded bg-surface-container-highest text-primary-container uppercase font-semibold">Return</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant font-medium">Fri, 18 Sep 2026 • Non-stop direct</span>
-</div>
-<span class="font-label-caps text-label-caps text-secondary font-semibold uppercase tracking-wider">Flight SB 928</span>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-<div class="md:col-span-4">
-<div class="font-title-flight-code text-title-flight-code text-primary-container tracking-wider">09:15 DXB</div>
-<div class="font-body-sm text-body-sm font-semibold text-on-surface">Dubai International Airport</div>
-<div class="font-body-sm text-body-sm text-on-surface-variant">Terminal 3 • Gate TBA</div>
-</div>
-<div class="md:col-span-4 flex flex-col items-center justify-center my-2 md:my-0">
-<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">3h 35m duration</span>
-<div class="w-full flex items-center gap-2 px-2">
-<span class="w-2 h-2 rounded-full bg-secondary"></span>
-<div class="h-0.5 flex-1 bg-outline-variant relative flex items-center justify-center">
-<span class="material-symbols-outlined text-[16px] text-primary-container rotate-90 absolute">flight</span>
-</div>
-<span class="w-2 h-2 rounded-full bg-primary-container"></span>
-</div>
-<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Airspace Direct</span>
-</div>
-<div class="md:col-span-4 text-left md:text-right">
-<div class="font-title-flight-code text-title-flight-code text-primary-container tracking-wider">12:05 CAI</div>
-<div class="font-body-sm text-body-sm font-semibold text-on-surface">Cairo International Airport</div>
-<div class="font-body-sm text-body-sm text-on-surface-variant">Terminal 2 • Arrivals Hall</div>
-</div>
-</div>
-<div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-2">
-<div class="flex items-center gap-3 font-body-sm text-body-sm text-on-surface-variant">
-<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">flight</span> Airbus A350-1000</span>
-<span class="">•</span>
-<span class="text-primary-container font-medium">Economy (Horizon Flex)</span>
-</div>
-<button class="flex items-center gap-1 font-body-sm text-body-sm text-secondary hover:text-primary-container transition-colors font-semibold" onclick="openFlightDrawer(2)" type="button">
-<span class="">View flight details</span>
-<span class="material-symbols-outlined text-[18px] transition-transform duration-200">expand_more</span>
-</button>
-</div>
-<div class="hidden" id="flight-details-2" style="display:none!important">
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-container-lowest p-3 rounded-lg">
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">luggage</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">2x 23kg Checked</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Included per guest</div>
-</div>
-</div>
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">restaurant</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">Artisan Dining</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Complimentary multi-course</div>
-</div>
-</div>
-<div class="flex items-center gap-2.5">
-<span class="material-symbols-outlined text-[20px] text-secondary">wifi</span>
-<div>
-<div class="font-body-sm text-body-sm font-semibold text-primary-container">High-Speed Wi-Fi</div>
-<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Messaging &amp; streaming aloft</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm">
-<div class="flex items-center justify-between pb-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
-<span class="material-symbols-outlined text-[22px]">badge</span>
-</div>
-<div>
-<h2 class="font-headline-sm text-headline-sm text-primary-container">Passenger details</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">2 Adults • Manifest verified</p>
-</div>
-</div>
-<a class="flex items-center gap-1.5 text-secondary hover:text-primary-container transition-colors font-body-sm text-body-sm font-semibold" data-path="passenger-details" href="#">
-<span class="material-symbols-outlined text-[16px]">edit</span>
-              Edit passenger details
-            </a>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="bg-surface-container-low rounded-lg p-4">
-<div class="flex items-center justify-between mb-3">
-<span class="font-label-caps text-label-caps px-2 py-0.5 rounded bg-surface-container-highest text-primary-container uppercase font-semibold">Lead Traveler</span>
-<span class="font-label-caps text-label-caps text-secondary font-medium">Adult (18+)</span>
-</div>
-<h3 class="font-headline-sm text-headline-sm text-primary-container">John Mohamed</h3>
-<div class="mt-3 flex flex-col gap-2 font-body-sm text-body-sm">
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Nationality</span>
-<span class="text-on-surface font-medium flex items-center gap-1.5">
-<span class="w-4 h-3 bg-red-800 relative inline-block rounded-xs overflow-hidden shadow-xs">
-<span class="absolute inset-x-0 top-1/3 bottom-1/3 bg-white"></span>
-<span class="absolute inset-x-0 bottom-0 h-1/3 bg-black"></span>
-</span>
-                    Egypt
-                  </span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Date of birth</span>
-<span class="text-on-surface font-medium">15 May 2002</span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Travel Document</span>
-<span class="text-on-surface font-medium font-label-caps tracking-wider">Passport ••••••••8492</span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Allocated Seat</span>
-<span class="text-secondary font-semibold">14A (Window • Horizon)</span>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-4">
-<div class="flex items-center justify-between mb-3">
-<span class="font-label-caps text-label-caps px-2 py-0.5 rounded bg-surface-container-highest text-primary-container uppercase font-semibold">Guest Traveler</span>
-<span class="font-label-caps text-label-caps text-secondary font-medium">Adult (18+)</span>
-</div>
-<h3 class="font-headline-sm text-headline-sm text-primary-container">Ahmed Ali</h3>
-<div class="mt-3 flex flex-col gap-2 font-body-sm text-body-sm">
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Nationality</span>
-<span class="text-on-surface font-medium flex items-center gap-1.5">
-<span class="w-4 h-3 bg-red-800 relative inline-block rounded-xs overflow-hidden shadow-xs">
-<span class="absolute inset-x-0 top-1/3 bottom-1/3 bg-white"></span>
-<span class="absolute inset-x-0 bottom-0 h-1/3 bg-black"></span>
-</span>
-                    Egypt
-                  </span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Date of birth</span>
-<span class="text-on-surface font-medium">20 March 2001</span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Travel Document</span>
-<span class="text-on-surface font-medium font-label-caps tracking-wider">Passport ••••••••3109</span>
-</div>
-<div class="flex items-center justify-between text-on-surface-variant">
-<span class="">Allocated Seat</span>
-<span class="text-secondary font-semibold">14B (Middle • Horizon)</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm">
-<div class="flex items-center justify-between pb-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
-<span class="material-symbols-outlined text-[22px]">airline_seat_recline_extra</span>
-</div>
-<div>
-<h2 class="font-headline-sm text-headline-sm text-primary-container">Seat assignments</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Selected cabin berths for all travel legs</p>
-</div>
-</div>
-<a class="flex items-center gap-1.5 text-secondary hover:text-primary-container transition-colors font-body-sm text-body-sm font-semibold" data-path="seat-selection" href="#">
-<span class="material-symbols-outlined text-[16px]">airline_seat_recline_normal</span>
-              Change seats
-            </a>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="bg-surface-container-low rounded-lg p-4">
-<div class="flex items-center justify-between pb-3 mb-3">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant font-semibold">Outbound • CAI → DXB</span>
-<span class="font-label-caps text-label-caps text-primary-container font-semibold">SB 918</span>
-</div>
-<div class="flex flex-col gap-2.5">
-<div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-secondary">person</span>
-<span class="font-body-sm text-body-sm font-medium text-on-surface">John Mohamed</span>
-</div>
-<span class="font-label-caps text-label-caps px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold">14A • Window</span>
-</div>
-<div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-secondary">person</span>
-<span class="font-body-sm text-body-sm font-medium text-on-surface">Ahmed Ali</span>
-</div>
-<span class="font-label-caps text-label-caps px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold">14B • Middle</span>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-4">
-<div class="flex items-center justify-between pb-3 mb-3">
-<span class="font-label-caps text-label-caps uppercase text-on-surface-variant font-semibold">Return • DXB → CAI</span>
-<span class="font-label-caps text-label-caps text-primary-container font-semibold">SB 928</span>
-</div>
-<div class="flex flex-col gap-2.5">
-<div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-secondary">person</span>
-<span class="font-body-sm text-body-sm font-medium text-on-surface">John Mohamed</span>
-</div>
-<span class="font-label-caps text-label-caps px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold">15A • Window</span>
-</div>
-<div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-secondary">person</span>
-<span class="font-body-sm text-body-sm font-medium text-on-surface">Ahmed Ali</span>
-</div>
-<span class="font-label-caps text-label-caps px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold">15B • Middle</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300" id="payment-method-section">
-<div class="flex flex-wrap items-center justify-between gap-3 pb-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
-<span class="material-symbols-outlined text-[22px]">lock</span>
-</div>
-<div>
-<h2 class="font-headline-sm text-headline-sm text-primary-container">Payment method</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Choose your settlement gateway</p>
-</div>
-</div>
-<span class="flex items-center gap-1.5 font-label-caps text-label-caps px-3 py-1 rounded-full bg-surface-container text-on-surface-variant uppercase font-semibold">
-<span class="material-symbols-outlined text-[14px] text-secondary">verified_user</span>
-              256-bit TLS Encrypted
-            </span>
-</div>
-<div class="hidden mb-6 p-4 rounded-xl border border-secondary/40 bg-secondary-container/40 text-on-surface flex items-start gap-3 transition-all" id="payment-error-alert">
-<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-secondary shrink-0 mt-0.5">
-<span class="material-symbols-outlined text-[20px]">warning</span>
-</div>
-<div class="flex-1">
-<div class="font-headline-sm text-[16px] text-primary-container font-semibold" id="payment-error-title">Please select a payment method</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="payment-error-desc">Choose a settlement option below and complete the required payment details to finalize your booking.</p>
-</div>
-<button class="text-on-surface-variant hover:text-primary-container transition-colors" onclick="dismissPaymentAlert()" type="button">
-<span class="material-symbols-outlined text-[18px]">close</span>
-</button>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 p-1 rounded-xl transition-all" id="payment-options-group">
-<label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border border-transparent shadow-sm" data-tab="card" onclick="switchPayment('card')">
-<div class="flex items-center justify-between">
-<span class="font-body-sm text-body-sm font-semibold text-primary-container">Credit / Debit</span>
-<input class="accent-secondary w-4 h-4 cursor-pointer" id="payment-radio-card" name="payment_method" type="radio" value="card"/>
-</div>
-<div class="flex items-center gap-2 mt-3 text-on-surface-variant">
-<span class="material-symbols-outlined text-[18px]">credit_card</span>
-<span class="font-label-caps text-label-caps uppercase">Visa • MC • Amex</span>
-</div>
-</label>
-<label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border border-transparent shadow-sm" data-tab="fawry" onclick="switchPayment('fawry')">
-<div class="flex items-center justify-between">
-<span class="font-body-sm text-body-sm font-semibold text-primary-container">Fawry Pay</span>
-<input class="accent-secondary w-4 h-4 cursor-pointer" id="payment-radio-fawry" name="payment_method" type="radio" value="fawry"/>
-</div>
-<div class="flex items-center gap-2 mt-3 text-on-surface-variant">
-<span class="material-symbols-outlined text-[18px]">storefront</span>
-<span class="font-label-caps text-label-caps uppercase">Egypt Retail Outlets</span>
-</div>
-</label>
-<label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border border-transparent shadow-sm" data-tab="meeza" onclick="switchPayment('meeza')">
-<div class="flex items-center justify-between">
-<span class="font-body-sm text-body-sm font-semibold text-primary-container">Meeza Card</span>
-<input class="accent-secondary w-4 h-4 cursor-pointer" id="payment-radio-meeza" name="payment_method" type="radio" value="meeza"/>
-</div>
-<div class="flex items-center gap-2 mt-3 text-on-surface-variant">
-<span class="material-symbols-outlined text-[18px]">contactless</span>
-<span class="font-label-caps text-label-caps uppercase">National Debit</span>
-</div>
-</label>
-</div>
-<div class="bg-surface-container-low rounded-lg p-5 hidden" id="panel-card">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="md:col-span-2">
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">Cardholder Name</label>
-<div class="relative">
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="card-holder-input" type="text" value="John Mohamed"/>
-<span class="material-symbols-outlined text-[18px] text-outline-variant absolute right-3 top-3">person</span>
-</div>
-</div>
-<div class="md:col-span-2">
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">Card Number</label>
-<div class="relative">
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-title-flight-code text-body-md tracking-wider focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="card-number-input" placeholder="4532 •••• •••• 8921" type="text"/>
-<div class="absolute right-3 top-2.5 flex items-center gap-1.5 text-secondary">
-<span class="font-label-caps text-label-caps font-bold px-1.5 py-0.5 rounded bg-secondary-container">VISA</span>
-</div>
-</div>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">Expiry Date</label>
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="card-expiry-input" maxlength="5" inputmode="numeric" pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY" type="text" autocomplete="cc-exp" oninput="formatExpiryInput(this)"/>
-</div>
-<div>
-<div class="flex items-center justify-between mb-1.5">
-<label class="font-label-caps text-label-caps uppercase text-on-surface-variant">Security Code</label>
-<span class="font-body-sm text-body-sm text-secondary cursor-pointer" title="3-digit code on back of card">What is CVV?</span>
-</div>
-<div class="relative">
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="card-cvv-input" maxlength="3" inputmode="numeric" pattern="[0-9]{3}" placeholder="CVC / CVV" type="password" autocomplete="cc-csc" oninput="this.value=this.value.replace(/\D/g, '').slice(0, 3)"/>
-<span class="material-symbols-outlined text-[18px] text-outline-variant absolute right-3 top-3">lock</span>
-</div>
-</div>
-</div>
-<div class="mt-4 pt-3 flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
-<span class="material-symbols-outlined text-[16px] text-secondary shrink-0">shield</span>
-<span class="">Secure payment • Transactions are tokenized and protected by bank-grade security protocols. Example prototype data only.</span>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-5 hidden" id="panel-fawry">
-<div class="flex items-start gap-4">
-<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-secondary shrink-0">
-<span class="material-symbols-outlined text-[28px]">receipt_long</span>
-</div>
-<div>
-<h3 class="font-headline-sm text-headline-sm text-primary-container">Pay via Fawry Reference Code</h3>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1">Upon clicking confirm, an exclusive 10-digit Fawry transaction reference code will be generated. You have 6 hours to pay at any authorized merchant across Egypt.</p>
-<div class="mt-4 p-3 bg-surface-container-lowest rounded flex items-center justify-between">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Billing Mobile / National ID linked:</span>
-<span class="font-body-sm text-body-sm font-semibold text-primary-container">+20 10 •••• 4491</span>
-</div>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-5 hidden" id="panel-meeza">
-<div class="flex items-start gap-4">
-<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-secondary shrink-0">
-<span class="material-symbols-outlined text-[28px]">credit_card_heart</span>
-</div>
-<div class="w-full">
-<h3 class="font-headline-sm text-headline-sm text-primary-container">Egyptian National Debit (Meeza)</h3>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1 mb-4">Provide your local Egyptian Meeza debit 16-digit card number and PIN verification via national switch.</p>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="md:col-span-2">
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">Meeza Card Number</label>
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-title-flight-code text-body-md tracking-wider focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="meeza-card-input" placeholder="5078 •••• •••• 1204" type="text"/>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">Card Expiration</label>
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="meeza-exp-input" maxlength="5" inputmode="numeric" pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY" type="text" autocomplete="cc-exp" oninput="formatExpiryInput(this)"/>
-</div>
-<div>
-<label class="block font-label-caps text-label-caps uppercase text-on-surface-variant mb-1.5">CVV</label>
-<input class="w-full bg-surface-container-lowest px-4 py-2.5 rounded text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest shadow-xs" id="meeza-cvv-input" maxlength="3" inputmode="numeric" pattern="[0-9]{3}" placeholder="•••" type="password" autocomplete="cc-csc" oninput="this.value=this.value.replace(/\D/g, '').slice(0, 3)"/>
-</div>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm transition-all duration-300" id="terms-section">
-<label class="flex items-start gap-3 cursor-pointer select-none">
-<input checked="" class="mt-1 w-5 h-5 rounded accent-primary-container cursor-pointer" id="terms-checkbox" onchange="handleTermsToggle(this)" type="checkbox"/>
-<div>
-<span class="font-body-md text-body-md text-on-surface font-medium">I have read and agree to SkyBook's Terms &amp; Conditions, Privacy Policy, and Conditions of Carriage.</span>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Passports must be valid for at least 6 months beyond the date of scheduled entry. Complimentary flight changes or cancellation without penalty are permitted up to 24 hours prior to scheduled departure under Horizon Flex fare rules.</p>
-</div>
-</label>
-<div class="hidden mt-3 pt-3 border-t border-secondary/20 flex items-center gap-2 text-secondary font-body-sm text-body-sm" id="terms-alert">
-<span class="material-symbols-outlined text-[18px]">info</span>
-<span>Please accept SkyBook's Terms &amp; Conditions and Conditions of Carriage to finalize your reservation.</span>
-</div>
-</section>
-</div>
-<aside class="lg:col-span-4 sticky top-6">
-<div class="bg-surface-container-lowest rounded-xl p-6 shadow-md flex flex-col gap-5">
-<div class="flex items-center justify-between pb-3">
-<h2 class="font-headline-sm text-headline-sm text-primary-container">Trip details</h2>
-<span class="font-label-caps text-label-caps px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold uppercase tracking-wider">Round Trip</span>
-</div>
-<div class="flex flex-col gap-3 font-body-sm text-body-sm">
-<div class="p-3 bg-surface-container-low rounded-lg flex flex-col gap-1">
-<div class="flex items-center justify-between font-semibold text-primary-container">
-<span class="">Cairo (CAI) → Dubai (DXB)</span>
-<span class="text-secondary font-label-caps text-label-caps">SB 918</span>
-</div>
-<div class="text-on-surface-variant">11 Sep 2026 • 20:05 – 01:45 (+1)</div>
-<div class="text-on-surface font-medium">Seats 14A, 14B • Dreamliner</div>
-</div>
-<div class="p-3 bg-surface-container-low rounded-lg flex flex-col gap-1">
-<div class="flex items-center justify-between font-semibold text-primary-container">
-<span class="">Dubai (DXB) → Cairo (CAI)</span>
-<span class="text-secondary font-label-caps text-label-caps">SB 928</span>
-</div>
-<div class="text-on-surface-variant">18 Sep 2026 • 09:15 – 12:05</div>
-<div class="text-on-surface font-medium">Seats 15A, 15B • A350-1000</div>
-</div>
-<div class="flex items-center justify-between py-1 px-1 text-on-surface-variant">
-<span class="">Guests &amp; Fare Class:</span>
-<span class="font-medium text-primary-container">2 Adults • Horizon Flex</span>
-</div>
-</div>
-<div class="pt-3">
-<h3 class="font-label-caps text-label-caps uppercase text-on-surface-variant font-semibold tracking-wider mb-3">Price Breakdown</h3>
-<div class="flex flex-col gap-2 font-body-sm text-body-sm">
-<div class="flex items-center justify-between text-on-surface">
-<span class="">Base Fare (2 Adults × Round Trip)</span>
-<span class="font-semibold text-primary-container">$2,400.00</span>
-</div>
-<div class="flex items-center justify-between text-on-surface">
-<span class="">Taxes, Carrier Charges &amp; Security</span>
-<span class="font-semibold text-primary-container">$160.00</span>
-</div>
-<div class="flex items-center justify-between text-on-surface">
-<span class="">Preferred Seat Reservation</span>
-<span class="text-secondary font-medium">Included ($0.00)</span>
-</div>
-<div class="flex items-center justify-between text-on-surface">
-<span class="">Fuel Surcharge</span>
-<span class="text-secondary font-medium">Included</span>
-</div>
-</div>
-</div>
-<div class="bg-primary-container text-on-primary rounded-xl p-5 shadow-inner">
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-label-caps uppercase tracking-wider text-primary-fixed-dim">Total Trip Fare</span>
-<span class="font-label-caps text-label-caps px-2 py-0.5 rounded bg-surface-container-highest/20 text-secondary-fixed">USD All-inclusive</span>
-</div>
-<div class="font-display-hero-mobile text-display-hero-mobile font-bold tracking-tight text-white mt-1">
-              $2,560.00
+            <div class="flex items-center gap-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span class="flex items-center gap-1 text-[#0B192C]">
+                    <span class="material-symbols-outlined text-[15px] text-emerald-600">verified</span>
+                    256-bit Encrypted
+                </span>
+                <span>•</span>
+                <span class="flex items-center gap-1 text-[#0B192C]">
+                    <span class="material-symbols-outlined text-[15px] text-[#C5A880]">shield_lock</span>
+                    IATA Carrier
+                </span>
             </div>
-<div class="flex items-center gap-1.5 mt-2 font-label-caps text-label-caps text-primary-fixed-dim">
-<span class="material-symbols-outlined text-[15px] text-secondary-fixed">bolt</span>
-<span class="">Instant PNR generation upon payment</span>
-</div>
-</div>
-<div class="flex flex-col gap-3">
-<button class="w-full py-4 px-6 rounded-lg bg-primary-container hover:bg-surface-tint active:scale-[0.99] text-on-primary font-headline-sm text-headline-sm tracking-tight transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer" id="submit-button" onclick="executePayment()">
-<span class="" id="button-label">Confirm &amp; Pay $2,560.00</span>
-<span class="material-symbols-outlined text-[20px] text-secondary-fixed" id="button-arrow">arrow_forward</span>
-<span class="hidden animate-spin material-symbols-outlined text-[20px]" id="spinner">progress_activity</span>
-</button>
-<p class="font-body-sm text-body-sm text-on-surface-variant text-center px-2">
-              By clicking Confirm &amp; Pay, your payment will be processed and your official electronic ticket and booking reference will be generated.
+        </div>
+        <h1 class="text-2xl sm:text-3xl text-[#0B192C] font-bold tracking-tight">Review &amp; Pay</h1>
+        <p class="text-slate-600 text-xs sm:text-sm mt-0.5 max-w-2xl">
+            Verify your itinerary and passenger manifest below, then finalize your booking.
+        </p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-14 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT COLUMN: Compact Review & Payment (8 Cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-5">
+
+                <!-- 1. COMPACT FLIGHT ITINERARY STRIP -->
+                <section class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80">
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-[20px] text-[#C5A880]">flight_takeoff</span>
+                            <h2 class="text-base font-bold text-[#0B192C]">Flight Schedule</h2>
+                        </div>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-[#0B192C] text-white font-mono font-semibold" id="cp-fare-badge">
+                            Horizon Flex
+                        </span>
+                    </div>
+
+                    <!-- Flight Strips Container -->
+                    <div class="flex flex-col gap-2.5">
+                        <!-- Outbound Strip -->
+                        <div class="p-3.5 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">Outbound</span>
+                                    <span class="text-xs font-semibold text-slate-700" id="cp-ob-date">Fri, 11 Sep 2026</span>
+                                </div>
+                                <span class="text-xs font-bold text-[#725b38] bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono" id="cp-ob-flightnum">SB 918</span>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3">
+                                <!-- Origin -->
+                                <div class="min-w-[70px]">
+                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-ob-dep-time">20:05</div>
+                                    <div class="text-xs font-semibold text-slate-800" id="cp-ob-from-code">CAI</div>
+                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-ob-from-city">Cairo</div>
+                                </div>
+
+                                <!-- Flight Line -->
+                                <div class="flex-1 flex flex-col items-center px-2">
+                                    <span class="text-[11px] text-slate-500 font-semibold mb-0.5" id="cp-ob-duration">3h 40m • Direct</span>
+                                    <div class="w-full flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
+                                        <div class="h-0.5 flex-1 bg-slate-300 relative flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[15px] text-[#0B192C] rotate-90 absolute">flight</span>
+                                        </div>
+                                        <span class="w-2 h-2 rounded-full bg-[#0B192C]"></span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 mt-0.5" id="cp-ob-aircraft">Boeing 787-9</span>
+                                </div>
+
+                                <!-- Destination -->
+                                <div class="min-w-[70px] text-right">
+                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-ob-arr-time">01:45</div>
+                                    <div class="text-xs font-semibold text-slate-800" id="cp-ob-to-code">DXB</div>
+                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-ob-to-city">Dubai</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Return Strip (Shown if round-trip) -->
+                        <div class="p-3.5 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition" id="cp-rt-container">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">Return</span>
+                                    <span class="text-xs font-semibold text-slate-700" id="cp-rt-date">Fri, 18 Sep 2026</span>
+                                </div>
+                                <span class="text-xs font-bold text-[#725b38] bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono" id="cp-rt-flightnum">SB 928</span>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3">
+                                <!-- Origin -->
+                                <div class="min-w-[70px]">
+                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-rt-dep-time">09:15</div>
+                                    <div class="text-xs font-semibold text-slate-800" id="cp-rt-from-code">DXB</div>
+                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-rt-from-city">Dubai</div>
+                                </div>
+
+                                <!-- Flight Line -->
+                                <div class="flex-1 flex flex-col items-center px-2">
+                                    <span class="text-[11px] text-slate-500 font-semibold mb-0.5" id="cp-rt-duration">3h 35m • Direct</span>
+                                    <div class="w-full flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
+                                        <div class="h-0.5 flex-1 bg-slate-300 relative flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[15px] text-[#0B192C] rotate-90 absolute">flight</span>
+                                        </div>
+                                        <span class="w-2 h-2 rounded-full bg-[#0B192C]"></span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 mt-0.5" id="cp-rt-aircraft">Airbus A350-1000</span>
+                                </div>
+
+                                <!-- Destination -->
+                                <div class="min-w-[70px] text-right">
+                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-rt-arr-time">12:05</div>
+                                    <div class="text-xs font-semibold text-slate-800" id="cp-rt-to-code">CAI</div>
+                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-rt-to-city">Cairo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amenities Quick Pill Row -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#C5A880]">luggage</span> 2× 23kg Bags</span>
+                            <span>•</span>
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#C5A880]">restaurant</span> Artisan Dining</span>
+                            <span>•</span>
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#C5A880]">wifi</span> High-Speed Wi-Fi</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. MERGED COMPACT PASSENGER & SEATS CARD -->
+                <section class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80">
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-[20px] text-[#C5A880]">badge</span>
+                            <div>
+                                <h2 class="text-base font-bold text-[#0B192C]">Travelers &amp; Allocated Seats</h2>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:text-[#0B192C] text-xs font-semibold" href="/Booking/SelectSeats">
+                                <span class="material-symbols-outlined text-[14px]">airline_seat_recline_normal</span>
+                                Change Seats
+                            </a>
+                            <button class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#C5A880]/50 bg-[#F8F5EE] text-[#725b38] hover:text-[#0B192C] text-xs font-bold cursor-pointer" onclick="openPassengerEditModal()" type="button">
+                                <span class="material-symbols-outlined text-[14px]">edit</span>
+                                Edit Details
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Compact Traveler Rows (Merged Passenger + Seat info) -->
+                    <div class="flex flex-col gap-2" id="cp-passengers-compact-list">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </section>
+
+                <!-- 3. PAYMENT METHOD (PRIMARY FOCUS & OPEN BY DEFAULT) -->
+                <section class="bg-white rounded-xl p-5 sm:p-6 shadow-xs border border-slate-200/80 transition-all duration-300" id="payment-method-section">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-[20px] text-[#C5A880]">lock</span>
+                            <h2 class="text-base font-bold text-[#0B192C]">Select Payment Method</h2>
+                        </div>
+                        <span class="flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold uppercase">
+                            <span class="material-symbols-outlined text-[13px] text-emerald-600">verified_user</span>
+                            Encrypted Gateway
+                        </span>
+                    </div>
+
+                    <!-- Payment Validation Error Banner -->
+                    <div class="hidden mb-4 p-3.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 flex items-start gap-2.5 transition-all" id="payment-error-alert">
+                        <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
+                        <div class="flex-1">
+                            <div class="text-xs font-bold text-rose-900" id="payment-error-title">Incomplete Payment Details</div>
+                            <p class="text-xs text-rose-700 mt-0.5" id="payment-error-desc">Please complete all required payment fields to continue.</p>
+                        </div>
+                        <button class="text-rose-500 hover:text-rose-800 p-0.5" onclick="dismissPaymentAlert()" type="button">
+                            <span class="material-symbols-outlined text-[16px]">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Payment Option Tabs (Card & Wallet Only) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="payment-options-group">
+                        <!-- Option 1: Credit / Debit Card (Active by default) -->
+                        <label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border-2 border-[#0B192C] bg-[#f8f9fa] hover:border-[#C5A880]/60 payment-tab-active" data-tab="card" onclick="switchPayment('card')">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-[#0B192C]">Credit / Debit Card</span>
+                                <input class="accent-[#0B192C] w-4 h-4 cursor-pointer" id="payment-radio-card" name="payment_method" type="radio" value="card" checked />
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-2.5 text-slate-500">
+                                <span class="material-symbols-outlined text-[18px] text-[#C5A880]">credit_card</span>
+                                <span class="text-[11px] font-semibold text-slate-700">Visa • Mastercard • Amex</span>
+                            </div>
+                        </label>
+
+                        <!-- Option 2: Digital / Mobile Wallet -->
+                        <label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border-2 border-slate-200 bg-[#f8f9fa] hover:border-[#C5A880]/60" data-tab="wallet" onclick="switchPayment('wallet')">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-[#0B192C]">Digital / Mobile Wallet</span>
+                                <input class="accent-[#0B192C] w-4 h-4 cursor-pointer" id="payment-radio-wallet" name="payment_method" type="radio" value="wallet" />
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-2.5 text-slate-500">
+                                <span class="material-symbols-outlined text-[18px] text-[#C5A880]">account_balance_wallet</span>
+                                <span class="text-[11px] font-semibold text-slate-700">Vodafone Cash • Orange • Smart Wallet</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Panel 1: Card Form (Visible on load) -->
+                    <div class="bg-[#f8f9fa] rounded-lg p-4 border border-slate-200/80" id="panel-card">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Cardholder Name</label>
+                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-holder-input" type="text" placeholder="Cardholder full name" />
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Card Number</label>
+                                <div class="relative">
+                                    <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 font-mono text-xs tracking-widest border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-number-input" placeholder="4532 8921 7382 1920" maxlength="19" inputmode="numeric" type="text" oninput="formatCardNumberInput(this)" />
+                                    <div class="absolute right-3 top-2 flex items-center" id="card-brand-badge">
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">CARD</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Expiration Date</label>
+                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-expiry-input" maxlength="5" inputmode="numeric" placeholder="MM/YY" type="text" autocomplete="cc-exp" oninput="formatExpiryInput(this)" />
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">CVV / Security Code</label>
+                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-cvv-input" maxlength="4" inputmode="numeric" placeholder="3 digits" type="password" autocomplete="cc-csc" oninput="this.value=this.value.replace(/\D/g, '').slice(0, 4)" />
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-2 text-[11px] text-slate-500">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">shield</span>
+                            <span>Tokenized secure payment. Example checkout prototype.</span>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Mobile / Digital Wallet Form -->
+                    <div class="bg-[#f8f9fa] rounded-lg p-4 border border-slate-200/80 hidden" id="panel-wallet">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Select Wallet Provider</label>
+                                <select class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="wallet-provider-select">
+                                    <option value="vodafone">Vodafone Cash (فودافون كاش)</option>
+                                    <option value="orange">Orange Cash (أورنج كاش)</option>
+                                    <option value="etisalat">Etisalat Cash (اتصالات كاش)</option>
+                                    <option value="we">WE Pay (وي باي)</option>
+                                    <option value="smart">Bank Smart Wallet / CIB / NBE</option>
+                                    <option value="apple">Apple Pay / Digital Wallet</option>
+                                </select>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Wallet Mobile Number</label>
+                                <div class="relative">
+                                    <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 font-mono text-xs tracking-wider border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="wallet-number-input" placeholder="e.g. 01012345678" maxlength="15" inputmode="tel" type="tel" oninput="this.value=this.value.replace(/[^\d+]/g, '')" />
+                                    <div class="absolute right-3 top-2 flex items-center">
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">WALLET</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-2 text-[11px] text-slate-500">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">sms</span>
+                            <span>A push verification notification or OTP will be sent to your registered wallet number.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. COMPACT TERMS & CONDITIONS -->
+                <section class="bg-white rounded-xl p-4 shadow-xs border border-slate-200/80" id="terms-section">
+                    <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                        <input checked class="mt-0.5 w-4 h-4 rounded accent-[#0B192C] cursor-pointer" id="terms-checkbox" onchange="handleTermsToggle(this)" type="checkbox" />
+                        <div>
+                            <span class="text-xs font-bold text-[#0B192C]">I accept SkyBook's Terms, Fare Rules, and Conditions of Carriage.</span>
+                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                Complimentary cancellation/changes permitted up to 24h before flight departure. Passports must have at least 6 months validity.
+                            </p>
+                        </div>
+                    </label>
+                    <div class="hidden mt-2 pt-2 border-t border-rose-200 flex items-center gap-1.5 text-rose-600 text-xs font-semibold" id="terms-alert">
+                        <span class="material-symbols-outlined text-[15px]">info</span>
+                        <span>Please accept terms to continue.</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: Sticky Summary Sidebar (4 Cols) -->
+            <aside class="lg:col-span-4 sticky top-4">
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-[#0B192C]">Trip Summary</h2>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-[#fedeb2]/60 text-[#725b38] font-bold uppercase tracking-wider font-mono" id="cp-trip-mode">Round Trip</span>
+                    </div>
+
+                    <!-- Mini Itinerary Box -->
+                    <div class="p-3 bg-[#f8f9fa] rounded-lg border border-slate-200/60 flex flex-col gap-2 text-xs">
+                        <div class="flex items-center justify-between font-bold text-[#0B192C]">
+                            <span id="cp-side-ob-route">CAI → DXB</span>
+                            <span class="text-[#725b38] font-mono text-[11px]" id="cp-side-ob-flightnum">SB 918</span>
+                        </div>
+                        <div class="text-slate-500 text-[11px]" id="cp-side-ob-datetime">11 Sep 2026 • 20:05 – 01:45</div>
+                        <div class="text-[#0B192C] font-semibold text-[11px] flex items-center gap-1" id="cp-side-ob-seats">
+                            <span class="material-symbols-outlined text-[13px] text-[#C5A880]">airline_seat_recline_normal</span>
+                            <span>Seats 14A, 14B</span>
+                        </div>
+
+                        <!-- Return Mini Row -->
+                        <div class="pt-2 border-t border-slate-200/60 flex flex-col gap-1" id="cp-side-rt-box">
+                            <div class="flex items-center justify-between font-bold text-[#0B192C]">
+                                <span id="cp-side-rt-route">DXB → CAI</span>
+                                <span class="text-[#725b38] font-mono text-[11px]" id="cp-side-rt-flightnum">SB 928</span>
+                            </div>
+                            <div class="text-slate-500 text-[11px]" id="cp-side-rt-datetime">18 Sep 2026 • 09:15 – 12:05</div>
+                            <div class="text-[#0B192C] font-semibold text-[11px] flex items-center gap-1" id="cp-side-rt-seats">
+                                <span class="material-symbols-outlined text-[13px] text-[#C5A880]">airline_seat_recline_normal</span>
+                                <span>Seats 15A, 15B</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1 text-slate-600 text-[11px] font-medium">
+                            <span>Travelers:</span>
+                            <span class="font-bold text-[#0B192C]" id="cp-side-pax-fare">2 Guests • Horizon Flex</span>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="pt-1">
+                        <div class="flex flex-col gap-1.5 text-xs">
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span id="cp-base-fare-label">Base Airfare</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-base-fare">$2,400.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Taxes &amp; Carrier Fees</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-taxes">$160.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Preferred Seats</span>
+                                <span class="text-[#725b38] font-bold">Included ($0.00)</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Checked Luggage (2× 23kg)</span>
+                                <span class="text-[#725b38] font-bold">Included ($0.00)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Fare Card -->
+                    <div class="bg-[#0B192C] text-white rounded-lg p-4 shadow-sm border border-[#1b2b42]">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Total Trip Fare</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/15 text-[#fedeb2]">USD All-inclusive</span>
+                        </div>
+                        <div class="text-2xl font-bold tracking-tight text-white mt-1 font-mono" id="cp-total-price">
+                            $2,560.00
+                        </div>
+                        <div class="flex items-center gap-1 mt-1.5 text-[11px] text-[#fedeb2]">
+                            <span class="material-symbols-outlined text-[13px]">bolt</span>
+                            <span>Instant PNR issued immediately</span>
+                        </div>
+                    </div>
+
+                    <!-- Big CTA Button -->
+                    <div class="flex flex-col gap-2">
+                        <button class="w-full py-3.5 px-5 rounded-lg bg-[#0B192C] hover:bg-[#15253b] active:scale-[0.99] text-white font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer border border-[#C5A880]/40 hover:border-[#C5A880]" id="submit-button" onclick="executePayment()" type="button">
+                            <span id="button-label">Confirm &amp; Pay $2,560.00</span>
+                            <span class="material-symbols-outlined text-[18px] text-[#C5A880]" id="button-arrow">arrow_forward</span>
+                            <span class="hidden animate-spin material-symbols-outlined text-[18px]" id="spinner">progress_activity</span>
+                        </button>
+                        <p class="text-[11px] text-slate-500 text-center">
+                            Official e-Ticket will be issued immediately.
+                        </p>
+                    </div>
+
+                    <!-- Trust Points -->
+                    <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-[11px] text-slate-600">
+                        <div class="flex items-center gap-1.5 text-slate-800">
+                            <span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span>
+                            <span>Free date change up to 24h prior</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-slate-800">
+                            <span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span>
+                            <span>2 × 23kg bags per guest included</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" id="confirmation-modal">
+        <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl flex flex-col items-center text-center border border-slate-200">
+            <div class="w-14 h-14 rounded-full bg-[#fedeb2]/40 flex items-center justify-center text-[#725b38] mb-3 border border-[#C5A880]/40">
+                <span class="material-symbols-outlined text-[32px] text-[#C5A880]">verified</span>
+            </div>
+            <span class="text-[11px] uppercase text-[#725b38] tracking-widest font-bold mb-0.5">Success</span>
+            <h3 class="text-xl font-bold text-[#0B192C]">Booking Confirmed</h3>
+            <p class="text-xs text-slate-600 mt-1 mb-5">
+                Your ticket was issued and sent to <span class="font-bold text-[#0B192C]" id="cp-modal-email">guest@skybook.com</span>.
             </p>
-</div>
-<div class="bg-surface-container-low rounded-lg p-3.5 flex flex-col gap-2 font-body-sm text-body-sm text-on-surface-variant">
-<div class="flex items-center gap-2 text-on-surface">
-<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
-<span class="">Flexible change permitted up to 24h prior</span>
-</div>
-<div class="flex items-center gap-2 text-on-surface">
-<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
-<span class="">2 × 23kg checked bags per guest included</span>
-</div>
-<div class="flex items-center gap-2 text-on-surface">
-<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
-<span class="">24/7 dedicated luxury concierge desk</span>
-</div>
-</div>
-</div>
-</aside>
-</div>
-</div>
-<div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" id="confirmation-modal">
-<div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl p-8 shadow-2xl flex flex-col items-center text-center">
-<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-secondary mb-4 animate-bounce">
-<span class="material-symbols-outlined text-[36px]">verified</span>
-</div>
-<span class="font-label-caps text-label-caps uppercase text-secondary tracking-wider font-bold mb-1">Transaction Successful</span>
-<h3 class="font-headline-lg text-headline-lg text-primary-container">Booking Confirmed</h3>
-<p class="font-body-md text-body-md text-on-surface-variant mt-2 mb-6">
-        Electronic tickets have been issued and transmitted to <span class="font-semibold text-primary-container">john.mohamed@@skybook.com</span>. Your assigned PNR locator is ready.
-      </p>
-<div class="w-full bg-surface-container-low p-4 rounded-xl flex items-center justify-between mb-6">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Booking Reference:</span>
-<span class="font-title-flight-code text-title-flight-code tracking-widest text-primary-container">SKY-8F42KQ</span>
-</div>
-<button class="w-full py-3.5 px-6 rounded-lg bg-primary-container text-on-primary font-headline-sm text-body-md hover:bg-surface-tint transition-all" onclick="window.location.href='/Booking/MyBookings'" type="button">
-        View Boarding Passes &amp; Receipt
-      </button>
-</div>
-</div>
-<script>
-    let activePaymentType = null;
-
-    function openFlightDrawer(seg) {
-      const flightDrawerData = {
-        1: {
-          title: 'Cairo → Dubai · SB 918',
-          route: 'CAI → DXB',
-          aircraft: 'Boeing 787-9 Dreamliner',
-          cabin: 'Economy (Horizon Flex)',
-          duration: '3h 40m',
-          amenities: [
-            { icon: 'luggage', title: '2× 23kg Checked', sub: 'Included per guest' },
-            { icon: 'restaurant', title: 'Artisan Dining', sub: 'Complimentary multi-course' },
-            { icon: 'wifi', title: 'High-Speed Wi-Fi', sub: 'Messaging & streaming aloft' }
-          ]
-        },
-        2: {
-          title: 'Dubai → Cairo · SB 928',
-          route: 'DXB → CAI',
-          aircraft: 'Airbus A350-1000',
-          cabin: 'Economy (Horizon Flex)',
-          duration: '3h 35m',
-          amenities: [
-            { icon: 'luggage', title: '2× 23kg Checked', sub: 'Included per guest' },
-            { icon: 'restaurant', title: 'Artisan Dining', sub: 'Complimentary multi-course' },
-            { icon: 'wifi', title: 'High-Speed Wi-Fi', sub: 'Messaging & streaming aloft' }
-          ]
-        }
-      };
-      const data = flightDrawerData[seg];
-      if (!data) return;
-      document.getElementById('flight-drawer-title').textContent = data.title;
-      document.getElementById('flight-drawer-body').innerHTML = `
-        <div class="rounded-xl border-2 border-[#C5A880]/50 bg-white p-4 space-y-1">
-          <p class="text-sm font-bold text-[#0B192C]">${data.route}</p>
-          <p class="text-xs text-slate-500">${data.aircraft}</p>
-          <p class="text-xs text-[#855D29] font-semibold">${data.cabin} · ${data.duration}</p>
-        </div>
-        <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 pt-1">Included amenities</h3>
-        <div class="space-y-2.5">
-          ${data.amenities.map(a => `
-            <div class="flex items-start gap-3 rounded-xl border border-[#C5A880]/40 bg-white p-3.5">
-              <span class="material-symbols-outlined text-[#855D29] text-xl">${a.icon}</span>
-              <div>
-                <p class="text-sm font-bold text-[#0B192C]">${a.title}</p>
-                <p class="text-xs text-slate-500">${a.sub}</p>
-              </div>
+            <div class="w-full bg-[#f8f9fa] p-3.5 rounded-lg flex items-center justify-between mb-5 border border-slate-200">
+                <span class="text-xs font-semibold text-slate-600 uppercase">Booking Reference:</span>
+                <span class="font-mono text-lg font-bold tracking-widest text-[#0B192C] bg-white px-2.5 py-0.5 rounded border border-slate-200" id="cp-modal-pnr">SKY-8F42KQ</span>
             </div>
-          `).join('')}
+            <button class="w-full py-3 px-5 rounded-lg bg-[#0B192C] text-white font-bold text-xs hover:bg-[#15253b] transition-all cursor-pointer shadow-sm" onclick="window.location.href='/Booking/MyBookings'" type="button">
+                View Boarding Passes &amp; Receipt
+            </button>
         </div>
-      `;
-      const overlay = document.getElementById('flight-drawer-overlay');
-      const drawer = document.getElementById('flight-drawer');
-      overlay.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        drawer.classList.remove('translate-x-full');
-      });
-      document.body.style.overflow = 'hidden';
-    }
+    </div>
 
-    function closeFlightDrawer() {
-      const overlay = document.getElementById('flight-drawer-overlay');
-      const drawer = document.getElementById('flight-drawer');
-      overlay.classList.add('opacity-0');
-      drawer.classList.add('translate-x-full');
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-        document.body.style.overflow = '';
-      }, 300);
-    }
+    <!-- DYNAMIC PASSENGER EDIT MODAL -->
+    <div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" id="passenger-edit-modal">
+        <div class="bg-white max-w-xl w-full rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#C5A880] text-[20px]">badge</span>
+                    <h3 class="text-base font-bold text-[#0B192C]">Edit Traveler Details</h3>
+                </div>
+                <button type="button" onclick="closePassengerEditModal()" class="text-slate-400 hover:text-[#0B192C] p-1 rounded-md hover:bg-slate-100 transition cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+            
+            <form id="passenger-edit-form" onsubmit="savePassengerEdit(event)" class="flex flex-col gap-3 mt-4">
+                <div class="flex flex-col gap-3" id="dynamic-edit-fields-container">
+                    <!-- Dynamic passenger inputs -->
+                </div>
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeFlightDrawer();
-    });
-
-    function switchPayment(type) {
-      activePaymentType = type;
-      dismissPaymentAlert();
-
-      const tabs = document.querySelectorAll('.payment-tab');
-      tabs.forEach(tab => {
-        const radio = tab.querySelector('input[type="radio"]');
-        if (tab.getAttribute('data-tab') === type) {
-          tab.classList.add('bg-surface-container-low', 'border-secondary');
-          tab.classList.remove('border-transparent');
-          radio.checked = true;
-        } else {
-          tab.classList.remove('bg-surface-container-low', 'border-secondary');
-          tab.classList.add('border-transparent');
-          radio.checked = false;
-        }
-      });
-
-      document.getElementById('panel-card').classList.toggle('hidden', type !== 'card');
-      document.getElementById('panel-fawry').classList.toggle('hidden', type !== 'fawry');
-      document.getElementById('panel-meeza').classList.toggle('hidden', type !== 'meeza');
-    }
-
-    function dismissPaymentAlert() {
-      const alert = document.getElementById('payment-error-alert');
-      if (alert) alert.classList.add('hidden');
-      const optGroup = document.getElementById('payment-options-group');
-      if (optGroup) {
-        optGroup.classList.remove('ring-2', 'ring-secondary', 'animate-shake');
-      }
-    }
-
-    function showPaymentAlert(title, message) {
-      const alert = document.getElementById('payment-error-alert');
-      const titleEl = document.getElementById('payment-error-title');
-      const descEl = document.getElementById('payment-error-desc');
-      const optGroup = document.getElementById('payment-options-group');
-
-      if (titleEl && title) titleEl.textContent = title;
-      if (descEl && message) descEl.textContent = message;
-
-      if (alert) {
-        alert.classList.remove('hidden');
-      }
-
-      if (optGroup) {
-        optGroup.classList.remove('animate-shake');
-        void optGroup.offsetWidth;
-        optGroup.classList.add('ring-2', 'ring-secondary', 'animate-shake');
-      }
-    }
-
-    function handleTermsToggle(checkbox) {
-      const termsAlert = document.getElementById('terms-alert');
-      if (checkbox.checked) {
-        if (termsAlert) termsAlert.classList.add('hidden');
-        document.getElementById('terms-section').classList.remove('ring-1', 'ring-secondary');
-      }
-    }
-
-    function formatExpiryInput(input) {
-      const digits = input.value.replace(/\D/g, '').slice(0, 4);
-      input.value = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
-    }
-
-    function isValidExpiry(value) {
-      const match = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.exec(value);
-      if (!match) return false;
-      const now = new Date();
-      const expiryYear = 2000 + Number(match[2]);
-      const expiryMonth = Number(match[1]);
-      return expiryYear > now.getFullYear() || (expiryYear === now.getFullYear() && expiryMonth >= now.getMonth() + 1);
-    }
-
-    function executePayment() {
-      const termsBox = document.getElementById('terms-checkbox');
-      const termsSection = document.getElementById('terms-section');
-      const termsAlert = document.getElementById('terms-alert');
-      const paymentSection = document.getElementById('payment-method-section');
-
-      // 1. Validate payment selection
-      if (!activePaymentType) {
-        paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showPaymentAlert('Please select a payment method', 'Choose Credit / Debit, Fawry Pay, or Meeza Card to continue with your secure checkout.');
-        
-        const firstRadio = document.getElementById('payment-radio-card');
-        if (firstRadio) firstRadio.focus();
-        return;
-      }
-
-      // 2. Validate payment-specific fields
-      if (activePaymentType === 'card') {
-        const cardNum = document.getElementById('card-number-input');
-        const cardExp = document.getElementById('card-expiry-input');
-        const cardCvv = document.getElementById('card-cvv-input');
-
-        if (!cardNum.value.trim() || !cardExp.value.trim() || !cardCvv.value.trim()) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Incomplete Card Details', 'Please complete the card number, expiry date, and CVV security code before submitting.');
-          if (!cardNum.value.trim()) cardNum.focus();
-          else if (!cardExp.value.trim()) cardExp.focus();
-          else cardCvv.focus();
-          return;
-        }
-        if (!/^\d{3}$/.test(cardCvv.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Security Code', 'The CVC / CVV must contain exactly 3 numbers.');
-          cardCvv.focus();
-          return;
-        }
-        if (!isValidExpiry(cardExp.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Expiry Date', 'Enter a valid future expiry date in MM/YY format, for example 09/27.');
-          cardExp.focus();
-          return;
-        }
-      } else if (activePaymentType === 'meeza') {
-        const meezaNum = document.getElementById('meeza-card-input');
-        const meezaExp = document.getElementById('meeza-exp-input');
-        const meezaCvv = document.getElementById('meeza-cvv-input');
-
-        if (!meezaNum.value.trim() || !meezaExp.value.trim() || !meezaCvv.value.trim()) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Incomplete Meeza Card Details', 'Please enter your 16-digit Meeza card number, expiry date, and CVV.');
-          if (!meezaNum.value.trim()) meezaNum.focus();
-          else if (!meezaExp.value.trim()) meezaExp.focus();
-          else meezaCvv.focus();
-          return;
-        }
-        if (!/^\d{3}$/.test(meezaCvv.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Security Code', 'The CVC / CVV must contain exactly 3 numbers.');
-          meezaCvv.focus();
-          return;
-        }
-        if (!isValidExpiry(meezaExp.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Expiry Date', 'Enter a valid future expiry date in MM/YY format, for example 09/27.');
-          meezaExp.focus();
-          return;
-        }
-      }
-
-      // 3. Validate terms acceptance
-      if (termsBox && !termsBox.checked) {
-        termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        termsSection.classList.add('ring-1', 'ring-secondary');
-        if (termsAlert) termsAlert.classList.remove('hidden');
-        termsBox.focus();
-        return;
-      }
-
-      // 4. If all validations pass, proceed with payment flow
-      const btn = document.getElementById('submit-button');
-      const label = document.getElementById('button-label');
-      const arrow = document.getElementById('button-arrow');
-      const spinner = document.getElementById('spinner');
-
-      btn.disabled = true;
-      arrow.classList.add('hidden');
-      spinner.classList.remove('hidden');
-      label.textContent = 'Processing Payment...';
-
-      setTimeout(() => {
-        spinner.classList.add('hidden');
-        arrow.classList.remove('hidden');
-        label.textContent = 'Confirm & Pay $2,560.00';
-        btn.disabled = false;
-        document.getElementById('confirmation-modal').classList.remove('hidden');
-      }, 1400);
-    }
-
-    function dismissModal() {
-      document.getElementById('confirmation-modal').classList.add('hidden');
-    }
-  </script>
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 mt-2">
+                    <button type="button" onclick="closePassengerEditModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:text-[#0B192C] text-xs font-semibold transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-[#0B192C] text-white hover:bg-[#15253b] text-xs font-bold shadow-xs transition cursor-pointer">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-<script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary-container":"#0e1c2f","secondary-fixed":"#fedeb2","secondary-fixed-dim":"#e0c298","inverse-on-surface":"#f0f1f2","surface-dim":"#d9dadb","surface-variant":"#e1e3e4","on-error":"#ffffff","on-primary-container":"#77849c","on-surface-variant":"#44474c","on-tertiary-fixed":"#001c38","surface-bright":"#f8f9fa","on-secondary":"#ffffff","primary-fixed-dim":"#bac7e1","outline-variant":"#c5c6cd","primary-fixed":"#d6e3fe","on-tertiary-container":"#6886ae","on-secondary-fixed":"#281800","surface":"#f8f9fa","on-primary-fixed-variant":"#3a475c","inverse-primary":"#bac7e1","on-primary":"#ffffff","on-background":"#191c1d","on-surface":"#191c1d","tertiary":"#000000","surface-tint":"#525f75","on-tertiary":"#ffffff","on-secondary-fixed-variant":"#584323","outline":"#75777d","primary":"#000000","tertiary-container":"#001c38","surface-container-low":"#f3f4f5","secondary-container":"#fedeb2","tertiary-fixed":"#d3e4ff","surface-container":"#edeeef","background":"#f8f9fa","secondary":"#725b38","on-secondary-container":"#78603e","surface-container-high":"#e7e8e9","on-primary-fixed":"#0e1c2f","error":"#ba1a1a","tertiary-fixed-dim":"#aac9f4","on-tertiary-fixed-variant":"#29486d","inverse-surface":"#2e3132","surface-container-lowest":"#ffffff","surface-container-highest":"#e1e3e4","error-container":"#ffdad6","on-error-container":"#93000a"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","margin-mobile":"1.25rem","space-lg":"1.5rem","margin":"3rem","space-md":"1rem","space-xl":"2.5rem","gutter-mobile":"1rem","gutter":"1.5rem","space-sm":"0.5rem"},"fontFamily":{"price-lg":["Space Grotesk"],"headline-md":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"display-hero":["Plus Jakarta Sans"],"label-caps":["Space Grotesk"],"headline-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"title-flight-code":["Space Grotesk"],"display-hero-mobile":["Plus Jakarta Sans"]},"fontSize":{"price-lg":["24px",{"lineHeight":"28px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-md":["15px",{"lineHeight":"22px","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"display-hero":["56px",{"lineHeight":"64px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-caps":["11px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"title-flight-code":["28px",{"lineHeight":"32px","letterSpacing":"0.04em","fontWeight":"700"}],"display-hero-mobile":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script>
-<script>
-    let activePaymentType = null;
+    <script>
+        (function enforcePrerequisites() {
+            try {
+                var rawFlights = sessionStorage.getItem('skybook-selected-flights');
+                if (!rawFlights) {
+                    window.location.replace('/Flight/Results');
+                    return;
+                }
+                var rawSeats = sessionStorage.getItem('skybook-seat-assignments');
+                if (!rawSeats) {
+                    window.location.replace('/Booking/SelectSeats');
+                    return;
+                }
+                var rawPax = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
+                if (!rawPax) {
+                    window.location.replace('/Passenger/Details');
+                    return;
+                }
+            } catch (e) {
+                window.location.replace('/Flight/Results');
+                return;
+            }
+        })();
 
-    function openFlightDrawer(seg) {
-      const flightDrawerData = {
-        1: {
-          title: 'Cairo → Dubai · SB 918',
-          route: 'CAI → DXB',
-          aircraft: 'Boeing 787-9 Dreamliner',
-          cabin: 'Economy (Horizon Flex)',
-          duration: '3h 40m',
-          amenities: [
-            { icon: 'luggage', title: '2× 23kg Checked', sub: 'Included per guest' },
-            { icon: 'restaurant', title: 'Artisan Dining', sub: 'Complimentary multi-course' },
-            { icon: 'wifi', title: 'High-Speed Wi-Fi', sub: 'Messaging & streaming aloft' }
-          ]
-        },
-        2: {
-          title: 'Dubai → Cairo · SB 928',
-          route: 'DXB → CAI',
-          aircraft: 'Airbus A350-1000',
-          cabin: 'Economy (Horizon Flex)',
-          duration: '3h 35m',
-          amenities: [
-            { icon: 'luggage', title: '2× 23kg Checked', sub: 'Included per guest' },
-            { icon: 'restaurant', title: 'Artisan Dining', sub: 'Complimentary multi-course' },
-            { icon: 'wifi', title: 'High-Speed Wi-Fi', sub: 'Messaging & streaming aloft' }
-          ]
+        let activePaymentType = 'card';
+
+        function switchPayment(type) {
+            activePaymentType = type;
+            dismissPaymentAlert();
+
+            const tabs = document.querySelectorAll('.payment-tab');
+            tabs.forEach(tab => {
+                const radio = tab.querySelector('input[type="radio"]');
+                if (tab.getAttribute('data-tab') === type) {
+                    tab.classList.add('payment-tab-active');
+                    tab.classList.remove('border-slate-200');
+                    if (radio) radio.checked = true;
+                } else {
+                    tab.classList.remove('payment-tab-active');
+                    tab.classList.add('border-slate-200');
+                    if (radio) radio.checked = false;
+                }
+            });
+
+            document.getElementById('panel-card')?.classList.toggle('hidden', type !== 'card');
+            document.getElementById('panel-wallet')?.classList.toggle('hidden', type !== 'wallet');
         }
-      };
-      const data = flightDrawerData[seg];
-      if (!data) return;
-      document.getElementById('flight-drawer-title').textContent = data.title;
-      document.getElementById('flight-drawer-body').innerHTML = `
-        <div class="rounded-xl border-2 border-[#C5A880]/50 bg-white p-4 space-y-1">
-          <p class="text-sm font-bold text-[#0B192C]">${data.route}</p>
-          <p class="text-xs text-slate-500">${data.aircraft}</p>
-          <p class="text-xs text-[#855D29] font-semibold">${data.cabin} · ${data.duration}</p>
-        </div>
-        <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 pt-1">Included amenities</h3>
-        <div class="space-y-2.5">
-          ${data.amenities.map(a => `
-            <div class="flex items-start gap-3 rounded-xl border border-[#C5A880]/40 bg-white p-3.5">
-              <span class="material-symbols-outlined text-[#855D29] text-xl">${a.icon}</span>
-              <div>
-                <p class="text-sm font-bold text-[#0B192C]">${a.title}</p>
-                <p class="text-xs text-slate-500">${a.sub}</p>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      const overlay = document.getElementById('flight-drawer-overlay');
-      const drawer = document.getElementById('flight-drawer');
-      overlay.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        drawer.classList.remove('translate-x-full');
-      });
-      document.body.style.overflow = 'hidden';
-    }
 
-    function closeFlightDrawer() {
-      const overlay = document.getElementById('flight-drawer-overlay');
-      const drawer = document.getElementById('flight-drawer');
-      overlay.classList.add('opacity-0');
-      drawer.classList.add('translate-x-full');
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-        document.body.style.overflow = '';
-      }, 300);
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeFlightDrawer();
-    });
-
-    function switchPayment(type) {
-      activePaymentType = type;
-      dismissPaymentAlert();
-
-      const tabs = document.querySelectorAll('.payment-tab');
-      tabs.forEach(tab => {
-        const radio = tab.querySelector('input[type="radio"]');
-        if (tab.getAttribute('data-tab') === type) {
-          tab.classList.add('bg-surface-container-low', 'border-secondary');
-          tab.classList.remove('border-transparent');
-          radio.checked = true;
-        } else {
-          tab.classList.remove('bg-surface-container-low', 'border-secondary');
-          tab.classList.add('border-transparent');
-          radio.checked = false;
+        function dismissPaymentAlert() {
+            const alert = document.getElementById('payment-error-alert');
+            if (alert) alert.classList.add('hidden');
+            const optGroup = document.getElementById('payment-options-group');
+            if (optGroup) {
+                optGroup.classList.remove('ring-2', 'ring-rose-500', 'animate-shake');
+            }
         }
-      });
 
-      document.getElementById('panel-card').classList.toggle('hidden', type !== 'card');
-      document.getElementById('panel-fawry').classList.toggle('hidden', type !== 'fawry');
-      document.getElementById('panel-meeza').classList.toggle('hidden', type !== 'meeza');
-    }
+        function showPaymentAlert(title, message) {
+            const alert = document.getElementById('payment-error-alert');
+            const titleEl = document.getElementById('payment-error-title');
+            const descEl = document.getElementById('payment-error-desc');
+            const optGroup = document.getElementById('payment-options-group');
 
-    function dismissPaymentAlert() {
-      const alert = document.getElementById('payment-error-alert');
-      if (alert) alert.classList.add('hidden');
-      const optGroup = document.getElementById('payment-options-group');
-      if (optGroup) {
-        optGroup.classList.remove('ring-2', 'ring-secondary', 'animate-shake');
-      }
-    }
+            if (titleEl && title) titleEl.textContent = title;
+            if (descEl && message) descEl.textContent = message;
 
-    function showPaymentAlert(title, message) {
-      const alert = document.getElementById('payment-error-alert');
-      const titleEl = document.getElementById('payment-error-title');
-      const descEl = document.getElementById('payment-error-desc');
-      const optGroup = document.getElementById('payment-options-group');
+            if (alert) alert.classList.remove('hidden');
 
-      if (titleEl && title) titleEl.textContent = title;
-      if (descEl && message) descEl.textContent = message;
-
-      if (alert) {
-        alert.classList.remove('hidden');
-      }
-
-      if (optGroup) {
-        optGroup.classList.remove('animate-shake');
-        void optGroup.offsetWidth;
-        optGroup.classList.add('ring-2', 'ring-secondary', 'animate-shake');
-      }
-    }
-
-    function handleTermsToggle(checkbox) {
-      const termsAlert = document.getElementById('terms-alert');
-      if (checkbox.checked) {
-        if (termsAlert) termsAlert.classList.add('hidden');
-        document.getElementById('terms-section').classList.remove('ring-1', 'ring-secondary');
-      }
-    }
-
-    function formatExpiryInput(input) {
-      const digits = input.value.replace(/\D/g, '').slice(0, 4);
-      input.value = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
-    }
-
-    function isValidExpiry(value) {
-      const match = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.exec(value);
-      if (!match) return false;
-      const now = new Date();
-      const expiryYear = 2000 + Number(match[2]);
-      const expiryMonth = Number(match[1]);
-      return expiryYear > now.getFullYear() || (expiryYear === now.getFullYear() && expiryMonth >= now.getMonth() + 1);
-    }
-
-    function executePayment() {
-      const termsBox = document.getElementById('terms-checkbox');
-      const termsSection = document.getElementById('terms-section');
-      const termsAlert = document.getElementById('terms-alert');
-      const paymentSection = document.getElementById('payment-method-section');
-
-      // 1. Validate payment selection
-      if (!activePaymentType) {
-        paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showPaymentAlert('Please select a payment method', 'Choose Credit / Debit, Fawry Pay, or Meeza Card to continue with your secure checkout.');
-        
-        const firstRadio = document.getElementById('payment-radio-card');
-        if (firstRadio) firstRadio.focus();
-        return;
-      }
-
-      // 2. Validate payment-specific fields
-      if (activePaymentType === 'card') {
-        const cardNum = document.getElementById('card-number-input');
-        const cardExp = document.getElementById('card-expiry-input');
-        const cardCvv = document.getElementById('card-cvv-input');
-
-        if (!cardNum.value.trim() || !cardExp.value.trim() || !cardCvv.value.trim()) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Incomplete Card Details', 'Please complete the card number, expiry date, and CVV security code before submitting.');
-          if (!cardNum.value.trim()) cardNum.focus();
-          else if (!cardExp.value.trim()) cardExp.focus();
-          else cardCvv.focus();
-          return;
+            if (optGroup) {
+                optGroup.classList.remove('animate-shake');
+                void optGroup.offsetWidth;
+                optGroup.classList.add('ring-2', 'ring-rose-500', 'animate-shake');
+            }
         }
-        if (!/^\d{3}$/.test(cardCvv.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Security Code', 'The CVC / CVV must contain exactly 3 numbers.');
-          cardCvv.focus();
-          return;
+
+        function handleTermsToggle(checkbox) {
+            const termsAlert = document.getElementById('terms-alert');
+            if (checkbox.checked) {
+                if (termsAlert) termsAlert.classList.add('hidden');
+                document.getElementById('terms-section')?.classList.remove('ring-2', 'ring-rose-500');
+            }
         }
-        if (!isValidExpiry(cardExp.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Expiry Date', 'Enter a valid future expiry date in MM/YY format, for example 09/27.');
-          cardExp.focus();
-          return;
+
+        function formatCardNumberInput(input) {
+            const raw = input.value.replace(/\D/g, '').slice(0, 16);
+            const chunks = [];
+            for (let i = 0; i < raw.length; i += 4) {
+                chunks.push(raw.slice(i, i + 4));
+            }
+            input.value = chunks.join(' ');
+
+            const badge = document.getElementById('card-brand-badge');
+            if (badge) {
+                if (raw.startsWith('4')) {
+                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">VISA</span>';
+                } else if (/^(5[1-5]|2[2-7])/.test(raw)) {
+                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">MC</span>';
+                } else if (/^3[47]/.test(raw)) {
+                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800 border border-cyan-200">AMEX</span>';
+                } else {
+                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">CARD</span>';
+                }
+            }
         }
-      } else if (activePaymentType === 'meeza') {
-        const meezaNum = document.getElementById('meeza-card-input');
-        const meezaExp = document.getElementById('meeza-exp-input');
-        const meezaCvv = document.getElementById('meeza-cvv-input');
 
-        if (!meezaNum.value.trim() || !meezaExp.value.trim() || !meezaCvv.value.trim()) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Incomplete Meeza Card Details', 'Please enter your 16-digit Meeza card number, expiry date, and CVV.');
-          if (!meezaNum.value.trim()) meezaNum.focus();
-          else if (!meezaExp.value.trim()) meezaExp.focus();
-          else meezaCvv.focus();
-          return;
+        function formatExpiryInput(input) {
+            const digits = input.value.replace(/\D/g, '').slice(0, 4);
+            input.value = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
         }
-        if (!/^\d{3}$/.test(meezaCvv.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Security Code', 'The CVC / CVV must contain exactly 3 numbers.');
-          meezaCvv.focus();
-          return;
+
+        function isValidExpiry(value) {
+            const match = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.exec(value);
+            if (!match) return false;
+            const now = new Date();
+            const expiryYear = 2000 + Number(match[2]);
+            const expiryMonth = Number(match[1]);
+            return expiryYear > now.getFullYear() || (expiryYear === now.getFullYear() && expiryMonth >= now.getMonth() + 1);
         }
-        if (!isValidExpiry(meezaExp.value)) {
-          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          showPaymentAlert('Invalid Expiry Date', 'Enter a valid future expiry date in MM/YY format, for example 09/27.');
-          meezaExp.focus();
-          return;
+
+        function openPassengerEditModal() {
+            const modal = document.getElementById('passenger-edit-modal');
+            if (!modal) return;
+
+            const paxCount = window._cpPaxCount || 1;
+            const paxData = window._cpPaxData || {};
+            const container = document.getElementById('dynamic-edit-fields-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            for (let p = 1; p <= paxCount; p++) {
+                const pKey = 'p' + p;
+                const info = paxData[pKey] || {};
+                const roleLabel = p === 1 ? 'Lead Traveler' : `Traveler ${p}`;
+
+                const block = document.createElement('div');
+                block.className = 'p-3 rounded-lg bg-[#f8f9fa] border border-slate-200 flex flex-col gap-2.5';
+                block.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase font-bold text-[#725b38]">${roleLabel}</span>
+                        <span class="text-[10px] font-medium text-slate-500">Passenger ${p}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">First Name *</label>
+                            <input type="text" id="edit-${pKey}-first" required value="${info.firstName || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Last Name *</label>
+                            <input type="text" id="edit-${pKey}-last" required value="${info.lastName || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Nationality *</label>
+                            <input type="text" id="edit-${pKey}-nat" required value="${info.nationality || 'Egypt'}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Passport / ID *</label>
+                            <input type="text" id="edit-${pKey}-passport" required value="${info.passport || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880] uppercase" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Date of Birth *</label>
+                            <input type="text" id="edit-${pKey}-dob" required value="${info.dob || ''}" placeholder="YYYY-MM-DD" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+                        </div>
+                    </div>
+                `;
+                container.appendChild(block);
+            }
+
+            modal.classList.remove('hidden');
         }
-      }
 
-      // 3. Validate terms acceptance
-      if (termsBox && !termsBox.checked) {
-        termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        termsSection.classList.add('ring-1', 'ring-secondary');
-        if (termsAlert) termsAlert.classList.remove('hidden');
-        termsBox.focus();
-        return;
-      }
+        function closePassengerEditModal() {
+            document.getElementById('passenger-edit-modal')?.classList.add('hidden');
+        }
 
-      // 4. If all validations pass, proceed with payment flow
-      const btn = document.getElementById('submit-button');
-      const label = document.getElementById('button-label');
-      const arrow = document.getElementById('button-arrow');
-      const spinner = document.getElementById('spinner');
+        function savePassengerEdit(e) {
+            e.preventDefault();
+            const paxCount = window._cpPaxCount || 1;
+            const updatedPax = {};
 
-      btn.disabled = true;
-      arrow.classList.add('hidden');
-      spinner.classList.remove('hidden');
-      label.textContent = 'Processing Payment...';
+            for (let p = 1; p <= paxCount; p++) {
+                const pKey = 'p' + p;
+                const first = document.getElementById(`edit-${pKey}-first`)?.value.trim() || `Guest ${p}`;
+                const last = document.getElementById(`edit-${pKey}-last`)?.value.trim() || '';
+                const nat = document.getElementById(`edit-${pKey}-nat`)?.value.trim() || 'Egypt';
+                const pass = document.getElementById(`edit-${pKey}-passport`)?.value.trim() || 'A1234567';
+                const dob = document.getElementById(`edit-${pKey}-dob`)?.value.trim() || '2000-01-01';
 
-      setTimeout(() => {
-        spinner.classList.add('hidden');
-        arrow.classList.remove('hidden');
-        label.textContent = 'Confirm & Pay $2,560.00';
-        btn.disabled = false;
-        document.getElementById('confirmation-modal').classList.remove('hidden');
-      }, 1400);
-    }
+                updatedPax[pKey] = {
+                    title: p === 1 ? 'Mr' : 'Guest',
+                    firstName: first,
+                    lastName: last,
+                    nationality: nat,
+                    passport: pass,
+                    dob: dob,
+                    expDate: '2030-01-01',
+                    gender: 'unspecified'
+                };
+            }
 
-    function dismissModal() {
-      document.getElementById('confirmation-modal').classList.add('hidden');
-    }
-  </script>
+            sessionStorage.setItem('skybook-passenger-manifest', JSON.stringify(updatedPax));
+            sessionStorage.setItem('skybook-passenger-details', JSON.stringify(updatedPax));
+            window._cpPaxData = updatedPax;
+
+            renderAllConfirmData();
+            closePassengerEditModal();
+        }
+
+        async function executePayment() {
+            const termsBox = document.getElementById('terms-checkbox');
+            const termsSection = document.getElementById('terms-section');
+            const termsAlert = document.getElementById('terms-alert');
+            const paymentSection = document.getElementById('payment-method-section');
+
+            if (!activePaymentType) {
+                paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showPaymentAlert('Please select a payment method', 'Choose Credit / Debit Card or Digital / Mobile Wallet to continue.');
+                return;
+            }
+
+            if (activePaymentType === 'card') {
+                const cardNum = document.getElementById('card-number-input');
+                const cardExp = document.getElementById('card-expiry-input');
+                const cardCvv = document.getElementById('card-cvv-input');
+
+                if (!cardNum?.value.trim() || !cardExp?.value.trim() || !cardCvv?.value.trim()) {
+                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showPaymentAlert('Incomplete Card Information', 'Please complete the card number, expiration date (MM/YY), and CVV security code.');
+                    if (!cardNum?.value.trim()) cardNum?.focus();
+                    else if (!cardExp?.value.trim()) cardExp?.focus();
+                    else cardCvv?.focus();
+                    return;
+                }
+                const digitsOnly = cardNum.value.replace(/\D/g, '');
+                if (digitsOnly.length < 15) {
+                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showPaymentAlert('Invalid Card Number', 'Please enter a valid 15 or 16-digit card number.');
+                    cardNum.focus();
+                    return;
+                }
+                if (!isValidExpiry(cardExp.value)) {
+                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showPaymentAlert('Invalid Expiration Date', 'Please enter a valid future expiry date in MM/YY format.');
+                    cardExp.focus();
+                    return;
+                }
+                if (cardCvv.value.length < 3) {
+                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showPaymentAlert('Invalid CVV Code', 'Please enter the 3 or 4-digit security code on your card.');
+                    cardCvv.focus();
+                    return;
+                }
+            } else if (activePaymentType === 'wallet') {
+                const walletNum = document.getElementById('wallet-number-input');
+                if (!walletNum?.value.trim() || walletNum.value.replace(/\D/g, '').length < 8) {
+                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showPaymentAlert('Wallet Number Required', 'Please enter your registered mobile wallet phone number.');
+                    walletNum?.focus();
+                    return;
+                }
+            }
+
+            if (termsBox && !termsBox.checked) {
+                termsSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                termsSection?.classList.add('ring-2', 'ring-rose-500');
+                if (termsAlert) termsAlert.classList.remove('hidden');
+                termsBox.focus();
+                return;
+            }
+
+            const btn = document.getElementById('submit-button');
+            const label = document.getElementById('button-label');
+            const arrow = document.getElementById('button-arrow');
+            const spinner = document.getElementById('spinner');
+
+            if (btn) btn.disabled = true;
+            if (arrow) arrow.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (label) label.textContent = 'Processing Payment...';
+
+            try {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let pnr = 'SKY-';
+                for (let i = 0; i < 6; i++) pnr += chars.charAt(Math.floor(Math.random() * chars.length));
+
+                // Construct server payload from session data
+                const flightsRaw = sessionStorage.getItem('skybook-selected-flights');
+                const seatsRaw = sessionStorage.getItem('skybook-seat-assignments');
+                const paxRaw = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
+                const authUserRaw = localStorage.getItem('skybook-auth-user');
+
+                const flightsData = flightsRaw ? JSON.parse(flightsRaw) : null;
+                const seatsData = seatsRaw ? JSON.parse(seatsRaw) : null;
+                const paxData = paxRaw ? JSON.parse(paxRaw) : {};
+                const authUser = authUserRaw ? JSON.parse(authUserRaw) : null;
+
+                const paxCount = window._cpPaxCount || 1;
+                const passengersList = [];
+
+                for (let p = 1; p <= paxCount; p++) {
+                    const pKey = 'p' + p;
+                    const pInfo = paxData[pKey] || {};
+                    let fName = pInfo.firstName || (p === 1 && authUser?.name ? authUser.name.split(' ')[0] : `Passenger ${p}`);
+                    let lName = pInfo.lastName || (p === 1 && authUser?.name ? (authUser.name.split(' ').slice(1).join(' ') || 'Traveler') : 'Traveler');
+                    const sf0 = flightsData?.segments?.[0]?.selectedFlight;
+                    const sf1 = flightsData?.segments?.[1]?.selectedFlight;
+                    const obTier = (sf0?.tierKey || sf0?.cabin || '').toLowerCase();
+                    const rtTier = (sf1?.tierKey || sf1?.cabin || '').toLowerCase();
+                    const defaultObSeat = obTier.includes('first') || obTier === 'fst' ? `${p}A` : (obTier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
+                    const defaultRtSeat = rtTier.includes('first') || rtTier === 'fst' ? `${p}B` : (rtTier.includes('bus') ? `${3 + p}B` : `${14 + p}B`);
+
+                    passengersList.push({
+                        title: pInfo.title || 'Mr',
+                        firstName: fName,
+                        lastName: lName,
+                        dob: pInfo.dob || '2000-01-01',
+                        nationality: pInfo.nationality || 'Egypt',
+                        passport: pInfo.passport || ('PASS-' + Math.random().toString(36).substring(2, 8).toUpperCase()),
+                        seatOutbound: seatsData?.[1]?.passengers?.[p]?.seat || defaultObSeat,
+                        seatReturn: seatsData?.[2]?.passengers?.[p]?.seat || defaultRtSeat,
+                        email: p === 1 ? (authUser?.email || 'guest@skybook.com') : null,
+                        phone: pInfo.phone || null
+                    });
+                }
+
+                const segmentsList = [];
+                if (flightsData?.segments && flightsData.segments.length > 0) {
+                    flightsData.segments.forEach(seg => {
+                        if (seg.selectedFlight) {
+                            segmentsList.push({
+                                flightId: seg.selectedFlight.dbId || null,
+                                flightNumber: seg.selectedFlight.flightNum || null,
+                                fromCode: seg.fromCode || null,
+                                toCode: seg.toCode || null,
+                                price: seg.selectedFlight.price || 1280,
+                                aircraft: seg.selectedFlight.aircraft || null
+                            });
+                        }
+                    });
+                }
+
+                const payload = {
+                    bookingReference: pnr,
+                    totalPrice: flightsData?.totalPrice || 2560,
+                    paymentMethod: activePaymentType,
+                    segments: segmentsList,
+                    passengers: passengersList
+                };
+
+                const response = await fetch('/Booking/ConfirmBooking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (!response.ok || result.success === false) {
+                    throw new Error(result.message || 'Payment or reservation could not be completed.');
+                }
+
+                if (result.bookingReference) {
+                    pnr = result.bookingReference;
+                }
+
+                const pnrEl = document.getElementById('cp-modal-pnr');
+                if (pnrEl) pnrEl.textContent = pnr;
+
+                const userEmail = authUser?.email || (passengersList[0] && passengersList[0].email) || 'guest@skybook.com';
+                const modalEmailEl = document.getElementById('cp-modal-email');
+                try {
+                    localStorage.removeItem('skybook-recent-bookings');
+                } catch (e) {}
+                document.getElementById('confirmation-modal')?.classList.remove('hidden');
+            } catch (err) {
+                console.error('Error confirming booking:', err);
+                showPaymentAlert('Payment Error', err.message || 'Could not complete reservation.');
+            } finally {
+                if (spinner) spinner.classList.add('hidden');
+                if (arrow) arrow.classList.remove('hidden');
+                if (label) label.textContent = window._cpTotalLabel || 'Confirm & Pay';
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function renderAllConfirmData() {
+            try {
+                const flightsRaw = sessionStorage.getItem('skybook-selected-flights');
+                const seatsRaw = sessionStorage.getItem('skybook-seat-assignments');
+                const paxRaw = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
+                const authUserRaw = localStorage.getItem('skybook-auth-user');
+
+                const flightsData = flightsRaw ? JSON.parse(flightsRaw) : null;
+                const seatsData = seatsRaw ? JSON.parse(seatsRaw) : null;
+                const paxData = paxRaw ? JSON.parse(paxRaw) : {};
+                const authUser = authUserRaw ? JSON.parse(authUserRaw) : null;
+
+                window._cpPaxData = paxData;
+
+                function setText(id, val) {
+                    const el = document.getElementById(id);
+                    if (el && val != null) el.textContent = val;
+                }
+
+                // Determine passenger count
+                let paxCount = flightsData?.passengerCount || (paxData ? Object.keys(paxData).length : 0) || parseInt(sessionStorage.getItem('skybook_passenger_count') || '0', 10) || 1;
+                if (!paxCount || paxCount < 1) paxCount = 1;
+                window._cpPaxCount = paxCount;
+
+                // 1. Hydrate Flight Schedule
+                if (flightsData && flightsData.segments && flightsData.segments.length > 0) {
+                    const segs = flightsData.segments;
+                    const seg0 = segs[0];
+                    const seg1 = segs[1];
+                    const sf0 = seg0?.selectedFlight;
+                    const sf1 = seg1?.selectedFlight;
+                    const isRoundTrip = segs.length >= 2 && !!seg1;
+
+                    // Trip mode
+                    const modeRaw = flightsData.tripMode || (isRoundTrip ? 'roundtrip' : 'oneway');
+                    const modeLbl = (modeRaw === 'roundtrip' || modeRaw === 'round-trip') ? 'Round Trip' : 'One Way';
+                    setText('cp-trip-mode', modeLbl);
+
+                    // Outbound strip
+                    if (seg0) {
+                        setText('cp-ob-date', `${seg0.dateStr || seg0.shortDate || '11 Sep 2026'} • Non-stop`);
+                        if (sf0) {
+                            setText('cp-ob-flightnum', sf0.flightNum);
+                            setText('cp-ob-dep-time', sf0.depTime || '20:05');
+                            setText('cp-ob-arr-time', sf0.arrTime || '01:45');
+                            setText('cp-ob-duration', `${sf0.duration || '3h 40m'} • Direct`);
+                            setText('cp-ob-aircraft', sf0.aircraft || 'Boeing 787-9');
+                        }
+                        setText('cp-ob-from-code', seg0.fromCode);
+                        setText('cp-ob-from-city', seg0.fromCity || 'Cairo');
+                        setText('cp-ob-to-code', seg0.toCode);
+                        setText('cp-ob-to-city', seg0.toCity || 'Dubai');
+
+                        // Sidebar Outbound
+                        setText('cp-side-ob-route', `${seg0.fromCode} → ${seg0.toCode}`);
+                        if (sf0) setText('cp-side-ob-flightnum', sf0.flightNum);
+                        setText('cp-side-ob-datetime', `${seg0.shortDate || '11 Sep 2026'} • ${sf0?.depTime || '20:05'}`);
+                    }
+
+                    // Return strip
+                    const rtContainer = document.getElementById('cp-rt-container');
+                    const sideRtBox = document.getElementById('cp-side-rt-box');
+
+                    if (!isRoundTrip) {
+                        if (rtContainer) rtContainer.style.display = 'none';
+                        if (sideRtBox) sideRtBox.style.display = 'none';
+                    } else if (seg1) {
+                        if (rtContainer) rtContainer.style.display = '';
+                        if (sideRtBox) sideRtBox.style.display = '';
+
+                        setText('cp-rt-date', `${seg1.dateStr || seg1.shortDate || '18 Sep 2026'} • Non-stop`);
+                        if (sf1) {
+                            setText('cp-rt-flightnum', sf1.flightNum);
+                            setText('cp-rt-dep-time', sf1.depTime || '09:15');
+                            setText('cp-rt-arr-time', sf1.arrTime || '12:05');
+                            setText('cp-rt-duration', `${sf1.duration || '3h 35m'} • Direct`);
+                            setText('cp-rt-aircraft', sf1.aircraft || 'Airbus A350-1000');
+                        }
+                        setText('cp-rt-from-code', seg1.fromCode);
+                        setText('cp-rt-from-city', seg1.fromCity || 'Dubai');
+                        setText('cp-rt-to-code', seg1.toCode);
+                        setText('cp-rt-to-city', seg1.toCity || 'Cairo');
+
+                        // Sidebar Return
+                        setText('cp-side-rt-route', `${seg1.fromCode} → ${seg1.toCode}`);
+                        if (sf1) setText('cp-side-rt-flightnum', sf1.flightNum);
+                        setText('cp-side-rt-datetime', `${seg1.shortDate || '18 Sep 2026'} • ${sf1?.depTime || '09:15'}`);
+                    }
+
+                    // 2. Hydrate Compact Traveler Rows (Merged Passenger + Seat info)
+                    const paxContainer = document.getElementById('cp-passengers-compact-list');
+                    if (paxContainer) {
+                        paxContainer.innerHTML = '';
+                        const obSeatList = [];
+                        const rtSeatList = [];
+
+                        for (let p = 1; p <= paxCount; p++) {
+                            const pKey = 'p' + p;
+                            const pInfo = paxData[pKey];
+                            const roleLabel = p === 1 ? 'Lead Traveler' : `Guest ${p}`;
+
+                            let pName = 'Guest Passenger';
+                            if (pInfo && (pInfo.firstName || pInfo.lastName)) {
+                                pName = `${pInfo.firstName || ''} ${pInfo.lastName || ''}`.trim();
+                            } else if (p === 1 && authUser?.name) {
+                                pName = authUser.name;
+                            }
+
+                            const pNat = pInfo?.nationality || 'Egypt';
+                            const pPassRaw = pInfo?.passport || 'A8492019';
+                            const pPassMasked = `••••${pPassRaw.slice(-4)}`;
+
+                            const sf0 = flightsData?.segments?.[0]?.selectedFlight;
+                            const sf1 = flightsData?.segments?.[1]?.selectedFlight;
+                            const obTier = (sf0?.tierKey || sf0?.cabin || '').toLowerCase();
+                            const rtTier = (sf1?.tierKey || sf1?.cabin || '').toLowerCase();
+                            const defaultObSeat = obTier.includes('first') || obTier === 'fst' ? `${p}A` : (obTier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
+                            const defaultRtSeat = rtTier.includes('first') || rtTier === 'fst' ? `${p}B` : (rtTier.includes('bus') ? `${3 + p}B` : `${14 + p}B`);
+
+                            const obSeat = seatsData?.[1]?.passengers?.[p]?.seat || defaultObSeat;
+                            obSeatList.push(obSeat);
+
+                            let rtSeatBadge = '';
+                            if (isRoundTrip) {
+                                const rtSeat = seatsData?.[2]?.passengers?.[p]?.seat || defaultRtSeat;
+                                rtSeatList.push(rtSeat);
+                                rtSeatBadge = `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs font-semibold border border-slate-200">Return: ${rtSeat}</span>`;
+                            }
+
+                            const row = document.createElement('div');
+                            row.className = 'flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition';
+                            row.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[#0B192C] flex items-center justify-center text-[#C5A880] text-xs font-bold shrink-0">
+                                        ${p}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#0B192C]">${pName}</span>
+                                            <span class="text-[10px] font-semibold text-[#725b38] bg-[#fedeb2]/40 px-1.5 py-0.2 rounded">${roleLabel}</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                                            <span>${pNat}</span>
+                                            <span>•</span>
+                                            <span class="font-mono">Passport ${pPassMasked}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 ml-auto">
+                                    <span class="px-2 py-0.5 rounded bg-[#fedeb2]/50 text-[#725b38] font-mono text-xs font-bold border border-[#C5A880]/30">Outbound: ${obSeat}</span>
+                                    ${rtSeatBadge}
+                                </div>
+                            `;
+                            paxContainer.appendChild(row);
+                        }
+
+                        // Update sidebar seat summary strings
+                        if (obSeatList.length > 0) {
+                            setText('cp-side-ob-seats', `Seats ${obSeatList.join(', ')}`);
+                        }
+                        if (isRoundTrip && rtSeatList.length > 0) {
+                            setText('cp-side-rt-seats', `Seats ${rtSeatList.join(', ')}`);
+                        }
+                    }
+
+                    // Prepopulate Cardholder Name if empty
+                    const cardHolderInput = document.getElementById('card-holder-input');
+                    if (cardHolderInput && !cardHolderInput.value.trim()) {
+                        const leadP = paxData?.p1;
+                        if (leadP && (leadP.firstName || leadP.lastName)) {
+                            cardHolderInput.value = `${leadP.firstName || ''} ${leadP.lastName || ''}`.trim();
+                        } else if (authUser?.name) {
+                            cardHolderInput.value = authUser.name;
+                        }
+                    }
+
+                    // 3. Hydrate Price Breakdown & Total
+                    const cabinName = sf0?.cabin || 'Horizon Flex';
+                    setText('cp-side-pax-fare', `${paxCount} ${paxCount === 1 ? 'Guest' : 'Guests'} • ${cabinName}`);
+
+                    const tripMult = isRoundTrip ? 'Round Trip' : 'One Way';
+                    setText('cp-base-fare-label', `Base Airfare (${paxCount} × ${tripMult})`);
+
+                    const rawPrice = flightsData.totalPrice;
+                    if (rawPrice && Number(rawPrice) > 0) {
+                        const priceNum = Number(rawPrice);
+                        const priceFormatted = `$${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                        const baseFareNum = Math.round(priceNum * 0.9375 * 100) / 100;
+                        const taxNum = Math.round((priceNum - baseFareNum) * 100) / 100;
+
+                        setText('cp-total-price', priceFormatted);
+                        setText('cp-base-fare', `$${baseFareNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+                        setText('cp-taxes', `$${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+
+                        const btnLabel = document.getElementById('button-label');
+                        if (btnLabel) {
+                            const confirmLabel = `Confirm & Pay ${priceFormatted}`;
+                            btnLabel.textContent = confirmLabel;
+                            window._cpTotalLabel = confirmLabel;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Error during renderAllConfirmData:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllConfirmData();
+            switchPayment('card');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePassengerEditModal();
+            }
+        });
+    </script>
 }

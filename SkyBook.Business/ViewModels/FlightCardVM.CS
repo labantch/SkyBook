@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace SkyBook.Business.ViewModels
 {
@@ -11,6 +11,9 @@ namespace SkyBook.Business.ViewModels
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
         public decimal Price {  get; set; }
+        public decimal EconomyPrice { get; set; }
+        public decimal BusinessPrice { get; set; }
+        public decimal FirstClassPrice { get; set; }
         public int AvailableSeat {  get; set; }
     }
 }

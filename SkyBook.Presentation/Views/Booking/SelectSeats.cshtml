@@ -11,6 +11,7 @@
       height: auto !important;
       min-height: 100%;
       overflow-y: auto !important;
+      overflow-x: visible !important;
       margin: 0;
       padding: 0;
     }
@@ -26,10 +27,14 @@
     }
     .custom-scrollbar::-webkit-scrollbar-track {
       background: #F1F5F9;
+      border-radius: 9999px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
       background: #CBD5E1;
       border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
     /* Fuselage Shell Styling */
     .aircraft-body {
@@ -90,6 +95,15 @@
       cursor: not-allowed !important;
       opacity: 0.65;
     }
+    /* Disabled seats belonging to other cabins */
+    .seat-cabin-restricted {
+      background-color: #F8FAFC !important;
+      color: #CBD5E1 !important;
+      border-color: #E2E8F0 !important;
+      cursor: not-allowed !important;
+      opacity: 0.45;
+      pointer-events: none;
+    }
     .seat-legroom {
       background-color: #FFFDF7;
       border-color: #D4B98E;
@@ -122,27 +136,30 @@
   </style>
 }
 
-<!-- Top Interactive Controls: Heading & 3 Multi-Segment Selector Cards -->
-<div class="mb-6 flex flex-col items-start justify-start gap-5 border-b border-slate-200 pb-6">
+<!-- Container wrapper for clean margins & responsive alignment -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+
+<!-- Top Interactive Controls: Heading & Multi-Segment Selector Cards -->
+<div class="mb-4 flex flex-col items-start justify-start gap-4 border-b border-slate-200 pb-4">
 <div>
-<div class="flex items-center gap-2 mb-1.5">
+<div class="flex items-center gap-2 mb-1">
 <span class="text-xs font-bold uppercase tracking-widest text-[#C5A880]">Cabin Seating Arrangement</span>
 </div>
 <h1 class="text-2xl sm:text-3xl font-extrabold text-[#0B192C] tracking-tight">Select Your Seat</h1>
 </div>
 <!-- 3. MULTI-SEGMENT SELECTOR CARDS (Top row, left-aligned) -->
 <div class="w-full">
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-4xl">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-4xl" id="segment-cards-grid">
 <!-- Card 1: Segment 1 (CAI -> DXB) -->
-<div class="flex flex-col gap-2">
-<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-sm cursor-pointer" id="segment-tab-1" onclick="switchSegment(1)">
+<div class="flex flex-col gap-2" id="segment-wrapper-1">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm border border-[#0B192C]" id="segment-tab-1" onclick="switchSegment(1)">
 <div class="flex items-center gap-2">
-<span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold" id="tab-1-num">1</span>
-<span class="font-bold">CAI → DXB</span>
+<span class="w-4 h-4 rounded-full bg-[#C5A880] text-[#0B192C] flex items-center justify-center text-[10px] font-bold" id="tab-1-num">1</span>
+<span class="font-bold" id="tab-1-route">CAI → DXB</span>
 </div>
-<span class="text-[11px] text-slate-400 font-semibold" id="tab-1-status">(2/2 Selected)</span>
+<span class="text-[11px] text-[#C5A880] font-semibold" id="tab-1-status">(0/2 Selected)</span>
 </button>
-<div class="bg-slate-50/75 p-3 rounded-xl border border-slate-200 shadow-sm select-none transition-all opacity-60 hover:opacity-100 cursor-pointer" id="aircraft-spec-card-1" onclick="switchSegment(1)">
+<div class="bg-white p-3 rounded-xl border-2 border-[#C5A880] shadow-sm select-none transition-all ring-2 ring-[#C5A880]/20 cursor-default" id="aircraft-spec-card-1" onclick="switchSegment(1)">
 <div class="flex items-start gap-2.5">
 <div class="w-7 h-7 rounded-lg bg-slate-100 text-[#0B192C] flex items-center justify-center shrink-0 mt-0.5">
 <svg class="w-4 h-4 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,24 +169,24 @@
 <div class="min-w-0">
 <div class="flex items-center gap-1.5">
 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">✈ AIRCRAFT</span>
-<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded font-mono" id="card-flightnum-1">SB 918</span>
+<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded font-mono" id="card-flightnum-1">SB 101</span>
 </div>
-<div class="text-xs font-bold text-[#0B192C] tracking-tight leading-tight mt-1 truncate" id="card-model-1">Boeing 777-300ER</div>
-<div class="text-[10px] text-slate-500 font-medium leading-none mt-0.5" id="card-specs-1">74 seats • 3-3-3 layout</div>
-</div>
-</div>
+<div class="text-xs font-bold text-[#0B192C] tracking-tight leading-tight mt-1 truncate" id="card-model-1">Airbus A350-1000</div>
+<div class="text-[10px] text-slate-500 font-medium leading-none mt-0.5" id="card-specs-1">110 seats • 3-3-3 layout</div>
 </div>
 </div>
-<!-- Card 2: Segment 2 (DXB -> LHR) - Initially Active -->
-<div class="flex flex-col gap-2">
-<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm border border-[#0B192C]" id="segment-tab-2" onclick="switchSegment(2)">
+</div>
+</div>
+<!-- Card 2: Segment 2 (DXB -> LHR) -->
+<div class="flex flex-col gap-2" id="segment-wrapper-2">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-sm cursor-pointer" id="segment-tab-2" onclick="switchSegment(2)">
 <div class="flex items-center gap-2">
-<span class="w-4 h-4 rounded-full bg-[#C5A880] text-[#0B192C] flex items-center justify-center text-[10px] font-bold" id="tab-2-num">2</span>
-<span class="font-bold">DXB → LHR</span>
+<span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold" id="tab-2-num">2</span>
+<span class="font-bold" id="tab-2-route">DXB → LHR</span>
 </div>
-<span class="text-[11px] text-[#C5A880] font-semibold" id="tab-2-status">(2/2 Selected)</span>
+<span class="text-[11px] text-slate-400 font-semibold" id="tab-2-status">(0/2 Selected)</span>
 </button>
-<div class="bg-white p-3 rounded-xl border-2 border-[#C5A880] shadow-sm select-none transition-all ring-2 ring-[#C5A880]/20 cursor-default" id="aircraft-spec-card-2">
+<div class="bg-slate-50/75 p-3 rounded-xl border border-slate-200 shadow-sm select-none transition-all opacity-60 hover:opacity-100 cursor-pointer" id="aircraft-spec-card-2" onclick="switchSegment(2)">
 <div class="flex items-start gap-2.5">
 <div class="w-7 h-7 rounded-lg bg-slate-100 text-[#0B192C] flex items-center justify-center shrink-0 mt-0.5">
 <svg class="w-4 h-4 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,11 +205,11 @@
 </div>
 </div>
 <!-- Card 3: Segment 3 (LHR -> JFK) -->
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2" id="segment-wrapper-3">
 <button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-sm cursor-pointer" id="segment-tab-3" onclick="switchSegment(3)">
 <div class="flex items-center gap-2">
 <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold" id="tab-3-num">3</span>
-<span class="font-bold">LHR → JFK</span>
+<span class="font-bold" id="tab-3-route">LHR → JFK</span>
 </div>
 <span class="text-[11px] text-slate-400 font-semibold" id="tab-3-status">(0/2 Selected)</span>
 </button>
@@ -206,19 +223,20 @@
 <div class="min-w-0">
 <div class="flex items-center gap-1.5">
 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">✈ AIRCRAFT</span>
-<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded font-mono" id="card-flightnum-3">SB 101</span>
+<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded font-mono" id="card-flightnum-3">SB 918</span>
 </div>
-<div class="text-xs font-bold text-[#0B192C] tracking-tight leading-tight mt-1 truncate" id="card-model-3">Airbus A350-1000</div>
-<div class="text-[10px] text-slate-500 font-medium leading-none mt-0.5" id="card-specs-3">110 seats • 3-3-3 layout</div>
-</div>
-</div>
+<div class="text-xs font-bold text-[#0B192C] tracking-tight leading-tight mt-1 truncate" id="card-model-3">Boeing 777-300ER</div>
+<div class="text-[10px] text-slate-500 font-medium leading-none mt-0.5" id="card-specs-3">74 seats • 3-3-3 layout</div>
 </div>
 </div>
 </div>
 </div>
 </div>
+</div>
+</div>
+
 <!-- 4. SEAT MAP LEGEND & ASSIGNMENT NOTICE -->
-<div class="bg-white rounded-xl border border-slate-200 px-5 py-3.5 mb-8 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs">
+<div class="bg-white rounded-xl border border-slate-200 px-5 py-3 mb-4 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs">
 <div class="flex items-center gap-4 sm:gap-6 flex-wrap font-medium text-slate-700">
 <div class="flex items-center gap-2">
 <div class="w-5 h-5 rounded-md border-2 border-slate-300 bg-white flex items-center justify-center text-[9px] font-bold text-slate-500 font-mono">12</div>
@@ -229,81 +247,71 @@
 <span class="text-xs text-slate-600">Extra Legroom</span>
 </div>
 <div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-md bg-[#0B192C] text-white flex items-center justify-center text-[9px] font-bold">P1</div>
+<span class="text-xs text-slate-600">Selected</span>
+</div>
+<div class="flex items-center gap-2">
 <div class="w-5 h-5 rounded-md bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-[9px]">✕</div>
 <span class="text-xs text-slate-400">Occupied</span>
 </div>
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-md bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-[10px]">🔒</div>
+<span class="text-xs text-slate-500">Other Class (Locked)</span>
 </div>
-<!-- Right status indicator: Shows currently active assigning passenger -->
+</div>
+<!-- Right status indicator: Shows currently active assigning passenger & their allowed cabin -->
 <div class="flex items-center gap-2 bg-slate-50 px-3.5 py-1.5 rounded-lg border border-slate-200">
-<span class="text-slate-500 font-medium">Assigning seat for:</span>
-<span class="w-5 h-5 rounded-full bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-[10px] ring-1 ring-[#C5A880]" id="current-assignee-badge">P2</span>
-<span class="font-bold text-[#0B192C]" id="current-assignee-label">Passenger 2 (Adult)</span>
+<span class="text-slate-500 font-medium">Selecting seat for:</span>
+<span class="w-5 h-5 rounded-full bg-[#0B192C] text-white flex items-center justify-center font-bold text-[10px] ring-1 ring-slate-400" id="current-assignee-badge">P1</span>
+<span class="font-bold text-[#0B192C]" id="current-assignee-label">Passenger 1 (Adult)</span>
+<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border border-[#C5A880]/60 bg-[#FFFDF7] text-[#8A6834]" id="current-assignee-cabin">ECONOMY</span>
 </div>
 </div>
+
 <!-- 5. MAIN CONTENT LAYOUT (2-Column Grid: Left Aircraft Fuselage + Right Sticky Card) -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 <!-- Aircraft Seat Map Column (lg:col-span-8) -->
 <div class="lg:col-span-8 flex flex-col items-center">
 <!-- Fuselage Container -->
-<div class="aircraft-body w-full max-w-3xl px-4 sm:px-8 pt-8 pb-12 overflow-hidden border border-slate-200">
+<div class="aircraft-body w-full max-w-3xl px-4 sm:px-8 pt-8 pb-12 border border-slate-200">
 <!-- Nose / Cockpit indicator -->
 <div class="aircraft-nose flex flex-col items-center justify-center text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-2 shadow-inner">
 <svg class="w-4 h-4 text-slate-400 mb-0.5" fill="currentColor" viewBox="0 0 24 24">
 <path d="M12 2L15 8L12 6L9 8L12 2Z"></path>
 </svg>
-            FRONT / COCKPIT
-          </div>
-<!-- Dynamic Aircraft Banner Inside Fuselage -->
-<div class="text-center py-2.5 mb-4 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-semibold uppercase tracking-wider px-2">
-<span class="">← LEFT WING</span>
-<div class="flex items-center gap-2">
-<span class="text-[#0B192C] font-extrabold bg-slate-100 px-3 py-1 rounded-full text-[11px]" id="fuselage-aircraft-name">BOEING 787-9 DREAMLINER</span>
-<span class="text-slate-500 font-medium" id="fuselage-config-label">3 CABIN ARCHITECTURE • 1-2-1 / 1-2-1 / 3-3-3</span>
+  FRONT / COCKPIT
 </div>
-<span class="">RIGHT WING →</span>
+<!-- Dynamic Aircraft Banner Inside Fuselage -->
+<div class="text-center py-2.5 mb-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 font-semibold uppercase tracking-wider px-2">
+  <span class="hidden sm:inline">← PORT WING</span>
+  <div class="flex flex-wrap items-center justify-center gap-2 mx-auto">
+    <span class="text-[#0B192C] font-extrabold bg-slate-100 px-3 py-1 rounded-full text-[11px]" id="fuselage-aircraft-name">AIRBUS A350-1000</span>
+    <span class="text-slate-500 font-medium text-[11px]" id="fuselage-config-label">3 Cabins • Layout</span>
+    <button type="button" onclick="scrollToBookedCabin()" class="cursor-pointer bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors">
+      ↓ Jump to Your Cabin
+    </button>
+  </div>
+  <span class="hidden sm:inline">STARBOARD WING →</span>
 </div>
 <!-- Dynamic Seat Map Mounting Target -->
-<div class="space-y-6 max-w-2xl mx-auto" id="dynamic-seatmap-root"><div class="space-y-3"><div class="flex items-center justify-between py-2.5 px-3.5 rounded-xl border border-[#C5A880]/50 bg-gradient-to-r from-amber-500/15 via-[#C5A880]/20 to-amber-500/10 shadow-sm">
-            <div class="flex items-center gap-2.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#C5A880] shadow-[0_0_8px_rgba(197,168,128,0.7)]"></span>
-              <span class="tracking-wider uppercase text-xs font-extrabold text-[#785929]">FIRST CLASS</span>
-            </div>
-            <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-md border border-[#C5A880]/50 bg-white/90 text-[#8A6834] shadow-xs tracking-wide">1-2-1 SOVEREIGN SUITES</span>
-          </div><div class="flex items-center justify-between px-2 text-xs font-mono font-bold text-slate-400 select-none"><div class="grid grid-cols-1 gap-1.5 w-[42px] text-center"><span class="">A</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-2 gap-1.5 w-[84px] text-center"><span class="">D</span><span class="">G</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-1 gap-1.5 w-[42px] text-center"><span class="">L</span></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('1A', 'First Class Suite', 'Window')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 1A (First Class Suite)">1A</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">1</div><div class="grid grid-cols-2 gap-1.5 w-[84px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 1D (Occupied)">✕</button><button onclick="handleSeatClick('1G', 'First Class Suite', 'Aisle')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 1G (First Class Suite)">1G</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">1</div><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('1L', 'First Class Suite', 'Window')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 1L (First Class Suite)">1L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 2A (Occupied)">✕</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">2</div><div class="grid grid-cols-2 gap-1.5 w-[84px]"><button onclick="handleSeatClick('2D', 'First Class Suite', 'Aisle')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 2D (First Class Suite)">2D</button><button onclick="handleSeatClick('2G', 'First Class Suite', 'Aisle')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 2G (First Class Suite)">2G</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">2</div><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('2L', 'First Class Suite', 'Window')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 2L (First Class Suite)">2L</button></div></div><div class="py-1 flex items-center justify-center"><div class="w-full border-t border-dashed border-slate-200 my-1"></div></div></div><div class="space-y-3"><div class="flex items-center justify-between py-2.5 px-3.5 rounded-xl border border-slate-700 bg-[#0B192C] text-white shadow-sm">
-            <div class="flex items-center gap-2.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#C5A880] shadow-[0_0_8px_rgba(197,168,128,0.5)]"></span>
-              <span class="tracking-wider uppercase text-xs font-extrabold text-white">BUSINESS CLASS</span>
-            </div>
-            <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-md border border-slate-700 bg-white/10 text-[#C5A880] tracking-wide shadow-xs">1-2-1 DIRECT AISLE ACCESS</span>
-          </div><div class="flex items-center justify-between px-2 text-xs font-mono font-bold text-slate-400 select-none"><div class="grid grid-cols-1 gap-1.5 w-[42px] text-center"><span class="">A</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-2 gap-1.5 w-[84px] text-center"><span class="">D</span><span class="">G</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-1 gap-1.5 w-[42px] text-center"><span class="">L</span></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('4A', 'Business Suite', 'Window')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 4A (Business Suite)">4A</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">4</div><div class="grid grid-cols-2 gap-1.5 w-[84px]"><button onclick="handleSeatClick('4D', 'Business Suite', 'Aisle')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 4D (Business Suite)">4D</button><button onclick="handleSeatClick('4G', 'Business Suite', 'Aisle')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 4G (Business Suite)">4G</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">4</div><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 4L (Occupied)">✕</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('5A', 'Business Suite', 'Window')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 5A (Business Suite)">5A</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">5</div><div class="grid grid-cols-2 gap-1.5 w-[84px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 5D (Occupied)">✕</button><button onclick="handleSeatClick('5G', 'Business Suite', 'Aisle')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 5G (Business Suite)">5G</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">5</div><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('5L', 'Business Suite', 'Window')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 5L (Business Suite)">5L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('6A', 'Business Suite', 'Window')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 6A (Business Suite)">6A</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">6</div><div class="grid grid-cols-2 gap-1.5 w-[84px]"><button onclick="handleSeatClick('6D', 'Business Suite', 'Aisle')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 6D (Business Suite)">6D</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 6G (Occupied)">✕</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">6</div><div class="grid grid-cols-1 gap-1.5 w-[42px]"><button onclick="handleSeatClick('6L', 'Business Suite', 'Window')" class="seat-btn seat-available seat-business h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 6L (Business Suite)">6L</button></div></div><div class="py-1 flex items-center justify-center"><div class="w-full border-t border-dashed border-slate-200 my-1"></div></div></div><div class="space-y-3"><div class="flex items-center justify-between py-2.5 px-3.5 rounded-xl border border-emerald-200 bg-emerald-50/80 text-emerald-900 shadow-sm">
-            <div class="flex items-center gap-2.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
-              <span class="tracking-wider uppercase text-xs font-extrabold text-emerald-800">ECONOMY CLASS</span>
-            </div>
-            <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-md border border-emerald-200 bg-white text-emerald-700 font-mono tracking-wide shadow-xs">3-3-3 MODERN LAYOUT</span>
-          </div><div class="flex items-center justify-between px-2 text-xs font-mono font-bold text-slate-400 select-none"><div class="grid grid-cols-3 gap-1.5 w-[124px] text-center"><span class="">A</span><span class="">B</span><span class="">C</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-3 gap-1.5 w-[124px] text-center"><span class="">D</span><span class="">E</span><span class="">F</span></div><div class="w-5 text-center text-[10px] text-slate-300 font-normal">|</div><div class="grid grid-cols-3 gap-1.5 w-[124px] text-center"><span class="">J</span><span class="">K</span><span class="">L</span></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('10A', 'Extra Legroom', 'Window')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10A (Extra Legroom)">10A</button><button onclick="handleSeatClick('10B', 'Extra Legroom', 'Middle')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10B (Extra Legroom)">10B</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 10C (Occupied)">✕</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">10</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('10D', 'Extra Legroom', 'Aisle')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10D (Extra Legroom)">10D</button><button onclick="handleSeatClick('10E', 'Extra Legroom', 'Middle')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10E (Extra Legroom)">10E</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 10F (Occupied)">✕</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">10</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('10J', 'Extra Legroom', 'Aisle')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10J (Extra Legroom)">10J</button><button onclick="handleSeatClick('10K', 'Extra Legroom', 'Middle')" class="seat-btn seat-available seat-legroom h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 10K (Extra Legroom)">10K</button><button onclick="handleSeatClick('10L', 'Extra Legroom', 'Window')" class="seat-btn seat-selected-p2 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 10L (Assigned to Passenger 2 - Click to unassign or switch)">
-                  <span class="">10L</span>
-                  <span class="seat-pax-tag bg-[#C5A880] text-[#0B192C]">P2</span>
-                </button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 11A (Occupied)">✕</button><button onclick="handleSeatClick('11B', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11B">11B</button><button onclick="handleSeatClick('11C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11C">11C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">11</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('11D', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11D">11D</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 11E (Occupied)">✕</button><button onclick="handleSeatClick('11F', 'Standard Seat', 'Aisle')" class="seat-btn seat-selected-p1 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 11F (Assigned to Passenger 1 - Click to unassign or switch)">
-                  <span class="">11F</span>
-                  <span class="seat-pax-tag bg-slate-300 text-slate-900">P1</span>
-                </button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">11</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('11J', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11J">11J</button><button onclick="handleSeatClick('11K', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11K">11K</button><button onclick="handleSeatClick('11L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 11L">11L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('12A', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12A">12A</button><button onclick="handleSeatClick('12B', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12B">12B</button><button onclick="handleSeatClick('12C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12C">12C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">12</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('12D', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12D">12D</button><button onclick="handleSeatClick('12E', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12E">12E</button><button onclick="handleSeatClick('12F', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12F">12F</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">12</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('12J', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12J">12J</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 12K (Occupied)">✕</button><button onclick="handleSeatClick('12L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 12L">12L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('13A', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13A">13A</button><button onclick="handleSeatClick('13B', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13B">13B</button><button onclick="handleSeatClick('13C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13C">13C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">13</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 13D (Occupied)">✕</button><button onclick="handleSeatClick('13E', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13E">13E</button><button onclick="handleSeatClick('13F', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13F">13F</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">13</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('13J', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13J">13J</button><button onclick="handleSeatClick('13K', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13K">13K</button><button onclick="handleSeatClick('13L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 13L">13L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('14A', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14A">14A</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 14B (Occupied)">✕</button><button onclick="handleSeatClick('14C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14C">14C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">14</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('14D', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14D">14D</button><button onclick="handleSeatClick('14E', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14E">14E</button><button onclick="handleSeatClick('14F', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14F">14F</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">14</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 14J (Occupied)">✕</button><button onclick="handleSeatClick('14K', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14K">14K</button><button onclick="handleSeatClick('14L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 14L">14L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('15A', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15A">15A</button><button onclick="handleSeatClick('15B', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15B">15B</button><button onclick="handleSeatClick('15C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15C">15C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">15</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('15D', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15D">15D</button><button onclick="handleSeatClick('15E', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15E">15E</button><button disabled="" class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat 15F (Occupied)">✕</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">15</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('15J', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15J">15J</button><button onclick="handleSeatClick('15K', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15K">15K</button><button onclick="handleSeatClick('15L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 15L">15L</button></div></div><div class="flex items-center justify-between px-2 group"><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('16A', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16A">16A</button><button onclick="handleSeatClick('16B', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16B">16B</button><button onclick="handleSeatClick('16C', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16C">16C</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">16</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('16D', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16D">16D</button><button onclick="handleSeatClick('16E', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16E">16E</button><button onclick="handleSeatClick('16F', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16F">16F</button></div><div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">16</div><div class="grid grid-cols-3 gap-1.5 w-[124px]"><button onclick="handleSeatClick('16J', 'Standard Seat', 'Aisle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16J">16J</button><button onclick="handleSeatClick('16K', 'Standard Seat', 'Middle')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16K">16K</button><button onclick="handleSeatClick('16L', 'Standard Seat', 'Window')" class="seat-btn seat-available bg-white border-slate-300 text-slate-800 h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat 16L">16L</button></div></div></div></div>
+<div class="space-y-6 max-w-2xl mx-auto" id="dynamic-seatmap-root"></div>
 <!-- Rear Galley & Lavatory Indicator -->
 <div class="mt-8 pt-5 border-t border-slate-200 flex items-center justify-around text-[10px] font-bold uppercase tracking-wider text-slate-400">
 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-<span class="">🚻 Rear Lavatory</span>
+<span>🚻 Rear Lavatory</span>
 </div>
 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-<span class="">🍽 Aft Galley Service</span>
+<span>🍽 Aft Galley Service</span>
 </div>
 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-<span class="">🚻 Rear Lavatory</span>
+<span>🚻 Rear Lavatory</span>
 </div>
 </div>
 </div>
 </div>
+
 <!-- RIGHT: Sticky "Your Selection" Itinerary & Passenger Assignment Panel (lg:col-span-4) -->
-<aside class="lg:col-span-4 w-full lg:sticky lg:top-24">
+<aside class="lg:col-span-4 w-full lg:sticky lg:top-6 z-20 self-start">
 <div class="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
 <!-- Summary Header -->
 <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -312,121 +320,84 @@
 <h2 class="text-lg font-extrabold text-[#0B192C]">Your Selection</h2>
 </div>
 <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-              Complimentary
-            </span>
+  Complimentary
+</span>
 </div>
 <!-- Current Flight Segment Details Card -->
 <div class="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
 <div class="flex items-center justify-between mb-2">
-<span class="text-xs font-bold uppercase text-[#0B192C] bg-white px-2 py-0.5 rounded border border-slate-200" id="summary-segment-tag">SEGMENT 2 OF 3</span>
-<span class="text-xs font-bold text-slate-700 font-mono" id="summary-flight-code">SB 929</span>
+<span class="text-xs font-bold uppercase text-[#0B192C] bg-white px-2 py-0.5 rounded border border-slate-200" id="summary-segment-tag">SEGMENT 1 OF 1</span>
+<span class="text-xs font-bold text-slate-700 font-mono" id="summary-flight-code">SB 101</span>
 </div>
 <!-- Route and timing -->
 <div class="flex items-center justify-between my-3">
 <div>
-<div class="text-xl font-extrabold text-[#0B192C] tracking-tight font-mono" id="summary-dep-time">09:15</div>
-<div class="text-xs font-semibold text-slate-500" id="summary-dep-city">Dubai (DXB)</div>
+<div class="text-xl font-extrabold text-[#0B192C] tracking-tight font-mono" id="summary-dep-time">08:30</div>
+<div class="text-xs font-semibold text-slate-500" id="summary-dep-city">Cairo (CAI)</div>
 </div>
 <div class="flex flex-col items-center px-2">
-<span class="text-[10px] font-bold text-slate-400" id="summary-duration">7h 45m</span>
+<span class="text-[10px] font-bold text-slate-400" id="summary-duration">3h 30m</span>
 <div class="w-16 h-px bg-slate-300 relative my-1">
 <svg class="w-2.5 h-2.5 text-[#C5A880] absolute left-1/2 -top-1 -translate-x-1/2" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>
 </div>
 <span class="text-[9px] font-medium text-emerald-600">Non-stop</span>
 </div>
 <div class="text-right">
-<div class="text-xl font-extrabold text-[#0B192C] tracking-tight font-mono" id="summary-arr-time">14:00</div>
-<div class="text-xs font-semibold text-slate-500" id="summary-arr-city">London (LHR)</div>
+<div class="text-xl font-extrabold text-[#0B192C] tracking-tight font-mono" id="summary-arr-time">12:00</div>
+<div class="text-xs font-semibold text-slate-500" id="summary-arr-city">Dubai (DXB)</div>
 </div>
 </div>
 <div class="text-[11px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-200">
-<span class="" id="summary-date">Friday, 18 Sep 2026</span>
-<span class="font-medium text-slate-700" id="summary-aircraft-disp">Boeing 787-9 Dreamliner</span>
+<span id="summary-date">Scheduled</span>
+<span class="font-medium text-slate-700" id="summary-aircraft-disp">Airbus A350-1000</span>
 </div>
 </div>
 <!-- Multi-Passenger Seat Selection List -->
 <div class="mt-4 space-y-3">
 <div class="flex items-center justify-between text-xs">
 <span class="font-bold text-slate-700 uppercase tracking-wider text-[11px]">PASSENGER SEAT ASSIGNMENTS</span>
-<span class="px-2 py-0.5 rounded-md bg-[#0B192C] text-[#C5A880] font-bold text-[10px]" id="summary-seats-counter-badge">2 of 2 Seats Selected</span>
+<span class="px-2 py-0.5 rounded-md bg-[#0B192C] text-[#C5A880] font-bold text-[10px]" id="summary-seats-counter-badge">0 of 1 Seat Selected</span>
 </div>
 <div class="text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center justify-between">
-<span class="">Click a passenger card to assign or reassign their seat:</span>
+<span>Click a card to assign or change seat:</span>
 </div>
-<!-- Passenger 1 Summary Card -->
-<div class="cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-white border-slate-200 hover:border-slate-300 relative group" id="summary-pax1-box" onclick="setActivePassenger(1)">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-2.5">
-<div class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-300 transition-transform group-hover:scale-105" id="pax1-avatar">P1</div>
-<div>
-<div class="flex items-center gap-1.5">
-<div class="text-xs font-bold text-[#0B192C]">Passenger 1 (Adult)</div>
-<span class="text-[9px] bg-amber-100 text-[#8A6834] font-bold px-1.5 py-0.5 rounded font-mono hidden" id="pax1-active-tag">ACTIVE</span>
-</div>
-<div class="text-[11px] text-slate-500" id="pax1-details-label">Standard Seat • Aisle • Row 11</div>
-</div>
-</div>
-<div class="text-right">
-<span class="text-lg font-extrabold font-mono px-2.5 py-0.5 rounded-md inline-block shadow-xs bg-slate-100 text-[#0B192C] border border-slate-200" id="pax1-seat-disp">11F</span>
-<span class="text-[10px] text-emerald-600 font-bold block mt-0.5" id="pax1-status-badge">Included</span>
-</div>
-</div>
-</div>
-<!-- Passenger 2 Summary Card -->
-<div class="cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-amber-50/60 border-[#C5A880] ring-2 ring-[#C5A880]/30 shadow-md relative group" id="summary-pax2-box" onclick="setActivePassenger(2)">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-2.5">
-<div class="w-7 h-7 rounded-full bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-xs border border-[#C5A880] transition-transform scale-105 shadow-sm" id="pax2-avatar">P2</div>
-<div>
-<div class="flex items-center gap-1.5">
-<div class="text-xs font-bold text-[#0B192C]">Passenger 2 (Adult)</div>
-<span class="text-[9px] bg-amber-100 text-[#8A6834] font-bold px-1.5 py-0.5 rounded font-mono" id="pax2-active-tag">ACTIVE</span>
-</div>
-<div class="text-[11px] text-slate-500" id="pax2-details-label">Extra Legroom • Window • Row 10</div>
-</div>
-</div>
-<div class="text-right">
-<span class="text-lg font-extrabold font-mono px-2.5 py-0.5 rounded-md inline-block shadow-xs bg-[#0B192C] text-[#C5A880] border border-[#C5A880]" id="pax2-seat-disp">10L</span>
-<span class="text-[10px] text-emerald-600 font-bold block mt-0.5" id="pax2-status-badge">Included</span>
-</div>
-</div>
-</div>
+<!-- Passenger Selection Container -->
+<div id="passenger-selection-list" class="space-y-2.5"></div>
 </div>
 <!-- Total Fare -->
 <div class="mt-5 pt-4 border-t border-slate-100 flex items-baseline justify-between">
 <div>
-<span class="text-xs text-slate-500 font-medium block">Total Fare (2 Adults)</span>
-<span class="text-[11px] text-slate-400">Includes 3 segments, taxes &amp; fees</span>
+<span class="text-xs text-slate-500 font-medium block" id="summary-fare-label">Total Fare</span>
+<span class="text-[11px] text-slate-400" id="summary-fare-sub">Includes taxes &amp; fees</span>
 </div>
 <div class="text-right">
-<span class="text-2xl font-extrabold text-[#0B192C] font-mono">$3,840</span>
+<span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="summary-total-fare">$3,840</span>
 <span class="text-xs text-slate-400 font-bold ml-0.5">USD</span>
 </div>
 </div>
 <!-- Action Buttons -->
 <div class="mt-6 space-y-2.5">
 <button class="w-full py-3.5 px-4 rounded-xl bg-[#0B192C] text-white font-bold text-sm hover:bg-slate-900 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.99] group cursor-pointer" id="primary-action-btn" onclick="handlePrimaryAction()">
-<span class="" id="primary-btn-label">Next: Select Seat for LHR → JFK</span>
-<svg class="w-4 h-4 text-[#C5A880] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-<path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
+<span id="primary-btn-label">Continue to Passenger Details →</span>
 </button>
 <a class="w-full py-2.5 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5" href="/Flight/Results">
-              Back to Flights
-            </a>
+  Back to Flights
+</a>
 </div>
 <!-- Security Badges -->
 <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-4 text-[11px] text-slate-400">
 <span class="flex items-center gap-1">
 <svg class="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" fill-rule="evenodd"></path></svg>
-              Guaranteed Seating
-            </span>
-<span class="">•</span>
-<span class="">Instant Confirmation</span>
+  Guaranteed Seating
+</span>
+<span>•</span>
+<span>Instant Confirmation</span>
 </div>
 </div>
 </aside>
 </div>
+
+</div> <!-- End max-w-7xl container -->
 
 @section Scripts {
 <script>
@@ -450,41 +421,44 @@
           }
         }
       }
-    }
-  </script>
+    };
+</script>
 <script>
     // ============================================================
-    // AUTO SEAT-MAP GENERATOR
-    // Mirrors the "Add Aircraft" form in the ops console: you hand it
-    // three numbers — seats in First, Business, and Economy — and it
-    // lays out rows, aisles, and seat letters on its own. Nobody has
-    // to hand-author a seat button ever again.
-    //
-    // How it works:
-    //  1. CABIN_LAYOUTS defines the *shape* of one row per cabin type
-    //     (e.g. Economy is 3-3-3: three seats, aisle, three seats,
-    //     aisle, three seats). This is the only place layout patterns
-    //     live — change it once and every aircraft using that cabin
-    //     type updates.
-    //  2. buildCabin() takes a seat COUNT and divides it by the row's
-    //     seat capacity to work out how many rows are needed, then
-    //     numbers those rows starting at `startRow`. Seat counts are
-    //     rounded up to the nearest full row, same as a real aircraft.
-    //  3. buildAircraft() chains First → Business → Economy, leaving
-    //     a 1-row gap between cabins for the galley/divider, and
-    //     returns the exact same `{ cabins: [...] }` shape the
-    //     existing renderSeatMap()/updateAllViews() code already
-    //     knows how to draw — so nothing else in this file changes.
-    //
-    // To add a new aircraft: call buildAircraft() with a model name
-    // and a { first, business, economy } seat count. That's it.
+    // SEAT-MAP ENGINE & CABIN LAYOUTS
     // ============================================================
     const CABIN_LAYOUTS = {
-      first:    { name: 'FIRST CLASS',    badge: '1-2-1 SOVEREIGN SUITES',     groups: [['A'], ['D', 'G'], ['K']] },
-      business: { name: 'BUSINESS CLASS', badge: '1-2-1 DIRECT AISLE ACCESS', groups: [['A'], ['D', 'G'], ['K']] },
-      economy:  { name: 'ECONOMY CLASS',  badge: '3-3-3 MODERN LAYOUT',       groups: [['A', 'B', 'C'], ['D', 'E', 'F'], ['H', 'J', 'K']] }
+      first:    { name: 'FIRST CLASS',    badge: '2-2 SOVEREIGN SUITES',       groups: [['A', 'B'], ['C', 'D']] },
+      business: { name: 'BUSINESS CLASS', badge: '3-3 DIRECT AISLE ACCESS',   groups: [['A', 'B', 'C'], ['D', 'E', 'F']] },
+      economy:  { name: 'ECONOMY CLASS',  badge: '3-3 MODERN LAYOUT',         groups: [['A', 'B', 'C'], ['D', 'E', 'F']] }
     };
-    const CABIN_ROW_GAP = 1; // blank rows left between cabins for a galley/divider
+    const CABIN_ROW_GAP = 1;
+
+    function normalizeCabinKey(val) {
+      if (!val) return 'economy';
+      const str = String(val).toLowerCase().trim().replace(/[-_\s]/g, '');
+      if (str === 'fst' || str.includes('first') || str.includes('sovereign') || str.includes('suite')) return 'first';
+      if (str === 'bus' || str.includes('bus') || str.includes('biz')) return 'business';
+      return 'economy';
+    }
+
+    function getCabinDisplayName(key) {
+      const norm = normalizeCabinKey(key);
+      if (norm === 'first') return 'First Class';
+      if (norm === 'business') return 'Business Class';
+      return 'Economy Class';
+    }
+
+    function getSeatCabinType(aircraft, seatId) {
+      if (!aircraft || !aircraft.cabins) return 'economy';
+      const rowNum = parseInt(seatId, 10);
+      for (const cabin of aircraft.cabins) {
+        if (cabin.rows && cabin.rows.includes(rowNum)) {
+          return cabin.typeKey;
+        }
+      }
+      return 'economy';
+    }
 
     function buildCabin(typeKey, seatCount, startRow, reservedSeats = []) {
       const layout = CABIN_LAYOUTS[typeKey];
@@ -492,16 +466,13 @@
       const rowCount = Math.max(1, Math.ceil(seatCount / seatsPerRow));
       const rows = Array.from({ length: rowCount }, (_, i) => startRow + i);
 
-      // Sprinkle in some already-occupied seats so the map doesn't look
-      // empty on first load — but never touch a seat a demo passenger
-      // already holds (passed in via reservedSeats).
       const occupied = [];
       let seatIndex = 0;
       rows.forEach(rowNum => {
         layout.groups.flat().forEach(letter => {
           const seatId = `${rowNum}${letter}`;
           seatIndex++;
-          if (seatIndex % 6 === 0 && !reservedSeats.includes(seatId)) occupied.push(seatId);
+          if (seatIndex % 7 === 0 && !reservedSeats.includes(seatId)) occupied.push(seatId);
         });
       });
 
@@ -518,8 +489,6 @@
     }
 
     function buildAircraft({ model, category, flightNum, seats, reservedSeats = [] }) {
-      // `seats` is exactly what the ops-console "Add Aircraft" modal
-      // collects: { first, business, economy }. Nothing else needed.
       const cabinOrder = ['first', 'business', 'economy'];
       const cabins = [];
       let nextRow = 1;
@@ -532,8 +501,6 @@
         nextRow = cabin.rows[cabin.rows.length - 1] + 1 + CABIN_ROW_GAP;
       });
 
-      // Total reflects what actually got drawn (rounded to full rows),
-      // so the number shown to the customer always matches the map.
       const totalSeats = cabins.reduce((sum, c) => sum + c.rows.length * c.seatsPerRow, 0);
       const layoutTags = cabins.map(c => c.groups.map(g => g.length).join('-'));
 
@@ -542,104 +509,276 @@
         category,
         flightNum,
         totalSeats,
-        configLabel: `3 CABIN ARCHITECTURE • ${layoutTags.join(' / ')}`,
+        configLabel: `3 Cabins • ${layoutTags.join(' / ')}`,
         shortSpecs: `${totalSeats} seats • ${layoutTags[layoutTags.length - 1]} layout`,
         cabins
       };
     }
 
     const aircraftConfigs = {
-      // Just the three seat counts drive the entire map below.
       'B777-300ER': buildAircraft({
         model: 'Boeing 777-300ER',
         category: 'Flagship Wide-body',
         flightNum: 'SB 918',
-        seats: { first: 8, business: 12, economy: 54 },
+        seats: { first: 10, business: 48, economy: 180 },
         reservedSeats: ['10A', '10B']
       }),
       'B787-9': buildAircraft({
         model: 'Boeing 787-9 Dreamliner',
         category: 'Mid-sized Wide-body Carbon Composite',
         flightNum: 'SB 929',
-        seats: { first: 8, business: 12, economy: 63 },
+        seats: { first: 10, business: 48, economy: 180 },
         reservedSeats: ['9F', '8H']
       }),
       'A350-1000': buildAircraft({
         model: 'Airbus A350-1000',
         category: 'Next-Gen Ultra Long-Haul Wide-Body',
         flightNum: 'SB 101',
-        seats: { first: 8, business: 12, economy: 90 }
+        seats: { first: 10, business: 54, economy: 276 }
       })
     };
 
+    // Default booking state (hydrated by flight selections or URL params)
     const bookingState = {
-      activeSegment: 2,
-      activePassenger: 2,
+      activeSegment: 1,
+      activePassenger: 1,
+      passengerCount: 2,
+      totalFare: 3840,
       segments: {
         1: {
-          aircraftId: 'B777-300ER',
-          flightNum: 'SB 918',
+          aircraftId: 'A350-1000',
+          flightNum: 'SB 101',
+          aircraftName: 'Airbus A350-1000',
           route: 'Cairo (CAI) → Dubai (DXB)',
+          shortRoute: 'CAI → DXB',
           depCity: 'Cairo (CAI)',
           arrCity: 'Dubai (DXB)',
-          depTime: '14:20',
-          arrTime: '19:55',
-          duration: '3h 35m',
-          date: 'Friday, 11 Sep 2026',
+          depTime: '08:30',
+          arrTime: '12:00',
+          duration: '3h 30m',
+          date: 'Scheduled Departure',
+          bookedCabin: 'economy',
           passengers: {
-            1: { name: 'Passenger 1 (Adult)', seat: '10A', type: 'Standard Seat', pos: 'Window • Row 10' },
-            2: { name: 'Passenger 2 (Adult)', seat: '10B', type: 'Standard Seat', pos: 'Middle • Row 10' }
+            1: { name: 'Passenger 1 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null },
+            2: { name: 'Passenger 2 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null }
           }
         },
         2: {
           aircraftId: 'B787-9',
           flightNum: 'SB 929',
+          aircraftName: 'Boeing 787-9 Dreamliner',
           route: 'Dubai (DXB) → London (LHR)',
+          shortRoute: 'DXB → LHR',
           depCity: 'Dubai (DXB)',
           arrCity: 'London (LHR)',
           depTime: '09:15',
           arrTime: '14:00',
           duration: '7h 45m',
-          date: 'Friday, 18 Sep 2026',
+          date: 'Scheduled Connection',
+          bookedCabin: 'economy',
           passengers: {
-            1: { name: 'Passenger 1 (Adult)', seat: '9F', type: 'Standard Seat', pos: 'Aisle • Row 9' },
-            2: { name: 'Passenger 2 (Adult)', seat: '8H', type: 'Extra Legroom', pos: 'Window • Row 8' }
+            1: { name: 'Passenger 1 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null },
+            2: { name: 'Passenger 2 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null }
           }
         },
         3: {
-          aircraftId: 'A350-1000',
-          flightNum: 'SB 101',
+          aircraftId: 'B777-300ER',
+          flightNum: 'SB 918',
+          aircraftName: 'Boeing 777-300ER',
           route: 'London (LHR) → New York (JFK)',
+          shortRoute: 'LHR → JFK',
           depCity: 'London (LHR)',
           arrCity: 'New York (JFK)',
           depTime: '16:30',
           arrTime: '19:40',
           duration: '8h 10m',
-          date: 'Monday, 21 Sep 2026',
+          date: 'Scheduled Connection',
+          bookedCabin: 'economy',
           passengers: {
-            1: { name: 'Passenger 1 (Adult)', seat: null, type: null, pos: null },
-            2: { name: 'Passenger 2 (Adult)', seat: null, type: null, pos: null }
+            1: { name: 'Passenger 1 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null },
+            2: { name: 'Passenger 2 (Adult)', cabinClass: 'economy', seat: null, type: null, pos: null }
           }
         }
       }
     };
 
+    function applyStoredFlightSelections() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCabin = urlParams.get('cabinClass') || urlParams.get('cabin') || urlParams.get('class');
+
+        let ctxCabin = null;
+        try {
+          const ctx = JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null');
+          if (ctx && ctx.cabin) ctxCabin = ctx.cabin;
+        } catch (e) {}
+
+        let detectedPax = 1;
+        try {
+          const rawPaxCount = parseInt(sessionStorage.getItem('skybook_passenger_count') || '0', 10);
+          if (rawPaxCount > 0) {
+            detectedPax = rawPaxCount;
+          } else {
+            const ctx = JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null');
+            if (ctx && ctx.passengerCount) detectedPax = parseInt(ctx.passengerCount, 10);
+            else {
+              const pUrl = parseInt(urlParams.get('passengerCount') || urlParams.get('passengers') || '0', 10);
+              if (pUrl > 0) detectedPax = pUrl;
+            }
+          }
+        } catch (e) {}
+        if (!detectedPax || detectedPax < 1) detectedPax = 1;
+
+        const rawFlights = sessionStorage.getItem('skybook-selected-flights');
+        if (!rawFlights) {
+          // If no stored flights, update default segments with detected pax count and cabin
+          const fallbackCabin = normalizeCabinKey(urlCabin || ctxCabin || 'economy');
+          bookingState.passengerCount = detectedPax;
+          Object.values(bookingState.segments).forEach(seg => {
+            seg.bookedCabin = fallbackCabin;
+            seg.passengers = {};
+            for (let p = 1; p <= detectedPax; p++) {
+              seg.passengers[p] = {
+                name: `Passenger ${p} (Adult)`,
+                cabinClass: fallbackCabin,
+                seat: null,
+                type: null,
+                pos: null
+              };
+            }
+          });
+          return;
+        }
+
+        const data = JSON.parse(rawFlights);
+        if (!data || !data.segments || !Array.isArray(data.segments) || data.segments.length === 0) return;
+
+        const activeSegments = data.segments.filter(s => s && s.selectedFlight);
+        if (activeSegments.length === 0) return;
+
+        const paxCount = data.passengerCount || detectedPax || 1;
+        bookingState.passengerCount = paxCount;
+
+        const newSegments = {};
+        activeSegments.forEach((s, idx) => {
+          const segId = idx + 1;
+          const sf = s.selectedFlight;
+          const origin = s.fromCity || s.originCity || s.fromCode || s.originCode || 'Origin';
+          const dest = s.toCity || s.destCity || s.toCode || s.destCode || 'Destination';
+          const originCode = s.fromCode || s.originCode || 'DEP';
+          const destCode = s.toCode || s.destCode || 'ARR';
+
+          let aId = 'A350-1000';
+          const aName = (sf.aircraft || '').toUpperCase();
+          if (aName.includes('787')) aId = 'B787-9';
+          else if (aName.includes('777')) aId = 'B777-300ER';
+
+          const segCabin = normalizeCabinKey(sf.tierKey || sf.cabin || urlCabin || ctxCabin || 'economy');
+
+          const passengers = {};
+          for (let p = 1; p <= paxCount; p++) {
+            let pCabin = segCabin;
+            if (data.passengerCabinClasses && data.passengerCabinClasses[p]) {
+              pCabin = normalizeCabinKey(data.passengerCabinClasses[p]);
+            } else if (data.passengers && data.passengers[p - 1] && data.passengers[p - 1].cabinClass) {
+              pCabin = normalizeCabinKey(data.passengers[p - 1].cabinClass);
+            }
+
+            passengers[p] = {
+              name: `Passenger ${p} (Adult)`,
+              cabinClass: pCabin,
+              seat: null,
+              type: null,
+              pos: null
+            };
+          }
+
+          const rawFlightId = sf.dbId || sf.flightId || sf.cardId || (urlParams.get('flightId') ? parseInt(urlParams.get('flightId'), 10) : null);
+          newSegments[segId] = {
+            flightId: rawFlightId,
+            aircraftId: aId,
+            flightNum: sf.flightNum || `SB ${100 + segId}`,
+            aircraftName: sf.aircraft || (aId === 'B787-9' ? 'Boeing 787-9 Dreamliner' : aId === 'B777-300ER' ? 'Boeing 777-300ER' : 'Airbus A350-1000'),
+            route: `${origin} (${originCode}) → ${dest} (${destCode})`,
+            shortRoute: `${originCode} → ${destCode}`,
+            depCity: `${origin} (${originCode})`,
+            arrCity: `${dest} (${destCode})`,
+            depTime: sf.depTime || '08:30',
+            arrTime: sf.arrTime || '12:00',
+            duration: sf.duration || '3h 30m',
+            date: s.dateStr || s.date || 'Scheduled Departure',
+            bookedCabin: segCabin,
+            passengers: passengers
+          };
+        });
+
+        bookingState.segments = newSegments;
+        bookingState.activeSegment = 1;
+        bookingState.activePassenger = 1;
+
+        if (data.totalPrice) {
+          bookingState.totalFare = data.totalPrice;
+        }
+
+        loadOccupiedSeatsForSegment(bookingState.segments[1]);
+      } catch (e) {
+        console.warn('Error reading stored flight selections:', e);
+      }
+    }
+
+    async function loadOccupiedSeatsForSegment(seg) {
+      if (!seg) return;
+      try {
+        const flightId = seg.flightId || '';
+        const flightNum = encodeURIComponent(seg.flightNum || '');
+        const res = await fetch(`/Booking/GetOccupiedSeats?flightId=${flightId}&flightNumber=${flightNum}`);
+        if (res.ok) {
+          const occupiedList = await res.json();
+          if (Array.isArray(occupiedList)) {
+            seg.serverOccupied = occupiedList;
+            renderSeatMap();
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load occupied seats:', e);
+      }
+    }
+
     function renderSeatMap() {
       const seg = bookingState.segments[bookingState.activeSegment];
-      const aircraft = aircraftConfigs[seg.aircraftId];
+      if (!seg) return;
+      const aircraft = aircraftConfigs[seg.aircraftId] || aircraftConfigs['A350-1000'];
       const root = document.getElementById('dynamic-seatmap-root');
       if (!root) return;
       root.innerHTML = '';
 
+      const currPaxId = bookingState.activePassenger;
+      const currPax = seg.passengers[currPaxId];
+      const allowedCabin = normalizeCabinKey(currPax?.cabinClass || seg.bookedCabin || 'economy');
+
       aircraft.cabins.forEach((cabin, cIndex) => {
         const cabinWrapper = document.createElement('div');
         cabinWrapper.className = 'space-y-3';
+        cabinWrapper.id = `cabin-section-${cabin.typeKey}`;
 
+        const isCabinAllowed = (cabin.typeKey === allowedCabin);
         const headerDiv = document.createElement('div');
         const isFirst = cabin.typeKey === 'first';
         const isBusiness = cabin.typeKey === 'business';
 
-        if (isFirst) {
+        if (!isCabinAllowed) {
+          // Locked / Disabled cabin section header
+          headerDiv.className = 'flex items-center justify-between py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-100/90 text-slate-500 shadow-xs transition-all';
+          headerDiv.innerHTML = `
+            <div class="flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+              <span class="tracking-wider uppercase text-xs font-bold text-slate-500">${cabin.name}</span>
+            </div>
+            <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-md border border-slate-200 bg-white text-slate-400 font-mono tracking-wide shadow-xs flex items-center gap-1">
+              🔒 ${cabin.badge} (Other Class)
+            </span>
+          `;
+        } else if (isFirst) {
           headerDiv.className = 'flex items-center justify-between py-2.5 px-3.5 rounded-xl border border-[#C5A880]/50 bg-gradient-to-r from-amber-500/15 via-[#C5A880]/20 to-amber-500/10 shadow-sm';
           headerDiv.innerHTML = `
             <div class="flex items-center gap-2.5">
@@ -670,7 +809,7 @@
         cabinWrapper.appendChild(headerDiv);
 
         const letterRow = document.createElement('div');
-        letterRow.className = 'flex items-center justify-between px-2 text-xs font-mono font-bold text-slate-400 select-none';
+        letterRow.className = `flex items-center justify-between px-2 text-xs font-mono font-bold ${isCabinAllowed ? 'text-slate-400' : 'text-slate-300'} select-none`;
 
         let letterHtml = '';
         cabin.groups.forEach((group, gIdx) => {
@@ -703,7 +842,7 @@
 
             group.forEach(letter => {
               const seatId = `${rowNum}${letter}`;
-              const isOccupied = cabin.occupied && cabin.occupied.includes(seatId);
+              const isOccupied = (cabin.occupied && cabin.occupied.includes(seatId)) || (seg.serverOccupied && seg.serverOccupied.includes(seatId));
 
               let pos = 'Aisle';
               if (letter === group[0] && gIdx === 0) pos = 'Window';
@@ -712,22 +851,36 @@
 
               let seatType = isFirst ? 'First Class Suite' : isBusiness ? 'Business Suite' : isExtraLegroom ? 'Extra Legroom' : 'Standard Seat';
 
-              const p1Seat = seg.passengers[1].seat;
-              const p2Seat = seg.passengers[2].seat;
-              const isP1 = p1Seat === seatId;
-              const isP2 = p2Seat === seatId;
+              const paxKeys = Object.keys(seg.passengers);
+              let assignedPaxId = null;
+              for (const pId of paxKeys) {
+                if (seg.passengers[pId].seat === seatId) {
+                  assignedPaxId = pId;
+                  break;
+                }
+              }
 
               if (isOccupied) {
                 rowHtml += `<button disabled class="seat-btn seat-occupied h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Occupied)">✕</button>`;
-              } else if (isP1) {
-                rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-selected-p1 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Assigned to Passenger 1 - Click to unassign or switch)">
+              } else if (assignedPaxId === '1') {
+                rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-selected-p1 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Passenger 1)">
                   <span>${seatId}</span>
                   <span class="seat-pax-tag bg-slate-300 text-slate-900">P1</span>
                 </button>`;
-              } else if (isP2) {
-                rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-selected-p2 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Assigned to Passenger 2 - Click to unassign or switch)">
+              } else if (assignedPaxId === '2') {
+                rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-selected-p2 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Passenger 2)">
                   <span>${seatId}</span>
                   <span class="seat-pax-tag bg-[#C5A880] text-[#0B192C]">P2</span>
+                </button>`;
+              } else if (assignedPaxId) {
+                rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-selected-p1 h-9 rounded-md border text-[11px] flex items-center justify-center font-mono" title="Seat ${seatId} (Passenger ${assignedPaxId})">
+                  <span>${seatId}</span>
+                  <span class="seat-pax-tag bg-amber-300 text-slate-900">P${assignedPaxId}</span>
+                </button>`;
+              } else if (!isCabinAllowed) {
+                // Seat in another cabin class: visible for reference, clearly disabled and non-clickable
+                rowHtml += `<button disabled class="seat-btn seat-cabin-restricted h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono cursor-not-allowed" title="Seat ${seatId} (${cabin.name} - Not selectable for Passenger ${currPaxId})">
+                  <span class="opacity-40">${seatId}</span>
                 </button>`;
               } else if (isFirst) {
                 rowHtml += `<button onclick="handleSeatClick('${seatId}', '${seatType}', '${pos}')" class="seat-btn seat-available seat-first h-9 rounded-md border text-[11px] font-semibold flex items-center justify-center font-mono" title="Seat ${seatId} (${seatType})">${seatId}</button>`;
@@ -743,7 +896,7 @@
             rowHtml += `</div>`;
 
             if (gIdx < cabin.groups.length - 1) {
-              rowHtml += `<div class="w-5 text-center text-[10px] font-mono font-bold text-slate-400 select-none">${rowNum}</div>`;
+              rowHtml += `<div class="w-5 text-center text-[10px] font-mono font-bold ${isCabinAllowed ? 'text-slate-400' : 'text-slate-300'} select-none">${rowNum}</div>`;
             }
           });
 
@@ -764,72 +917,143 @@
 
     function handleSeatClick(seatId, type, pos) {
       const seg = bookingState.segments[bookingState.activeSegment];
-      const currPax = bookingState.activePassenger;
-      const otherPax = currPax === 1 ? 2 : 1;
+      if (!seg) return;
 
-      // If clicked the current passenger's own seat, unassign it
-      if (seg.passengers[currPax].seat === seatId) {
-        seg.passengers[currPax].seat = null;
-        seg.passengers[currPax].type = null;
-        seg.passengers[currPax].pos = null;
+      // Prevent selecting seat if occupied in database or already reserved
+      if (seg.serverOccupied && seg.serverOccupied.includes(seatId)) {
+        return;
+      }
+
+      const currPax = bookingState.activePassenger;
+      const paxKeys = Object.keys(seg.passengers).map(Number);
+      const currPaxObj = seg.passengers[currPax];
+
+      // If clicked current passenger's own seat, unassign it
+      if (currPaxObj && currPaxObj.seat === seatId) {
+        currPaxObj.seat = null;
+        currPaxObj.type = null;
+        currPaxObj.pos = null;
         updateAllViews();
         return;
       }
 
-      // If clicked the other passenger's seat, unassign other passenger so current takes it
-      if (seg.passengers[otherPax].seat === seatId) {
-        seg.passengers[otherPax].seat = null;
-        seg.passengers[otherPax].type = null;
-        seg.passengers[otherPax].pos = null;
+      // Enforce cabin/class restriction: verify seat belongs to active passenger's allowed cabin
+      const aircraft = aircraftConfigs[seg.aircraftId] || aircraftConfigs['A350-1000'];
+      const seatCabin = getSeatCabinType(aircraft, seatId);
+      const allowedCabin = normalizeCabinKey(currPaxObj?.cabinClass || seg.bookedCabin || 'economy');
+
+      if (seatCabin !== allowedCabin) {
+        console.warn(`Seat ${seatId} (${seatCabin}) is not permitted for Passenger ${currPax} (${allowedCabin}).`);
+        return;
       }
 
-      // Assign to current passenger
-      seg.passengers[currPax].seat = seatId;
-      seg.passengers[currPax].type = type;
-      seg.passengers[currPax].pos = `${pos} • Row ${seatId.replace(/\D/g, '')}`;
+      // If clicked another passenger's seat, unassign that passenger
+      paxKeys.forEach(pId => {
+        if (pId !== currPax && seg.passengers[pId].seat === seatId) {
+          seg.passengers[pId].seat = null;
+          seg.passengers[pId].type = null;
+          seg.passengers[pId].pos = null;
+        }
+      });
 
-      // Automatically flip focus to other passenger if they don't have a seat yet
-      if (!seg.passengers[otherPax].seat) {
-        bookingState.activePassenger = otherPax;
+      // Assign seat to current passenger
+      if (currPaxObj) {
+        currPaxObj.seat = seatId;
+        currPaxObj.type = type;
+        currPaxObj.pos = `${pos} • Row ${seatId.replace(/\D/g, '')}`;
       }
 
-      updateAllViews();
+      // Automatically move focus to next unassigned passenger if any
+      const nextUnassigned = paxKeys.find(pId => !seg.passengers[pId].seat);
+      if (nextUnassigned) {
+        setActivePassenger(nextUnassigned);
+      } else {
+        updateAllViews();
+      }
     }
 
     function setActivePassenger(paxId) {
       bookingState.activePassenger = paxId;
       updateAllViews();
+      scrollToBookedCabin();
+    }
+
+    function scrollToBookedCabin() {
+      setTimeout(() => {
+        const seg = bookingState.segments[bookingState.activeSegment];
+        const currPax = bookingState.activePassenger;
+        const paxObj = seg?.passengers?.[currPax];
+        const bookedKey = normalizeCabinKey(paxObj?.cabinClass || seg?.bookedCabin || 'economy');
+        const targetId = `cabin-section-${bookedKey}`;
+        const el = document.getElementById(targetId) || document.getElementById('cabin-section-economy');
+        if (el) {
+          const headerOffset = 90;
+          const elementPosition = el.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
     }
 
     function switchSegment(segId) {
+      if (!bookingState.segments[segId]) return;
       bookingState.activeSegment = segId;
       const seg = bookingState.segments[segId];
-      if (!seg.passengers[1].seat) {
-        bookingState.activePassenger = 1;
-      } else if (!seg.passengers[2].seat) {
-        bookingState.activePassenger = 2;
-      } else {
-        bookingState.activePassenger = 1;
-      }
+      const paxKeys = Object.keys(seg.passengers).map(Number);
+      const unassigned = paxKeys.find(pId => !seg.passengers[pId].seat);
+      bookingState.activePassenger = unassigned || paxKeys[0] || 1;
+      loadOccupiedSeatsForSegment(seg);
       updateAllViews();
+      scrollToBookedCabin();
     }
 
     function updateAllViews() {
       const segId = bookingState.activeSegment;
       const seg = bookingState.segments[segId];
-      const aircraft = aircraftConfigs[seg.aircraftId];
+      if (!seg) return;
+      const aircraft = aircraftConfigs[seg.aircraftId] || aircraftConfigs['A350-1000'];
       const currPax = bookingState.activePassenger;
 
+      // Update segment selector grid layout
+      const segIds = Object.keys(bookingState.segments).map(Number);
+      const totalSegs = segIds.length;
+      const grid = document.getElementById('segment-cards-grid');
+      if (grid) {
+        if (totalSegs === 1) grid.className = "grid grid-cols-1 gap-3.5 max-w-sm";
+        else if (totalSegs === 2) grid.className = "grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-2xl";
+        else grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-4xl";
+      }
+
       [1, 2, 3].forEach(id => {
+        const wrapper = document.getElementById(`segment-wrapper-${id}`);
+        if (!bookingState.segments[id]) {
+          if (wrapper) wrapper.style.display = 'none';
+          return;
+        }
+        if (wrapper) wrapper.style.display = 'flex';
+
+        const s = bookingState.segments[id];
+        const a = aircraftConfigs[s.aircraftId] || aircraftConfigs['A350-1000'];
         const tab = document.getElementById(`segment-tab-${id}`);
         const num = document.getElementById(`tab-${id}-num`);
+        const route = document.getElementById(`tab-${id}-route`);
         const card = document.getElementById(`aircraft-spec-card-${id}`);
+        const cardFlightNum = document.getElementById(`card-flightnum-${id}`);
+        const cardModel = document.getElementById(`card-model-${id}`);
+        const cardSpecs = document.getElementById(`card-specs-${id}`);
         const status = document.getElementById(`tab-${id}-status`);
 
-        const p1 = bookingState.segments[id].passengers[1].seat;
-        const p2 = bookingState.segments[id].passengers[2].seat;
-        const count = (p1 ? 1 : 0) + (p2 ? 1 : 0);
-        if (status) status.textContent = `(${count}/2 Selected)`;
+        if (route) route.textContent = s.shortRoute || s.route;
+        if (cardFlightNum) cardFlightNum.textContent = s.flightNum;
+        if (cardModel) cardModel.textContent = s.aircraftName || a.model;
+        if (cardSpecs) cardSpecs.textContent = a.shortSpecs;
+
+        const paxKeys = Object.keys(s.passengers);
+        const selectedCount = paxKeys.filter(k => s.passengers[k].seat).length;
+        if (status) status.textContent = `(${selectedCount}/${paxKeys.length} Selected)`;
 
         if (segId === id) {
           if (tab) tab.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm border border-[#0B192C]";
@@ -852,22 +1076,13 @@
         }
       });
 
-      const headerRoute = document.getElementById('header-route-label');
-      if (headerRoute) headerRoute.textContent = seg.route;
-      const headerDate = document.getElementById('header-date-label');
-      if (headerDate) headerDate.textContent = seg.date;
-      const headerSpec = document.getElementById('header-flight-spec');
-      if (headerSpec) headerSpec.textContent = `${aircraft.flightNum} • ${aircraft.model}`;
-      const badgeModel = document.getElementById('badge-aircraft-model');
-      if (badgeModel) badgeModel.textContent = aircraft.model;
-      const badgeSeats = document.getElementById('badge-total-seats');
-      if (badgeSeats) badgeSeats.textContent = aircraft.totalSeats;
-
+      // Update Fuselage Header Banner
       const fuselageName = document.getElementById('fuselage-aircraft-name');
-      if (fuselageName) fuselageName.textContent = aircraft.model.toUpperCase();
+      if (fuselageName) fuselageName.textContent = (seg.aircraftName || aircraft.model).toUpperCase();
       const fuselageConfig = document.getElementById('fuselage-config-label');
-      if (fuselageConfig) fuselageConfig.textContent = aircraft.configLabel;
+      if (fuselageConfig) fuselageConfig.textContent = aircraft.shortSpecs || '3 Cabins • All Classes';
 
+      // Update Assigning Status Bar (with active passenger's cabin class)
       const assigneeLabel = document.getElementById('current-assignee-label');
       if (assigneeLabel) assigneeLabel.textContent = `Passenger ${currPax} (Adult)`;
       const assigneeBadge = document.getElementById('current-assignee-badge');
@@ -879,11 +1094,17 @@
           assigneeBadge.className = "w-5 h-5 rounded-full bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-[10px] ring-1 ring-[#C5A880]";
         }
       }
+      const assigneeCabin = document.getElementById('current-assignee-cabin');
+      const paxCabinName = getCabinDisplayName(seg.passengers[currPax]?.cabinClass || seg.bookedCabin);
+      if (assigneeCabin) {
+        assigneeCabin.textContent = paxCabinName.toUpperCase();
+      }
 
+      // Update Summary Sidebar
       const summaryTag = document.getElementById('summary-segment-tag');
-      if (summaryTag) summaryTag.textContent = `SEGMENT ${segId} OF 3`;
+      if (summaryTag) summaryTag.textContent = `SEGMENT ${segId} OF ${segIds.length}`;
       const summaryCode = document.getElementById('summary-flight-code');
-      if (summaryCode) summaryCode.textContent = aircraft.flightNum;
+      if (summaryCode) summaryCode.textContent = seg.flightNum;
       const depTime = document.getElementById('summary-dep-time');
       if (depTime) depTime.textContent = seg.depTime;
       const depCity = document.getElementById('summary-dep-city');
@@ -897,110 +1118,91 @@
       const summaryDate = document.getElementById('summary-date');
       if (summaryDate) summaryDate.textContent = seg.date;
       const summaryAircraft = document.getElementById('summary-aircraft-disp');
-      if (summaryAircraft) summaryAircraft.textContent = aircraft.model;
+      if (summaryAircraft) summaryAircraft.textContent = seg.aircraftName || aircraft.model;
 
-      const p1Seat = seg.passengers[1].seat;
-      const p2Seat = seg.passengers[2].seat;
-      const currentSegSeatsCount = (p1Seat ? 1 : 0) + (p2Seat ? 1 : 0);
+      // Summary Seats Counter
+      const paxKeys = Object.keys(seg.passengers).map(Number);
+      const assignedCount = paxKeys.filter(p => seg.passengers[p].seat).length;
       const seatsCounterBadge = document.getElementById('summary-seats-counter-badge');
-      if (seatsCounterBadge) seatsCounterBadge.textContent = `${currentSegSeatsCount} of 2 Seats Selected`;
-
-      const pax1Box = document.getElementById('summary-pax1-box');
-      const pax2Box = document.getElementById('summary-pax2-box');
-      const pax1Avatar = document.getElementById('pax1-avatar');
-      const pax2Avatar = document.getElementById('pax2-avatar');
-      const pax1Tag = document.getElementById('pax1-active-tag');
-      const pax2Tag = document.getElementById('pax2-active-tag');
-      const pax1Disp = document.getElementById('pax1-seat-disp');
-      const pax2Disp = document.getElementById('pax2-seat-disp');
-
-      if (p1Seat) {
-        if (pax1Disp) {
-          pax1Disp.textContent = p1Seat;
-          pax1Disp.className = "text-lg font-extrabold font-mono px-2.5 py-0.5 rounded-md inline-block shadow-xs " + (currPax === 1 ? "bg-[#0B192C] text-white border-2 border-[#0B192C]" : "bg-slate-100 text-[#0B192C] border border-slate-200");
-        }
-        const pax1Details = document.getElementById('pax1-details-label');
-        if (pax1Details) pax1Details.textContent = `${seg.passengers[1].type || 'Standard Seat'} • ${seg.passengers[1].pos || 'Seat'}`;
-        const pax1Status = document.getElementById('pax1-status-badge');
-        if (pax1Status) {
-          pax1Status.textContent = 'Included';
-          pax1Status.className = 'text-[10px] text-emerald-600 font-bold block mt-0.5';
-        }
-      } else {
-        if (pax1Disp) {
-          pax1Disp.textContent = '--';
-          pax1Disp.className = "text-lg font-extrabold text-slate-300 font-mono px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 inline-block";
-        }
-        const pax1Details = document.getElementById('pax1-details-label');
-        if (pax1Details) pax1Details.textContent = 'Click to select seat on map';
-        const pax1Status = document.getElementById('pax1-status-badge');
-        if (pax1Status) {
-          pax1Status.textContent = 'Seat not assigned';
-          pax1Status.className = 'text-[10px] text-amber-600 font-semibold block mt-0.5';
-        }
+      if (seatsCounterBadge) {
+        seatsCounterBadge.textContent = `${assignedCount} of ${paxKeys.length} ${paxKeys.length === 1 ? 'Seat' : 'Seats'} Selected`;
       }
 
-      if (p2Seat) {
-        if (pax2Disp) {
-          pax2Disp.textContent = p2Seat;
-          pax2Disp.className = "text-lg font-extrabold font-mono px-2.5 py-0.5 rounded-md inline-block shadow-xs " + (currPax === 2 ? "bg-[#0B192C] text-[#C5A880] border border-[#C5A880]" : "bg-slate-100 text-[#0B192C] border border-slate-200");
-        }
-        const pax2Details = document.getElementById('pax2-details-label');
-        if (pax2Details) pax2Details.textContent = `${seg.passengers[2].type || 'Standard Seat'} • ${seg.passengers[2].pos || 'Seat'}`;
-        const pax2Status = document.getElementById('pax2-status-badge');
-        if (pax2Status) {
-          pax2Status.textContent = 'Included';
-          pax2Status.className = 'text-[10px] text-emerald-600 font-bold block mt-0.5';
-        }
-      } else {
-        if (pax2Disp) {
-          pax2Disp.textContent = '--';
-          pax2Disp.className = "text-lg font-extrabold text-slate-300 font-mono px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 inline-block";
-        }
-        const pax2Details = document.getElementById('pax2-details-label');
-        if (pax2Details) pax2Details.textContent = 'Click to select seat on map';
-        const pax2Status = document.getElementById('pax2-status-badge');
-        if (pax2Status) {
-          pax2Status.textContent = 'Seat not assigned';
-          pax2Status.className = 'text-[10px] text-amber-600 font-semibold block mt-0.5';
-        }
+      // Dynamic Passenger Selection Cards in Right Sidebar
+      const paxListContainer = document.getElementById('passenger-selection-list');
+      if (paxListContainer) {
+        let listHtml = '';
+        paxKeys.forEach(pId => {
+          const isCur = (currPax === pId);
+          const pSeat = seg.passengers[pId]?.seat;
+          const pCabinName = getCabinDisplayName(seg.passengers[pId]?.cabinClass || seg.bookedCabin);
+          const pDetails = pSeat
+            ? `${pCabinName} • ${seg.passengers[pId].pos || 'Seat'}`
+            : `${pCabinName} • Click to select seat`;
+          const pStatusText = pSeat ? 'Included' : 'Seat not assigned';
+          const pStatusColor = pSeat ? 'text-emerald-600 font-bold' : 'text-amber-600 font-semibold';
+          const seatDispClass = pSeat
+            ? (isCur ? 'bg-[#0B192C] text-[#C5A880] border border-[#C5A880]' : 'bg-slate-100 text-[#0B192C] border border-slate-200')
+            : 'text-slate-300 bg-slate-50 border-slate-200';
+          const cardClass = isCur
+            ? 'cursor-pointer p-3 rounded-xl border-2 transition-all bg-amber-50/60 border-[#C5A880] ring-2 ring-[#C5A880]/30 shadow-md relative group'
+            : 'cursor-pointer p-3 rounded-xl border-2 transition-all bg-white border-slate-200 hover:border-slate-300 relative group';
+          const avatarClass = isCur
+            ? 'w-7 h-7 rounded-full bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-xs border border-[#C5A880] transition-transform scale-105 shadow-sm'
+            : 'w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-300 transition-transform group-hover:scale-105';
+
+          listHtml += `
+            <div class="${cardClass}" onclick="setActivePassenger(${pId})">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="${avatarClass}">P${pId}</div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <div class="text-xs font-bold text-[#0B192C]">Passenger ${pId} (Adult)</div>
+                      ${isCur ? '<span class="text-[9px] bg-amber-100 text-[#8A6834] font-bold px-1.5 py-0.5 rounded font-mono">ACTIVE</span>' : ''}
+                    </div>
+                    <div class="text-[11px] text-slate-500">${pDetails}</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-base font-extrabold font-mono px-2 py-0.5 rounded-md inline-block shadow-xs ${seatDispClass}">${pSeat || '--'}</span>
+                  <span class="text-[10px] ${pStatusColor} block mt-0.5">${pStatusText}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        paxListContainer.innerHTML = listHtml;
       }
 
-      if (currPax === 1) {
-        if (pax1Box) pax1Box.className = "cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-amber-50/60 border-[#C5A880] ring-2 ring-[#C5A880]/30 shadow-md relative group";
-        if (pax1Avatar) pax1Avatar.className = "w-7 h-7 rounded-full bg-[#0B192C] text-white flex items-center justify-center font-bold text-xs border border-slate-700 transition-transform scale-105 shadow-sm";
-        if (pax1Tag) pax1Tag.classList.remove('hidden');
-
-        if (pax2Box) pax2Box.className = "cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-white border-slate-200 hover:border-slate-300 relative group";
-        if (pax2Avatar) pax2Avatar.className = "w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-300 transition-transform group-hover:scale-105";
-        if (pax2Tag) pax2Tag.classList.add('hidden');
-      } else {
-        if (pax2Box) pax2Box.className = "cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-amber-50/60 border-[#C5A880] ring-2 ring-[#C5A880]/30 shadow-md relative group";
-        if (pax2Avatar) pax2Avatar.className = "w-7 h-7 rounded-full bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-xs border border-[#C5A880] transition-transform scale-105 shadow-sm";
-        if (pax2Tag) pax2Tag.classList.remove('hidden');
-
-        if (pax1Box) pax1Box.className = "cursor-pointer p-3.5 rounded-xl border-2 transition-all bg-white border-slate-200 hover:border-slate-300 relative group";
-        if (pax1Avatar) pax1Avatar.className = "w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-300 transition-transform group-hover:scale-105";
-        if (pax1Tag) pax1Tag.classList.add('hidden');
+      // Total Fare Display
+      const fareDisp = document.getElementById('summary-total-fare');
+      const fareLabel = document.getElementById('summary-fare-label');
+      if (fareLabel) {
+        fareLabel.textContent = `Total Fare (${paxKeys.length} ${paxKeys.length === 1 ? 'Adult' : 'Adults'})`;
+      }
+      if (fareDisp && bookingState.totalFare) {
+        fareDisp.textContent = `$${Number(bookingState.totalFare).toLocaleString()}`;
       }
 
+      // Primary Action Button
       const btn = document.getElementById('primary-action-btn');
       const btnLabel = document.getElementById('primary-btn-label');
-      const allSelectedForCurrentSeg = p1Seat && p2Seat;
+      const missingPax = paxKeys.find(p => !seg.passengers[p].seat);
+      const curSegIdx = segIds.indexOf(segId);
+      const isLastSeg = curSegIdx === segIds.length - 1;
 
-      if (!allSelectedForCurrentSeg) {
-        if (btn) btn.classList.add('opacity-80');
-        const missingPax = !p1Seat ? 1 : 2;
+      if (missingPax) {
+        if (btn) btn.classList.add('opacity-90');
         if (btnLabel) btnLabel.textContent = `Select Seat for Passenger ${missingPax} to Continue`;
       } else {
-        if (btn) btn.classList.remove('opacity-80');
+        if (btn) btn.classList.remove('opacity-90');
         if (btnLabel) {
-          if (segId === 1) {
-            btnLabel.textContent = "Next: Select Seat for DXB → LHR";
-          } else if (segId === 2) {
-            btnLabel.textContent = "Next: Select Seat for LHR → JFK";
+          if (!isLastSeg) {
+            const nextSeg = bookingState.segments[segIds[curSegIdx + 1]];
+            btnLabel.textContent = `Next: Select Seat for ${nextSeg.shortRoute || 'Next Flight'}`;
           } else {
-            btnLabel.textContent = "Continue to Confirmation";
+            btnLabel.textContent = "Continue to Passenger Details →";
           }
         }
       }
@@ -1008,46 +1210,107 @@
       renderSeatMap();
     }
 
-    function handlePrimaryAction() {
-      const seg = bookingState.segments[bookingState.activeSegment];
-      if (!seg.passengers[1].seat) {
-        setActivePassenger(1);
-        return;
-      }
-      if (!seg.passengers[2].seat) {
-        setActivePassenger(2);
-        return;
+    function autoAssignAvailableSeat(s, p) {
+      const a = aircraftConfigs[s.aircraftId] || aircraftConfigs['A350-1000'];
+      const pCabin = normalizeCabinKey(s.passengers[p].cabinClass || s.bookedCabin || 'economy');
+      const targetCabin = a.cabins.find(c => c.typeKey === pCabin) || a.cabins[0];
+      const assignedInSeg = Object.values(s.passengers).map(px => px.seat).filter(Boolean);
+      const serverOcc = s.serverOccupied || [];
+
+      for (const rowNum of targetCabin.rows) {
+        for (const group of targetCabin.groups) {
+          for (const letter of group) {
+            const seatId = `${rowNum}${letter}`;
+            if (!targetCabin.occupied.includes(seatId) && !serverOcc.includes(seatId) && !assignedInSeg.includes(seatId)) {
+              let pos = 'Aisle';
+              if (letter === group[0] && group === targetCabin.groups[0]) pos = 'Window';
+              else if (letter === group[group.length - 1] && group === targetCabin.groups[targetCabin.groups.length - 1]) pos = 'Window';
+              else if (group.length > 2 && letter !== group[0] && letter !== group[group.length - 1]) pos = 'Middle';
+              let type = pCabin === 'first' ? 'First Class Suite' : pCabin === 'business' ? 'Business Suite' : 'Standard Seat';
+              return { seatId, type, pos: `${pos} • Row ${rowNum}` };
+            }
+          }
+        }
       }
 
-      if (bookingState.activeSegment === 1) {
-        switchSegment(2);
-        window.scrollTo({ top: 120, behavior: 'smooth' });
-      } else if (bookingState.activeSegment === 2) {
-        switchSegment(3);
-        window.scrollTo({ top: 120, behavior: 'smooth' });
-      } else {
-        const seg1 = bookingState.segments[1];
-        const seg2 = bookingState.segments[2];
-        const seg3 = bookingState.segments[3];
-        const summary = document.getElementById('seat-confirmation-summary');
-        summary.innerHTML = [
-          `Flight 1 <span class="text-slate-400">CAI → DXB</span><div class="mt-1 text-xs text-slate-500">${aircraftConfigs[seg1.aircraftId].model} · P1 <strong class="text-[#0B192C]">${seg1.passengers[1].seat}</strong> · P2 <strong class="text-[#0B192C]">${seg1.passengers[2].seat}</strong></div>`,
-          `Flight 2 <span class="text-slate-400">DXB → LHR</span><div class="mt-1 text-xs text-slate-500">${aircraftConfigs[seg2.aircraftId].model} · P1 <strong class="text-[#0B192C]">${seg2.passengers[1].seat}</strong> · P2 <strong class="text-[#0B192C]">${seg2.passengers[2].seat}</strong></div>`,
-          `Flight 3 <span class="text-slate-400">LHR → JFK</span><div class="mt-1 text-xs text-slate-500">${aircraftConfigs[seg3.aircraftId].model} · P1 <strong class="text-[#0B192C]">${seg3.passengers[1].seat || 'Unassigned'}</strong> · P2 <strong class="text-[#0B192C]">${seg3.passengers[2].seat || 'Unassigned'}</strong></div>`
-        ].map((item) => `<div class="border-b border-slate-200 pb-2 last:border-0 last:pb-0">${item}</div>`).join('');
-        document.getElementById('seat-confirmation-modal').classList.remove('hidden');
-        document.getElementById('seat-confirmation-modal').classList.add('flex');
+      // Fallback: search across all cabins for an unoccupied seat
+      for (const cabin of a.cabins) {
+        for (const rowNum of cabin.rows) {
+          for (const group of cabin.groups) {
+            for (const letter of group) {
+              const seatId = `${rowNum}${letter}`;
+              if (!serverOcc.includes(seatId) && !assignedInSeg.includes(seatId)) {
+                return { seatId, type: 'Seat', pos: `Row ${rowNum}` };
+              }
+            }
+          }
+        }
       }
+
+      return { seatId: `${targetCabin.rows[0]}${String.fromCharCode(64 + p)}`, type: 'Seat', pos: 'Standard' };
     }
 
-    function closeSeatConfirmation() {
-      const modal = document.getElementById('seat-confirmation-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+    function handlePrimaryAction() {
+      const seg = bookingState.segments[bookingState.activeSegment];
+      if (!seg) return;
+      const paxKeys = Object.keys(seg.passengers).map(Number);
+      
+      // Auto-assign seats in the passenger's booked cabin if not selected
+      paxKeys.forEach((p) => {
+        if (!seg.passengers[p].seat) {
+          const av = autoAssignAvailableSeat(seg, p);
+          seg.passengers[p].seat = av.seatId;
+          seg.passengers[p].type = av.type;
+          seg.passengers[p].pos = av.pos;
+        }
+      });
+
+      const segIds = Object.keys(bookingState.segments).map(Number);
+      const curIdx = segIds.indexOf(bookingState.activeSegment);
+
+      if (curIdx < segIds.length - 1) {
+        const nextSegId = segIds[curIdx + 1];
+        switchSegment(nextSegId);
+      } else {
+        // Ensure all segments have seats in their cabin
+        for (let sId of segIds) {
+          const s = bookingState.segments[sId];
+          Object.keys(s.passengers).forEach((p) => {
+            if (!s.passengers[p].seat) {
+              const av = autoAssignAvailableSeat(s, p);
+              s.passengers[p].seat = av.seatId;
+              s.passengers[p].type = av.type;
+              s.passengers[p].pos = av.pos;
+            }
+          });
+        }
+
+        // All seats are assigned! Save to sessionStorage for Step 3 & 4
+        try {
+          sessionStorage.setItem('skybook-seat-assignments', JSON.stringify(bookingState.segments));
+          sessionStorage.setItem('skybook_passenger_count', bookingState.passengerCount);
+          const rawFlights = sessionStorage.getItem('skybook-selected-flights');
+          if (rawFlights) {
+            const fData = JSON.parse(rawFlights);
+            fData.passengerCount = bookingState.passengerCount;
+            sessionStorage.setItem('skybook-selected-flights', JSON.stringify(fData));
+          }
+          if (window.SkyBookProgress) {
+            window.SkyBookProgress.unlockStep(3);
+          }
+        } catch (e) {
+          console.warn('Could not save seat assignments:', e);
+        }
+
+        // Navigate to Passenger Details
+        window.location.href = '/Passenger/Details';
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      applyStoredFlightSelections();
       updateAllViews();
+      scrollToBookedCabin();
     });
-  </script>
+</script>
 }

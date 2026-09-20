@@ -24,9 +24,14 @@ body{overflow-y:auto!important;overflow-x:hidden;}
 #skybook-global-header .skybook-menu{background:none;border:0;color:#667085;cursor:pointer;display:none;font-size:24px;padding:6px}
 #skybook-booking-progress{background:#f8f9fa;border-bottom:1px solid #e2e8f0;font-family:'Plus Jakarta Sans',sans-serif;overflow-x:auto}
 #skybook-booking-progress .skybook-progress-inner{align-items:center;display:flex;gap:12px;justify-content:center;margin:0 auto;max-width:1280px;min-height:54px;padding:8px 24px;white-space:nowrap}
-#skybook-booking-progress .skybook-step{align-items:center;color:#98a2b3;display:flex;font-size:11px;font-weight:700;gap:7px;letter-spacing:.06em;padding:7px 10px;text-decoration:none}
-#skybook-booking-progress .skybook-step-number{align-items:center;background:#e9edf2;border-radius:50%;display:flex;font-size:11px;height:24px;justify-content:center;width:24px}
-#skybook-booking-progress .skybook-step.skybook-current{background:#fff8e7;border:1px solid rgba(197,168,128,.6);border-radius:999px;color:#0b192c}
+#skybook-booking-progress .skybook-step{align-items:center;color:#64748b;display:flex;font-size:11px;font-weight:700;gap:7px;letter-spacing:.06em;padding:7px 14px;text-decoration:none;border-radius:999px;transition:all .15s ease}
+#skybook-booking-progress .skybook-step.skybook-unlocked{cursor:pointer;color:#0b192c}
+#skybook-booking-progress .skybook-step.skybook-unlocked:hover{background:#edf2f7;color:#0b192c}
+#skybook-booking-progress .skybook-step.skybook-unlocked:hover .skybook-step-number{background:#0b192c;color:#fff}
+#skybook-booking-progress .skybook-step.skybook-disabled{opacity:0.35!important;cursor:not-allowed!important;pointer-events:none!important;color:#94a3b8!important;user-select:none!important}
+#skybook-booking-progress .skybook-step.skybook-disabled .skybook-step-number{background:#f1f5f9!important;color:#cbd5e1!important}
+#skybook-booking-progress .skybook-step-number{align-items:center;background:#e9edf2;border-radius:50%;display:flex;font-size:11px;height:24px;justify-content:center;width:24px;transition:all .15s ease}
+#skybook-booking-progress .skybook-step.skybook-current{background:#fff8e7;border:1px solid rgba(197,168,128,.6);border-radius:999px;color:#0b192c;cursor:default}
 #skybook-booking-progress .skybook-step.skybook-current .skybook-step-number{background:#0b192c;color:#fff}
 #skybook-booking-progress .skybook-separator{color:#cbd5e1;font-size:18px}
 body>header:not(#skybook-global-header){display:none!important}

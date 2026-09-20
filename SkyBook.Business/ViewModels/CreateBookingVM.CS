@@ -10,7 +10,7 @@ namespace SkyBook.Business.ViewModels
 
         [Required]
         public int SeatId { get; set; }
-        
+
 
         [Required]
         [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]

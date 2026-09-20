@@ -38,6 +38,22 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(FlightVM flight)
         {
+            if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
+            {
+                var stopsJson = Request.Form["StopsJson"].ToString();
+                if (!string.IsNullOrWhiteSpace(stopsJson))
+                {
+                    try
+                    {
+                        flight.Stops = System.Text.Json.JsonSerializer.Deserialize<List<FlightStopVM>>(
+                            stopsJson,
+                            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        ) ?? new List<FlightStopVM>();
+                    }
+                    catch { }
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Invalid flight details.";
@@ -61,6 +77,22 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(FlightVM flight)
         {
+            if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
+            {
+                var stopsJson = Request.Form["StopsJson"].ToString();
+                if (!string.IsNullOrWhiteSpace(stopsJson))
+                {
+                    try
+                    {
+                        flight.Stops = System.Text.Json.JsonSerializer.Deserialize<List<FlightStopVM>>(
+                            stopsJson,
+                            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        ) ?? new List<FlightStopVM>();
+                    }
+                    catch { }
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Invalid flight details.";

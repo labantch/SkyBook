@@ -1,8 +1,45 @@
+@model IEnumerable<SkyBook.Business.ViewModels.FlightVM>
+@inject SkyBook.Business.Interfaces.IFlightService FlightService
 @{
     ViewData["Title"] = "Flight Results";
     Layout = "_Layout";
     ViewData["ShowBookingProgress"] = true;
     ViewData["BookingStep"] = 1;
+
+    var modelFlights = Model?.ToList() ?? new List<SkyBook.Business.ViewModels.FlightVM>();
+    var availableFlights = modelFlights;
+
+    var flightsJson = System.Text.Json.JsonSerializer.Serialize(
+        availableFlights,
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+    );
+
+    var qMode = Context.Request.Query["mode"].ToString();
+    if (string.IsNullOrWhiteSpace(qMode)) qMode = Context.Request.Query["tripMode"].ToString();
+    if (string.IsNullOrWhiteSpace(qMode)) qMode = "round-trip";
+
+    var qOrigin = Context.Request.Query["origin"].ToString();
+    if (string.IsNullOrWhiteSpace(qOrigin)) qOrigin = Context.Request.Query["originCode"].ToString();
+    if (string.IsNullOrWhiteSpace(qOrigin)) qOrigin = "CAI";
+
+    var qOriginCity = Context.Request.Query["originCity"].ToString();
+    if (string.IsNullOrWhiteSpace(qOriginCity)) qOriginCity = qOrigin == "CAI" ? "Cairo" : qOrigin;
+
+    var qDest = Context.Request.Query["destination"].ToString();
+    if (string.IsNullOrWhiteSpace(qDest)) qDest = Context.Request.Query["destinationCode"].ToString();
+    if (string.IsNullOrWhiteSpace(qDest)) qDest = "DXB";
+
+    var qDestCity = Context.Request.Query["destinationCity"].ToString();
+    if (string.IsNullOrWhiteSpace(qDestCity)) qDestCity = qDest == "DXB" ? "Dubai" : qDest;
+
+    var qDep = Context.Request.Query["departure"].ToString();
+    if (string.IsNullOrWhiteSpace(qDep)) qDep = "Oct 24";
+
+    var qRet = Context.Request.Query["return"].ToString();
+    if (string.IsNullOrWhiteSpace(qRet)) qRet = "Nov 02";
+
+    var qPax = Context.Request.Query["passengers"].ToString();
+    if (string.IsNullOrWhiteSpace(qPax)) qPax = "1 Passenger, Business Class";
 }
 
 @section Styles {
@@ -11,6 +48,14 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #0F172A;
       background-color: #F8F9FA;
+    }
+    /* Stretch global header and booking progress bar to eliminate empty side gaps */
+    #skybook-global-header .skybook-header-inner,
+    #skybook-booking-progress .skybook-progress-inner {
+      max-width: 1680px !important;
+      width: 100% !important;
+      padding-left: 24px !important;
+      padding-right: 24px !important;
     }
     ::-webkit-scrollbar {
       width: 6px;
@@ -29,1023 +74,185 @@
     .bundle-col {
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-  </style>
+    .bundle-col:hover {
+      transform: translateY(-2px);
+    }
+</style>
 }
 
-<!-- STICKY TOP FILTER BAR (Clean, Single Horizontal Line, Unsquished) -->
-<div class="w-full flex flex-col sm:flex-row items-center justify-between pb-3 mb-3 border-b border-slate-200/80 gap-3" id="trip-mode-header-row"><div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-[#C5A880]"></span><span class="text-xs font-bold uppercase tracking-wider text-[#0B192C]">Trip Type</span></div><div class="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs shadow-sm"><button class="trip-toggle-btn px-3.5 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap cursor-pointer" id="toggle-btn-one-way" onclick="setTripMode('one-way')" type="button">One Way</button><button class="trip-toggle-btn px-3.5 py-1.5 rounded-md bg-[#0B192C] text-white font-bold shadow-sm whitespace-nowrap cursor-pointer" id="toggle-btn-round-trip" onclick="setTripMode('round-trip')" type="button">Round Trip</button><button class="trip-toggle-btn px-3.5 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap cursor-pointer" id="toggle-btn-multi-city" onclick="setTripMode('multi-city')" type="button">Multi-City</button></div></div><div class="w-full sticky bg-white shadow-sm border border-slate-200 rounded-xl py-3 px-4 mb-7 transition-all" id="horizontal-refine-bar" style="top: 0px; z-index: 40;">
-<div class="flex items-center justify-between gap-4 text-xs flex-nowrap overflow-x-auto">
-<!-- Filters Group -->
-<div class="flex items-center space-x-2 shrink-0">
-<div class="flex items-center space-x-1.5 text-[#0B192C] font-extrabold">
-<svg class="w-4 h-4 text-[#A0825B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-<span class="text-xs font-bold text-[#0B192C]">Filters</span>
-</div>
-<span class="h-4 w-px bg-slate-200 mx-1"></span>
-<label class="flex items-center space-x-1.5 cursor-pointer select-none">
-<input checked="" class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-nonstop" onchange="applyFilters()" type="checkbox">
-<span class="font-medium text-slate-700 text-xs whitespace-nowrap">Non-stop only</span>
-</label>
-</div>
-<!-- Departure Window Buttons -->
-<div class="flex items-center space-x-2 shrink-0">
-<span class="text-xs font-medium text-slate-600 whitespace-nowrap" id="filter-dep-label">Cairo Departure Window</span>
-<div class="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs" id="dep-window-group">
-<button class="dep-window-btn px-3 py-1 rounded-md bg-white font-bold text-[#0B192C] shadow-sm border border-slate-200 whitespace-nowrap" data-window="all" onclick="setDepartureWindow('all')" type="button">All</button>
-<button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="06-12" onclick="setDepartureWindow('06-12')" type="button">06–12</button>
-<button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="12-18" onclick="setDepartureWindow('12-18')" type="button">12–18</button>
-<button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="18-24" onclick="setDepartureWindow('18-24')" type="button">18–24</button>
-</div>
-</div>
-<!-- Cabin Selection -->
-<div class="flex items-center space-x-2 shrink-0">
-<span class="text-xs font-medium text-slate-600 whitespace-nowrap">Cabin:</span>
-<div class="flex items-center space-x-2 text-xs">
-<label class="flex items-center space-x-1 cursor-pointer select-none">
-<input checked="" class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-eco" onchange="applyFilters()" type="checkbox">
-<span class="text-slate-700">Eco</span>
-</label>
-<label class="flex items-center space-x-1 cursor-pointer select-none">
-<input checked="" class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-bus" onchange="applyFilters()" type="checkbox">
-<span class="text-slate-700">Bus</span>
-</label>
-<label class="flex items-center space-x-1 cursor-pointer select-none">
-<input checked="" class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-fst" onchange="applyFilters()" type="checkbox">
-<span class="text-slate-700">First</span>
-</label>
-</div>
-</div>
-<!-- Budget Slider -->
-<div class="flex items-center space-x-2.5 shrink-0">
-<span class="text-xs font-medium text-slate-600 whitespace-nowrap">Budget:</span>
-<input class="w-24 accent-[#0B192C] h-1.5 bg-slate-200 rounded appearance-none cursor-pointer" id="budget-slider" max="5000" min="800" oninput="handleBudgetChange(this.value)" step="50" type="range" value="4500">
-<span class="font-mono font-bold text-xs text-[#0B192C] bg-slate-100 px-2.5 py-1 rounded border border-slate-200 whitespace-nowrap" id="budget-val-badge">$4,500</span>
-</div>
-<!-- Reset CTA -->
-<div class="flex items-center shrink-0 pl-2 border-l border-slate-200">
-<button class="text-xs font-medium text-slate-500 hover:text-[#0B192C] underline transition-colors cursor-pointer" onclick="resetFilters()" type="button">Reset</button>
-</div>
-</div>
-</div>
-<!-- TWO-COLUMN LAYOUT -->
-<div class="flex flex-col lg:flex-row items-start gap-8">
-<!-- LEFT COLUMN: Sticky Trip Summary & Total -->
-<aside class="w-full lg:w-80 flex-shrink-0 self-start lg:sticky space-y-4" id="sidebar-left-column" style="top: 130px;">
-<div class="bg-white p-5 rounded-2xl border-2 border-[#0B192C] shadow-sm space-y-4" data-purpose="sidebar-trip-summary">
-<!-- Header -->
-<div class="flex items-center justify-between pb-3 border-b border-slate-100">
-<div class="flex items-center space-x-2">
-<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-<h3 class="font-bold text-sm text-[#0B192C] tracking-tight">Trip Summary &amp; Total</h3>
-</div>
-<span class="text-[10px] font-bold uppercase tracking-wider text-[#A0825B] bg-[#C5A880]/10 px-2 py-0.5 rounded-full">1 Adult</span>
-</div>
-<!-- Segments List Container -->
-<div class="space-y-3" id="sidebar-segments-container">
-          <div class="bg-slate-50 border-2 border-[#0B192C] shadow-sm rounded-xl p-3.5 transition cursor-pointer group" onclick="setActiveSegment(0)">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2.5">
-                <span class="w-5 h-5 rounded-full bg-[#0B192C] text-white flex items-center justify-center text-[10px] font-extrabold shadow-sm">
-                  ✓
-                </span>
-                <span class="font-extrabold text-xs text-[#0B192C]">CAI → DXB</span>
-              </div>
-              <span class="text-[11px] font-bold text-[#A0825B] group-hover:underline">
-                Viewing
-              </span>
+@section HeadScripts {
+<script>
+    sessionStorage.removeItem('skybook-selected-flights');
+    sessionStorage.removeItem('skybook-seat-assignments');
+    sessionStorage.removeItem('skybook-passenger-manifest');
+</script>
+}
+
+<!-- WIDE LUXURY CONTAINER (1680px, no awkward left/right empty gaps) -->
+<div class="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+
+
+
+  <!-- STICKY TOP FILTER BAR (Docked below 80px navbar) -->
+  <div class="w-full sticky bg-white shadow-sm border border-slate-200 rounded-xl py-3 px-5 transition-all" id="horizontal-refine-bar" style="top: 84px; z-index: 30;">
+    <div class="flex items-center justify-between gap-4 text-xs flex-nowrap overflow-x-auto">
+      
+      <!-- Filters Group -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <div class="flex items-center space-x-1.5 text-[#0B192C] font-extrabold">
+          <svg class="w-4 h-4 text-[#A0825B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+          <span class="text-xs font-bold text-[#0B192C]">Filters</span>
+        </div>
+        <span class="h-4 w-px bg-slate-200 mx-1"></span>
+        <label class="flex items-center space-x-1.5 cursor-pointer select-none">
+          <input class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-nonstop" onchange="applyFilters()" type="checkbox">
+          <span class="font-medium text-slate-700 text-xs whitespace-nowrap">Non-stop only</span>
+        </label>
+      </div>
+
+      <!-- Departure Window Buttons -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <span class="text-xs font-medium text-slate-600 whitespace-nowrap" id="filter-dep-label">Departure Window</span>
+        <div class="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs" id="dep-window-group">
+          <button class="dep-window-btn px-3 py-1 rounded-md bg-white font-bold text-[#0B192C] shadow-sm border border-slate-200 whitespace-nowrap" data-window="all" onclick="setDepartureWindow('all')" type="button">All</button>
+          <button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="06-12" onclick="setDepartureWindow('06-12')" type="button">06–12</button>
+          <button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="12-18" onclick="setDepartureWindow('12-18')" type="button">12–18</button>
+          <button class="dep-window-btn px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap" data-window="18-24" onclick="setDepartureWindow('18-24')" type="button">18–24</button>
+        </div>
+      </div>
+
+      <!-- Cabin Selection -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <span class="text-xs font-medium text-slate-600 whitespace-nowrap">Cabin:</span>
+        <div class="flex items-center space-x-2 text-xs">
+          <label class="flex items-center space-x-1 cursor-pointer select-none">
+            <input checked class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-eco" onchange="applyFilters()" type="checkbox">
+            <span class="text-slate-700">Eco</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer select-none">
+            <input checked class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-bus" onchange="applyFilters()" type="checkbox">
+            <span class="text-slate-700">Bus</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer select-none">
+            <input checked class="w-3.5 h-3.5 rounded text-[#0B192C] focus:ring-[#0B192C] border-slate-300 cursor-pointer" id="filter-cabin-fst" onchange="applyFilters()" type="checkbox">
+            <span class="text-slate-700">First</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Budget Slider (Calibrated to DB prices) -->
+      <div class="flex items-center space-x-2.5 shrink-0">
+        <span class="text-xs font-medium text-slate-600 whitespace-nowrap">Budget:</span>
+        <input class="w-32 accent-[#0B192C] h-1.5 bg-slate-200 rounded appearance-none cursor-pointer" id="budget-slider" max="30000" min="500" oninput="handleBudgetChange(this.value)" step="100" type="range" value="30000">
+        <span class="font-mono font-bold text-xs text-[#0B192C] bg-slate-100 px-2.5 py-1 rounded border border-slate-200 whitespace-nowrap" id="budget-val-badge">$30,000</span>
+      </div>
+
+      <!-- Reset CTA -->
+      <div class="flex items-center shrink-0 pl-2 border-l border-slate-200">
+        <button class="text-xs font-medium text-slate-500 hover:text-[#0B192C] underline transition-colors cursor-pointer" onclick="resetFilters()" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTE NOTICE BANNER (Only displayed if searched corridor is not in database) -->
+  <div class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 items-center justify-between shadow-sm" id="route-search-notice-banner">
+    <div class="flex items-center space-x-2.5">
+      <span class="material-symbols-outlined text-amber-600 text-[20px]">info</span>
+      <span id="route-search-notice-text">No direct scheduled flights found for this corridor.</span>
+    </div>
+    <button type="button" onclick="dismissRouteNotice()" class="text-amber-700 hover:text-amber-950 font-bold underline ml-4 cursor-pointer">Dismiss</button>
+  </div>
+
+  <!-- TWO-COLUMN MAIN CONTENT LAYOUT (1680px layout) -->
+  <div class="flex flex-col lg:flex-row items-start gap-8 w-full">
+    
+    <!-- LEFT COLUMN: Sticky Trip Summary & Total (380px width) -->
+    <aside class="w-full lg:w-[360px] xl:w-[380px] flex-shrink-0 self-start lg:sticky space-y-4" id="sidebar-left-column" style="top: 156px;">
+      <div class="bg-white p-5 rounded-2xl border-2 border-[#0B192C] shadow-sm space-y-4" data-purpose="sidebar-trip-summary">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h3 class="font-bold text-sm text-[#0B192C] tracking-tight">Trip Summary &amp; Total</h3>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#A0825B] bg-[#C5A880]/10 px-2 py-0.5 rounded-full" id="sidebar-pax-badge">1 Passenger, Business Class</span>
+        </div>
+
+        <!-- Segments List Container -->
+        <div class="space-y-3" id="sidebar-segments-container">
+          <!-- Dynamically Rendered -->
+        </div>
+
+        <!-- Total & Primary Action CTA -->
+        <div class="pt-4 border-t border-slate-100 space-y-3">
+          <div class="flex items-baseline justify-between">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="sidebar-total-pax-label">Total Trip Fare</span>
+            <div class="flex items-baseline space-x-1">
+              <span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="sidebar-total-price-val">$0</span>
+              <span class="text-xs font-semibold text-slate-500 font-sans">USD</span>
             </div>
-            <div class="mt-1 text-[11px] text-slate-700 font-medium pl-7">
-              Fri 11 Sep • SB 918 • Business Lie-flat Pod ($2,580)
-            </div>
+          </div>
+          <button class="w-full bg-[#0B192C] hover:bg-[#162840] text-white py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold shadow transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2" id="sidebar-main-cta" onclick="handlePrimaryAction()" type="button">
+            <span id="sidebar-cta-text">Continue to Seat Selection →</span>
+          </button>
+          <div class="hidden items-center gap-2 rounded-lg border border-[#C5A880]/50 bg-[#FFF8E7] px-3 py-2 text-[11px] font-semibold text-[#785929]" id="flight-selection-notice" role="status">
+            <span class="material-symbols-outlined text-[16px]">info</span>
+            <span id="flight-selection-notice-text">Select a flight to continue.</span>
           </div>
         </div>
-<!-- Total & Primary Action CTA -->
-<div class="pt-4 border-t border-slate-100 space-y-3">
-<div class="flex items-baseline justify-between">
-<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Trip Fare (1 Adult)</span>
-<div class="flex items-baseline space-x-1">
-<span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="sidebar-total-price-val">$2,580</span>
-<span class="text-xs font-semibold text-slate-500 font-sans">USD</span>
-</div>
-</div>
-<button class="w-full bg-[#0B192C] hover:bg-[#162840] text-white py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold shadow transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2" id="sidebar-main-cta" onclick="handlePrimaryAction()" type="button">
-<span class="" id="sidebar-cta-text">Continue to Seat Selection →</span>
-</button>
-<div class="hidden items-center gap-2 rounded-lg border border-[#C5A880]/50 bg-[#FFF8E7] px-3 py-2 text-[11px] font-semibold text-[#785929]" id="flight-selection-notice" role="status">
-<span class="material-symbols-outlined text-[16px]">info</span>
-<span id="flight-selection-notice-text">Select a flight to continue.</span>
-</div>
-</div>
-</div>
-</aside>
-<!-- RIGHT COLUMN: Section Header & Flight Cards -->
-<section class="flex-1 w-full min-w-0 space-y-6" data-purpose="flight-selection-center-area">
-<!-- Step Breadcrumbs & Title Bar -->
-<div class="flex flex-col sm:flex-row sm:items-end justify-between pb-3 border-b border-slate-200 gap-3">
-<div>
-<div class="text-[11px] font-extrabold uppercase tracking-widest text-[#A0825B]" id="flight-view-breadcrumb">CAIRO (CAI) TO DUBAI (DXB)</div>
-<h2 class="text-2xl font-extrabold text-[#0B192C] tracking-tight mt-1" id="flight-view-heading">Select Flight</h2>
-<p class="text-xs text-slate-500 font-medium mt-0.5" id="flight-view-subheading">Friday, 11 Sep 2026 • Cairo (CAI) → Dubai (DXB)</p>
-</div>
-<div class="flex flex-col items-start sm:items-end gap-2 self-start sm:self-auto"><div class="flex items-center space-x-2"><label class="text-xs font-medium text-slate-500 whitespace-nowrap" for="flight-sort-select">Sort by:</label><select class="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 focus:ring-[#0B192C] focus:border-[#0B192C] shadow-sm cursor-pointer" id="flight-sort-select" onchange="handleSortChange(this.value)"><option selected="" value="recommended">Recommended</option><option value="price-low">Lowest Price</option><option value="dep-early">Departure Time (Earliest)</option></select></div><div class="flex items-center space-x-1.5 text-xs"><span class="text-slate-500 font-medium">Currency:</span><div class="relative inline-block"><button class="inline-flex items-center space-x-1 font-bold text-slate-700 hover:text-[#0B192C] bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-md transition border border-slate-200 cursor-pointer" type="button"><span class="text-[#0B192C]" id="selected-currency-label">USD ($)</span><svg class="w-3 h-3 text-slate-500 transition-transform" fill="none" id="currency-chevron" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button></div></div></div>
-</div>
-<!-- Flights List Container -->
-<div class="space-y-6" id="flights-list-container">
-          <div class="bg-white rounded-2xl border-2 border-[#0B192C] ring-1 ring-[#0B192C]/20 shadow-lg relative transition-all duration-200 overflow-visible">
-            <div class="absolute -top-3 left-6 bg-[#0B192C] text-[#C5A880] text-[10px] font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full shadow flex items-center space-x-1 z-20">
-               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-               <span class="">SELECTED FLIGHT</span>
-             </div>
-            <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-center">
+      </div>
+    </aside>
 
-              <!-- Left Side: Flight Timing & Badges -->
-              <div class="xl:col-span-5 space-y-4">
-                <div class="flex items-center space-x-2">
-                  <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-800">SB 918</span>
-                  <span class="text-xs text-slate-500">• Boeing 777-300ER</span>
-                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">On Schedule</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                  <!-- CAI -->
-                  <div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">14:20</div>
-                    <div class="text-xs font-bold text-slate-800">CAI</div>
-                    <div class="text-[11px] text-slate-400">Cairo Intl Terminal 2</div>
-                  </div>
-                  <!-- Center Plane Graphic -->
-                  <div class="flex-grow flex flex-col items-center px-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase">3h 35m</span>
-                    <div class="relative w-full flex items-center my-1.5">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                    </div>
-                    <span class="text-[11px] text-emerald-600 font-bold">Non-stop Direct</span>
-                  </div>
-                  <!-- DXB -->
-                  <div class="text-right">
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">
-                      19:55 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800">DXB</div>
-                    <div class="text-[11px] text-slate-400">Dubai Intl Terminal 3</div>
-                  </div>
-                </div>
-
-                <div class="text-xs text-slate-600 font-medium">
-                  ✦ Same-day convenient afternoon arrival
-                </div>
-
-                <!-- Flight Details Trigger -->
-                <div>
-                  <button type="button" onclick="toggleFlightDetails('sb918')" class="inline-flex items-center space-x-1 text-xs font-bold text-[#0B192C] hover:text-[#A0825B] transition-colors py-1 cursor-pointer">
-                    <span class="underline underline-offset-4 decoration-slate-300">Flight Details</span>
-                    <svg class="w-3.5 h-3.5 text-[#C5A880] transition-transform " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Right Side: 3 Fare Columns (Grid 3 cols) -->
-              <div class="xl:col-span-7">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                  <!-- ECONOMY -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb918', 'SB 918', 'Economy Horizon', 1290, 'eco')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$1,290</span>
-                      <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">Standard flex</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">2x 23kg Baggage</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Meal included</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- BUSINESS -->
-                  <div class="bundle-col fare-card border-2 border-[#0B192C] shadow-md relative rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb918', 'SB 918', 'Business Lie-flat Pod', 2580, 'bus')">
-                    <span class="selected-badge absolute -top-3 right-6 bg-[#0B192C] text-white text-[11px] font-bold tracking-widest px-2.5 py-0.5 rounded-md uppercase z-10 shadow-sm">SELECTED</span>
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$2,580</span>
-                      <span class="text-[11px] text-slate-500 mt-0.5 block">Only 2 seats left</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lie-flat seating</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lounge &amp; Fast Track</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 bg-[#0B192C] text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button">Selected✓</button>
-                    </div>
-                  </div>
-
-                  <!-- FIRST SUITE -->
-                  
-            <div class="bundle-col fare-card border border-slate-200 rounded-2xl p-4 flex flex-col justify-between bg-white opacity-70">
-              <div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-slate-400 block mt-1 font-mono">—</span>
-                <span class="text-[11px] text-rose-600 font-bold uppercase tracking-wider mt-1 block">SOLD OUT</span>
-                <p class="text-[11px] text-slate-400 mt-2">Fully booked for this departure.</p>
-              </div>
-              <button class="mt-4 w-full py-2.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed" disabled="" type="button">
-                Unavailable
-              </button>
-            </div>
-          
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Expandable Flight Details Drawer -->
-            
-          <div class="border-t border-slate-200 bg-[#FBFBFB] rounded-b-2xl hidden">
-            <div class="p-6 space-y-6">
-              <!-- Header info line -->
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center space-x-3 text-xs">
-                  <span class="px-2.5 py-1 rounded bg-[#0B192C] text-white font-mono font-bold text-xs">SB 918 Flight Information</span>
-                  <span class="font-bold text-slate-700">Boeing 777-300ER</span>
-                  <span class="text-emerald-700 bg-emerald-100 font-semibold px-2 py-0.5 rounded text-[11px]">On Schedule</span>
-                </div>
-                <div class="flex items-center space-x-1.5 text-xs text-slate-500">
-                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span class="">Seat Availability: <strong class="text-slate-800">9 seats left</strong></span>
-                </div>
-              </div>
-
-              <!-- Flight Timeline & Route Schedule Box -->
-              <div class="bg-white rounded-xl p-5 border border-slate-200">
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-4 flex items-center space-x-2">
-                  <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>
-                  <span class="">FLIGHT TIMELINE &amp; ROUTE SCHEDULE</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <!-- Departure -->
-                  <div class="md:col-span-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="">DEPARTURE</span>
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">14:20</div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Cairo Intl (CAI)</div>
-                    <div class="text-xs text-slate-400">Terminal 2</div>
-                  </div>
-
-                  <!-- Flight path line -->
-                  <div class="md:col-span-4 flex flex-col items-center justify-center text-center px-4">
-                    <span class="text-[11px] font-bold text-slate-600">3h 35m</span>
-                    <div class="relative w-full flex items-center my-2">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <span class="w-2 h-2 rounded-full bg-[#0B192C] absolute left-0"></span>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                      <span class="w-2 h-2 rounded-full bg-[#C5A880] absolute right-0"></span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Non-stop Direct</span>
-                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 mt-2 font-medium">
-                      <span class="">📶 Starlink aloft</span>
-                      <span class="">•</span>
-                      <span class="">⚡ USB-C / AC power</span>
-                    </div>
-                  </div>
-
-                  <!-- Arrival -->
-                  <div class="md:col-span-4 text-right">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                      <span class="">ARRIVAL</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">
-                      19:55 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Dubai Intl (DXB)</div>
-                    <div class="text-xs text-slate-400">Terminal 3</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Onboard Cabin Experience & Amenities Section -->
-              <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-3 flex items-center space-x-2">
-                  <span class="">✦</span>
-                  <span class="">ONBOARD CABIN EXPERIENCE &amp; AMENITIES</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">ECONOMY CLASS</span>
-                      <span class="text-[10px] text-slate-400 font-mono">3-3-3</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Ergonomic contoured seating (32" pitch), 13.3" 4K HDR touchscreen, complimentary gourmet dining, USB-C 65W fast-charging.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">BUSINESS CLASS</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-2-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      1-2-1 direct aisle access, 79" full lie-flat bed, DXB concourse private lounge access, Sommelier-curated culinary menu.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">FIRST SOVEREIGN SUITE</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-1-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Private enclosed Suite with sliding doors, chauffeur airport transfer, à la carte caviar service, Starlink Ultra high-speed Wi-Fi.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        
-          </div>
-        
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible">
-            
-            <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-center">
-
-              <!-- Left Side: Flight Timing & Badges -->
-              <div class="xl:col-span-5 space-y-4">
-                <div class="flex items-center space-x-2">
-                  <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-800">SB 928</span>
-                  <span class="text-xs text-slate-500">• Airbus A350-1000</span>
-                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">On Schedule</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                  <!-- CAI -->
-                  <div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">23:45</div>
-                    <div class="text-xs font-bold text-slate-800">CAI</div>
-                    <div class="text-[11px] text-slate-400">Cairo Intl Terminal 2</div>
-                  </div>
-                  <!-- Center Plane Graphic -->
-                  <div class="flex-grow flex flex-col items-center px-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase">3h 45m</span>
-                    <div class="relative w-full flex items-center my-1.5">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                    </div>
-                    <span class="text-[11px] text-emerald-600 font-bold">Non-stop Direct</span>
-                  </div>
-                  <!-- DXB -->
-                  <div class="text-right">
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">
-                      05:30 <span class="text-xs font-semibold text-amber-600 font-sans">+1</span>
-                    </div>
-                    <div class="text-xs font-bold text-slate-800">DXB</div>
-                    <div class="text-[11px] text-slate-400">Dubai Intl Terminal 3</div>
-                  </div>
-                </div>
-
-                <div class="text-xs text-slate-600 font-medium">
-                  ✦ Quiet overnight red-eye flight with sleeper amenity pack
-                </div>
-
-                <!-- Flight Details Trigger -->
-                <div>
-                  <button type="button" onclick="toggleFlightDetails('sb928')" class="inline-flex items-center space-x-1 text-xs font-bold text-[#0B192C] hover:text-[#A0825B] transition-colors py-1 cursor-pointer">
-                    <span class="underline underline-offset-4 decoration-slate-300">Flight Details</span>
-                    <svg class="w-3.5 h-3.5 text-[#C5A880] transition-transform " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Right Side: 3 Fare Columns (Grid 3 cols) -->
-              <div class="xl:col-span-7">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                  <!-- ECONOMY -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb928', 'SB 928', 'Economy Flex', 1230, 'eco')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$1,230</span>
-                      <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">Economy Flex</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">2x 23kg Bags</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Starlink Wi-Fi</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- BUSINESS -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb928', 'SB 928', 'Business Lie-flat Pod', 2410, 'bus')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$2,410</span>
-                      <span class="text-[11px] text-slate-500 mt-0.5 block">Full Flat Sleep</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lie-flat Bed</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lounge Access</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- FIRST SUITE -->
-                  
-            <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer relative" onclick="selectFare(0, 'sb928', 'SB 928', 'First Sovereign Suite', 4150, 'fst')">
-              
-              <div>
-                <span class="text-[11px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$4,150</span>
-                <span class="text-[11px] text-amber-800 font-bold mt-0.5 block">Sovereign Pod</span>
-                <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                  <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Private Door</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Fine Caviar</span></li>
-                </ul>
-              </div>
-              <div class="mt-4">
-                <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-              </div>
-            </div>
-          
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Expandable Flight Details Drawer -->
-            
-          <div class="border-t border-slate-200 bg-[#FBFBFB] rounded-b-2xl hidden">
-            <div class="p-6 space-y-6">
-              <!-- Header info line -->
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center space-x-3 text-xs">
-                  <span class="px-2.5 py-1 rounded bg-[#0B192C] text-white font-mono font-bold text-xs">SB 928 Flight Information</span>
-                  <span class="font-bold text-slate-700">Airbus A350-1000</span>
-                  <span class="text-emerald-700 bg-emerald-100 font-semibold px-2 py-0.5 rounded text-[11px]">On Schedule</span>
-                </div>
-                <div class="flex items-center space-x-1.5 text-xs text-slate-500">
-                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span class="">Seat Availability: <strong class="text-slate-800">12 seats left</strong></span>
-                </div>
-              </div>
-
-              <!-- Flight Timeline & Route Schedule Box -->
-              <div class="bg-white rounded-xl p-5 border border-slate-200">
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-4 flex items-center space-x-2">
-                  <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>
-                  <span class="">FLIGHT TIMELINE &amp; ROUTE SCHEDULE</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <!-- Departure -->
-                  <div class="md:col-span-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="">DEPARTURE</span>
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">23:45</div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Cairo Intl (CAI)</div>
-                    <div class="text-xs text-slate-400">Terminal 2</div>
-                  </div>
-
-                  <!-- Flight path line -->
-                  <div class="md:col-span-4 flex flex-col items-center justify-center text-center px-4">
-                    <span class="text-[11px] font-bold text-slate-600">3h 45m</span>
-                    <div class="relative w-full flex items-center my-2">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <span class="w-2 h-2 rounded-full bg-[#0B192C] absolute left-0"></span>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                      <span class="w-2 h-2 rounded-full bg-[#C5A880] absolute right-0"></span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Non-stop Direct</span>
-                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 mt-2 font-medium">
-                      <span class="">📶 Starlink aloft</span>
-                      <span class="">•</span>
-                      <span class="">⚡ USB-C / AC power</span>
-                    </div>
-                  </div>
-
-                  <!-- Arrival -->
-                  <div class="md:col-span-4 text-right">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="text-slate-700 font-bold">Sat 12 Sep 2026</span>
-                      <span class="">ARRIVAL</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">
-                      05:30 <span class="text-xs font-semibold text-amber-600 font-sans">+1</span>
-                    </div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Dubai Intl (DXB)</div>
-                    <div class="text-xs text-slate-400">Terminal 3</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Onboard Cabin Experience & Amenities Section -->
-              <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-3 flex items-center space-x-2">
-                  <span class="">✦</span>
-                  <span class="">ONBOARD CABIN EXPERIENCE &amp; AMENITIES</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">ECONOMY CLASS</span>
-                      <span class="text-[10px] text-slate-400 font-mono">3-3-3</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Ergonomic contoured seating (32" pitch), 13.3" 4K HDR touchscreen, complimentary gourmet dining, USB-C 65W fast-charging.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">BUSINESS CLASS</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-2-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      1-2-1 direct aisle access, 79" full lie-flat bed, DXB concourse private lounge access, Sommelier-curated culinary menu.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">FIRST SOVEREIGN SUITE</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-1-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Private enclosed Suite with sliding doors, chauffeur airport transfer, à la carte caviar service, Starlink Ultra high-speed Wi-Fi.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        
-          </div>
-        
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible">
-            
-            <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-center">
-
-              <!-- Left Side: Flight Timing & Badges -->
-              <div class="xl:col-span-5 space-y-4">
-                <div class="flex items-center space-x-2">
-                  <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-800">SB 904</span>
-                  <span class="text-xs text-slate-500">• Boeing 787-9 Dreamliner</span>
-                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">On Schedule</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                  <!-- CAI -->
-                  <div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">07:15</div>
-                    <div class="text-xs font-bold text-slate-800">CAI</div>
-                    <div class="text-[11px] text-slate-400">Cairo Intl Terminal 2</div>
-                  </div>
-                  <!-- Center Plane Graphic -->
-                  <div class="flex-grow flex flex-col items-center px-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase">3h 30m</span>
-                    <div class="relative w-full flex items-center my-1.5">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                    </div>
-                    <span class="text-[11px] text-emerald-600 font-bold">Non-stop Direct</span>
-                  </div>
-                  <!-- DXB -->
-                  <div class="text-right">
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">
-                      12:45 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800">DXB</div>
-                    <div class="text-[11px] text-slate-400">Dubai Intl Terminal 3</div>
-                  </div>
-                </div>
-
-                <div class="text-xs text-slate-600 font-medium">
-                  ✦ Early morning flagship departure, complimentary hot gourmet breakfast
-                </div>
-
-                <!-- Flight Details Trigger -->
-                <div>
-                  <button type="button" onclick="toggleFlightDetails('sb904')" class="inline-flex items-center space-x-1 text-xs font-bold text-[#0B192C] hover:text-[#A0825B] transition-colors py-1 cursor-pointer">
-                    <span class="underline underline-offset-4 decoration-slate-300">Flight Details</span>
-                    <svg class="w-3.5 h-3.5 text-[#C5A880] transition-transform " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Right Side: 3 Fare Columns (Grid 3 cols) -->
-              <div class="xl:col-span-7">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                  <!-- ECONOMY -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb904', 'SB 904', 'Economy Horizon', 1340, 'eco')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$1,340</span>
-                      <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">Morning Special</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">2x 23kg Baggage</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Gourmet Breakfast</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- BUSINESS -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb904', 'SB 904', 'Business Lie-flat Pod', 2690, 'bus')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$2,690</span>
-                      <span class="text-[11px] text-slate-500 mt-0.5 block">Priority Check-in</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lie-flat Bed</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Champagne aloft</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- FIRST SUITE -->
-                  
-            <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer relative" onclick="selectFare(0, 'sb904', 'SB 904', 'First Sovereign Suite', 4320, 'fst')">
-              
-              <div>
-                <span class="text-[11px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$4,320</span>
-                <span class="text-[11px] text-amber-800 font-bold mt-0.5 block">Dreamliner Suite</span>
-                <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                  <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Private Chauffeur</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">À la carte caviar</span></li>
-                </ul>
-              </div>
-              <div class="mt-4">
-                <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-              </div>
-            </div>
-          
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Expandable Flight Details Drawer -->
-            
-          <div class="border-t border-slate-200 bg-[#FBFBFB] rounded-b-2xl hidden">
-            <div class="p-6 space-y-6">
-              <!-- Header info line -->
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center space-x-3 text-xs">
-                  <span class="px-2.5 py-1 rounded bg-[#0B192C] text-white font-mono font-bold text-xs">SB 904 Flight Information</span>
-                  <span class="font-bold text-slate-700">Boeing 787-9 Dreamliner</span>
-                  <span class="text-emerald-700 bg-emerald-100 font-semibold px-2 py-0.5 rounded text-[11px]">On Schedule</span>
-                </div>
-                <div class="flex items-center space-x-1.5 text-xs text-slate-500">
-                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span class="">Seat Availability: <strong class="text-slate-800">15 seats left</strong></span>
-                </div>
-              </div>
-
-              <!-- Flight Timeline & Route Schedule Box -->
-              <div class="bg-white rounded-xl p-5 border border-slate-200">
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-4 flex items-center space-x-2">
-                  <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>
-                  <span class="">FLIGHT TIMELINE &amp; ROUTE SCHEDULE</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <!-- Departure -->
-                  <div class="md:col-span-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="">DEPARTURE</span>
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">07:15</div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Cairo Intl (CAI)</div>
-                    <div class="text-xs text-slate-400">Terminal 2</div>
-                  </div>
-
-                  <!-- Flight path line -->
-                  <div class="md:col-span-4 flex flex-col items-center justify-center text-center px-4">
-                    <span class="text-[11px] font-bold text-slate-600">3h 30m</span>
-                    <div class="relative w-full flex items-center my-2">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <span class="w-2 h-2 rounded-full bg-[#0B192C] absolute left-0"></span>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                      <span class="w-2 h-2 rounded-full bg-[#C5A880] absolute right-0"></span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Non-stop Direct</span>
-                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 mt-2 font-medium">
-                      <span class="">📶 Starlink aloft</span>
-                      <span class="">•</span>
-                      <span class="">⚡ USB-C / AC power</span>
-                    </div>
-                  </div>
-
-                  <!-- Arrival -->
-                  <div class="md:col-span-4 text-right">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                      <span class="">ARRIVAL</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">
-                      12:45 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Dubai Intl (DXB)</div>
-                    <div class="text-xs text-slate-400">Terminal 3</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Onboard Cabin Experience & Amenities Section -->
-              <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-3 flex items-center space-x-2">
-                  <span class="">✦</span>
-                  <span class="">ONBOARD CABIN EXPERIENCE &amp; AMENITIES</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">ECONOMY CLASS</span>
-                      <span class="text-[10px] text-slate-400 font-mono">3-3-3</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Ergonomic contoured seating (32" pitch), 13.3" 4K HDR touchscreen, complimentary gourmet dining, USB-C 65W fast-charging.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">BUSINESS CLASS</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-2-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      1-2-1 direct aisle access, 79" full lie-flat bed, DXB concourse private lounge access, Sommelier-curated culinary menu.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">FIRST SOVEREIGN SUITE</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-1-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Private enclosed Suite with sliding doors, chauffeur airport transfer, à la carte caviar service, Starlink Ultra high-speed Wi-Fi.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        
-          </div>
-        
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible">
-            
-            <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-center">
-
-              <!-- Left Side: Flight Timing & Badges -->
-              <div class="xl:col-span-5 space-y-4">
-                <div class="flex items-center space-x-2">
-                  <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-800">SB 942</span>
-                  <span class="text-xs text-slate-500">• Airbus A350-900</span>
-                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">On Schedule</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                  <!-- CAI -->
-                  <div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">18:30</div>
-                    <div class="text-xs font-bold text-slate-800">CAI</div>
-                    <div class="text-[11px] text-slate-400">Cairo Intl Terminal 2</div>
-                  </div>
-                  <!-- Center Plane Graphic -->
-                  <div class="flex-grow flex flex-col items-center px-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase">3h 25m</span>
-                    <div class="relative w-full flex items-center my-1.5">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                    </div>
-                    <span class="text-[11px] text-emerald-600 font-bold">Non-stop Direct</span>
-                  </div>
-                  <!-- DXB -->
-                  <div class="text-right">
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">
-                      23:55 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800">DXB</div>
-                    <div class="text-[11px] text-slate-400">Dubai Intl Terminal 3</div>
-                  </div>
-                </div>
-
-                <div class="text-xs text-slate-600 font-medium">
-                  ✦ Golden hour sunset departure with panoramic lounge bar aloft
-                </div>
-
-                <!-- Flight Details Trigger -->
-                <div>
-                  <button type="button" onclick="toggleFlightDetails('sb942')" class="inline-flex items-center space-x-1 text-xs font-bold text-[#0B192C] hover:text-[#A0825B] transition-colors py-1 cursor-pointer">
-                    <span class="underline underline-offset-4 decoration-slate-300">Flight Details</span>
-                    <svg class="w-3.5 h-3.5 text-[#C5A880] transition-transform " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Right Side: 3 Fare Columns (Grid 3 cols) -->
-              <div class="xl:col-span-7">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                  <!-- ECONOMY -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb942', 'SB 942', 'Economy Horizon', 1190, 'eco')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$1,190</span>
-                      <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">Lowest Fare</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">2x 23kg Baggage</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Complimentary dinner</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- BUSINESS -->
-                  <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(0, 'sb942', 'SB 942', 'Business Lie-flat Pod', 2490, 'bus')">
-                    
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$2,490</span>
-                      <span class="text-[11px] text-slate-500 mt-0.5 block">Panoramic Pod</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Full flat bed</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Lounge Bar Access</span></li>
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-                    </div>
-                  </div>
-
-                  <!-- FIRST SUITE -->
-                  
-            <div class="bundle-col fare-card border border-slate-200 hover:border-slate-300 rounded-2xl bg-white p-4 flex flex-col justify-between cursor-pointer relative" onclick="selectFare(0, 'sb942', 'SB 942', 'First Sovereign Suite', 4050, 'fst')">
-              
-              <div>
-                <span class="text-[11px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$4,050</span>
-                <span class="text-[11px] text-amber-800 font-bold mt-0.5 block">Private Suite</span>
-                <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                  <li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Private Sliding Door</span></li><li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="">Fine Dining</span></li>
-                </ul>
-              </div>
-              <div class="mt-4">
-                <button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>
-              </div>
-            </div>
-          
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Expandable Flight Details Drawer -->
-            
-          <div class="border-t border-slate-200 bg-[#FBFBFB] rounded-b-2xl hidden">
-            <div class="p-6 space-y-6">
-              <!-- Header info line -->
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center space-x-3 text-xs">
-                  <span class="px-2.5 py-1 rounded bg-[#0B192C] text-white font-mono font-bold text-xs">SB 942 Flight Information</span>
-                  <span class="font-bold text-slate-700">Airbus A350-900</span>
-                  <span class="text-emerald-700 bg-emerald-100 font-semibold px-2 py-0.5 rounded text-[11px]">On Schedule</span>
-                </div>
-                <div class="flex items-center space-x-1.5 text-xs text-slate-500">
-                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span class="">Seat Availability: <strong class="text-slate-800">8 seats left</strong></span>
-                </div>
-              </div>
-
-              <!-- Flight Timeline & Route Schedule Box -->
-              <div class="bg-white rounded-xl p-5 border border-slate-200">
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-4 flex items-center space-x-2">
-                  <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg>
-                  <span class="">FLIGHT TIMELINE &amp; ROUTE SCHEDULE</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <!-- Departure -->
-                  <div class="md:col-span-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="">DEPARTURE</span>
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">18:30</div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Cairo Intl (CAI)</div>
-                    <div class="text-xs text-slate-400">Terminal 2</div>
-                  </div>
-
-                  <!-- Flight path line -->
-                  <div class="md:col-span-4 flex flex-col items-center justify-center text-center px-4">
-                    <span class="text-[11px] font-bold text-slate-600">3h 25m</span>
-                    <div class="relative w-full flex items-center my-2">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <span class="w-2 h-2 rounded-full bg-[#0B192C] absolute left-0"></span>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
-                      <span class="w-2 h-2 rounded-full bg-[#C5A880] absolute right-0"></span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Non-stop Direct</span>
-                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 mt-2 font-medium">
-                      <span class="">📶 Starlink aloft</span>
-                      <span class="">•</span>
-                      <span class="">⚡ USB-C / AC power</span>
-                    </div>
-                  </div>
-
-                  <!-- Arrival -->
-                  <div class="md:col-span-4 text-right">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                      <span class="text-slate-700 font-bold">Fri 11 Sep 2026</span>
-                      <span class="">ARRIVAL</span>
-                    </div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono mt-1">
-                      23:55 
-                    </div>
-                    <div class="text-xs font-bold text-slate-800 mt-0.5">Dubai Intl (DXB)</div>
-                    <div class="text-xs text-slate-400">Terminal 3</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Onboard Cabin Experience & Amenities Section -->
-              <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-3 flex items-center space-x-2">
-                  <span class="">✦</span>
-                  <span class="">ONBOARD CABIN EXPERIENCE &amp; AMENITIES</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">ECONOMY CLASS</span>
-                      <span class="text-[10px] text-slate-400 font-mono">3-3-3</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Ergonomic contoured seating (32" pitch), 13.3" 4K HDR touchscreen, complimentary gourmet dining, USB-C 65W fast-charging.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">BUSINESS CLASS</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-2-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      1-2-1 direct aisle access, 79" full lie-flat bed, DXB concourse private lounge access, Sommelier-curated culinary menu.
-                    </p>
-                  </div>
-                  <div class="bg-white p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center justify-between font-bold text-xs text-slate-900 mb-1">
-                      <span class="">FIRST SOVEREIGN SUITE</span>
-                      <span class="text-[10px] text-[#A0825B] font-mono">1-1-1</span>
-                    </div>
-                    <p class="text-slate-500 text-[11px] leading-relaxed">
-                      Private enclosed Suite with sliding doors, chauffeur airport transfer, à la carte caviar service, Starlink Ultra high-speed Wi-Fi.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        
-          </div>
+    <!-- RIGHT COLUMN: Section Header & Flight Cards -->
+    <section class="flex-1 w-full min-w-0 space-y-6" data-purpose="flight-selection-center-area">
+      <!-- Step Breadcrumbs & Title Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between pb-3 border-b border-slate-200 gap-3">
+        <div>
+          <div class="text-[11px] font-extrabold uppercase tracking-widest text-[#A0825B]" id="flight-view-breadcrumb">SELECT FLIGHT</div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0B192C] tracking-tight mt-1" id="flight-view-heading">Available Flights</h2>
+          <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5" id="flight-view-subheading">Live database inventory for your journey</p>
         </div>
-</section>
+        <div class="flex items-center space-x-2 self-start sm:self-auto">
+          <label class="text-xs font-medium text-slate-500 whitespace-nowrap" for="flight-sort-select">Sort by:</label>
+          <select class="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 focus:ring-[#0B192C] focus:border-[#0B192C] shadow-sm cursor-pointer" id="flight-sort-select" onchange="handleSortChange(this.value)">
+            <option selected value="recommended">Recommended</option>
+            <option value="price-low">Lowest Price</option>
+            <option value="dep-early">Departure Time (Earliest)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Flights List Container -->
+      <div class="space-y-6" id="flights-list-container">
+        <!-- Loading State -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center animate-pulse">
+          <div class="h-6 bg-slate-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div class="h-4 bg-slate-100 rounded w-1/2 mx-auto"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</div>
+
+<!-- FLYOUT FLIGHT DETAILS SLIDE-OVER DRAWER -->
+<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" id="flight-info-overlay" onclick="closeFlightInfoDrawer()"></div>
+<div class="fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col" id="flight-info-drawer">
+  <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-[#0B192C] text-white">
+    <div>
+      <h3 class="text-base font-extrabold font-mono text-[#C5A880]" id="flight-info-title">Flight Dossier</h3>
+      <p class="text-xs text-slate-300">SkyBook Luxury Flagship Fleet Specifications</p>
+    </div>
+    <button type="button" onclick="closeFlightInfoDrawer()" class="text-slate-300 hover:text-white p-1 rounded-lg">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+  </div>
+  <div class="p-6 overflow-y-auto flex-1 space-y-6" id="flight-info-body">
+    <!-- Dynamic details inserted here -->
+  </div>
 </div>
 
 @section Scripts {
@@ -1070,324 +277,328 @@
         }
       }
     };
-  </script>
-<script>
-    // Flight Database - 4 Distinct CAI->DXB Flights & standard return options
-    const FLIGHT_DATABASE = {
-      'CAI-DXB': [
-        {
-          id: 'sb918',
-          flightNum: 'SB 918',
-          aircraft: 'Boeing 777-300ER',
-          status: 'On Schedule',
-          availableSeats: '9 seats left',
-          depTime: '14:20',
-          depDate: 'Fri 11 Sep 2026',
-          depCode: 'CAI',
-          depName: 'Cairo Intl',
-          depTerminal: 'Terminal 2',
-          arrTime: '19:55',
-          arrDate: 'Fri 11 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'DXB',
-          arrName: 'Dubai Intl',
-          arrTerminal: 'Terminal 3',
-          duration: '3h 35m',
-          depHour: 14,
-          nonstop: true,
-          featureText: '✦ Same-day convenient afternoon arrival',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 1290, note: 'Standard flex', perks: ['2x 23kg Baggage', 'Meal included'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2580, note: 'Only 2 seats left', perks: ['Lie-flat seating', 'Lounge & Fast Track'] },
-            fst: { name: 'First Sovereign Suite', price: null, soldOut: true, note: 'SOLD OUT', perks: [] }
-          }
-        },
-        {
-          id: 'sb928',
-          flightNum: 'SB 928',
-          aircraft: 'Airbus A350-1000',
-          status: 'On Schedule',
-          availableSeats: '12 seats left',
-          depTime: '23:45',
-          depDate: 'Fri 11 Sep 2026',
-          depCode: 'CAI',
-          depName: 'Cairo Intl',
-          depTerminal: 'Terminal 2',
-          arrTime: '05:30',
-          arrDate: 'Sat 12 Sep 2026',
-          arrNextDay: '+1',
-          arrCode: 'DXB',
-          arrName: 'Dubai Intl',
-          arrTerminal: 'Terminal 3',
-          duration: '3h 45m',
-          depHour: 23,
-          nonstop: true,
-          featureText: '✦ Quiet overnight red-eye flight with sleeper amenity pack',
-          tiers: {
-            eco: { name: 'Economy Flex', price: 1230, note: 'Economy Flex', perks: ['2x 23kg Bags', 'Starlink Wi-Fi'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2410, note: 'Full Flat Sleep', perks: ['Lie-flat Bed', 'Lounge Access'] },
-            fst: { name: 'First Sovereign Suite', price: 4150, note: 'Sovereign Pod', perks: ['Private Door', 'Fine Caviar'] }
-          }
-        },
-        {
-          id: 'sb904',
-          flightNum: 'SB 904',
-          aircraft: 'Boeing 787-9 Dreamliner',
-          status: 'On Schedule',
-          availableSeats: '15 seats left',
-          depTime: '07:15',
-          depDate: 'Fri 11 Sep 2026',
-          depCode: 'CAI',
-          depName: 'Cairo Intl',
-          depTerminal: 'Terminal 2',
-          arrTime: '12:45',
-          arrDate: 'Fri 11 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'DXB',
-          arrName: 'Dubai Intl',
-          arrTerminal: 'Terminal 3',
-          duration: '3h 30m',
-          depHour: 7,
-          nonstop: true,
-          featureText: '✦ Early morning flagship departure, complimentary hot gourmet breakfast',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 1340, note: 'Morning Special', perks: ['2x 23kg Baggage', 'Gourmet Breakfast'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2690, note: 'Priority Check-in', perks: ['Lie-flat Bed', 'Champagne aloft'] },
-            fst: { name: 'First Sovereign Suite', price: 4320, note: 'Dreamliner Suite', perks: ['Private Chauffeur', 'À la carte caviar'] }
-          }
-        },
-        {
-          id: 'sb942',
-          flightNum: 'SB 942',
-          aircraft: 'Airbus A350-900',
-          status: 'On Schedule',
-          availableSeats: '8 seats left',
-          depTime: '18:30',
-          depDate: 'Fri 11 Sep 2026',
-          depCode: 'CAI',
-          depName: 'Cairo Intl',
-          depTerminal: 'Terminal 2',
-          arrTime: '23:55',
-          arrDate: 'Fri 11 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'DXB',
-          arrName: 'Dubai Intl',
-          arrTerminal: 'Terminal 3',
-          duration: '3h 25m',
-          depHour: 18,
-          nonstop: true,
-          featureText: '✦ Golden hour sunset departure with panoramic lounge bar aloft',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 1190, note: 'Lowest Fare', perks: ['2x 23kg Baggage', 'Complimentary dinner'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2490, note: 'Panoramic Pod', perks: ['Full flat bed', 'Lounge Bar Access'] },
-            fst: { name: 'First Sovereign Suite', price: 4050, note: 'Private Suite', perks: ['Private Sliding Door', 'Fine Dining'] }
-          }
-        }
-      ],
-      'DXB-CAI': [
-        {
-          id: 'sb929',
-          flightNum: 'SB 929',
-          aircraft: 'Airbus A350-1000',
-          status: 'On Schedule',
-          availableSeats: '7 seats left',
-          depTime: '09:15',
-          depDate: 'Fri 18 Sep 2026',
-          depCode: 'DXB',
-          depName: 'Dubai Intl',
-          depTerminal: 'Terminal 3',
-          arrTime: '12:05',
-          arrDate: 'Fri 18 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'CAI',
-          arrName: 'Cairo Intl',
-          arrTerminal: 'Terminal 2',
-          duration: '3h 50m',
-          depHour: 9,
-          nonstop: true,
-          featureText: '✦ Complimentary gourmet hot breakfast aloft',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 1180, note: 'Lowest return fare', perks: ['2x 23kg Baggage', 'Standard Seat Select'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2390, note: 'DXB Concourse Lounge', perks: ['Full flat bed', 'Fast Track Security'] },
-            fst: { name: 'First Sovereign Suite', price: 3990, note: 'Private Sovereign', perks: ['Private Chauffeur', 'Champagne & Caviar'] }
-          }
-        },
-        {
-          id: 'sb935',
-          flightNum: 'SB 935',
-          aircraft: 'Boeing 777-300ER',
-          status: 'On Schedule',
-          availableSeats: '5 seats left',
-          depTime: '18:30',
-          depDate: 'Fri 18 Sep 2026',
-          depCode: 'DXB',
-          depName: 'Dubai Intl',
-          depTerminal: 'Terminal 3',
-          arrTime: '21:10',
-          arrDate: 'Fri 18 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'CAI',
-          arrName: 'Cairo Intl',
-          arrTerminal: 'Terminal 2',
-          duration: '3h 40m',
-          depHour: 18,
-          nonstop: true,
-          featureText: '✦ Sunset flight over the Arabian Gulf',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 1260, note: 'Standard flex', perks: ['2x 23kg Bags', 'Seat Selection'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2540, note: 'Lie-Flat Comfort', perks: ['Lounge Access', 'Priority Boarding'] },
-            fst: { name: 'First Sovereign Suite', price: 4300, note: 'Sovereign Suite', perks: ['Chauffeur Service', 'Michelin Menu'] }
-          }
-        }
-      ],
-      'DXB-LHR': [
-        {
-          id: 'sb502',
-          flightNum: 'SB 502',
-          aircraft: 'Airbus A380-800',
-          status: 'On Schedule',
-          availableSeats: '6 seats left',
-          depTime: '07:45',
-          depDate: 'Fri 18 Sep 2026',
-          depCode: 'DXB',
-          depName: 'Dubai Intl',
-          depTerminal: 'Terminal 3',
-          arrTime: '12:20',
-          arrDate: 'Fri 18 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'LHR',
-          arrName: 'London Heathrow',
-          arrTerminal: 'Terminal 3',
-          duration: '7h 35m',
-          depHour: 7,
-          nonstop: true,
-          featureText: '✦ Onboard Shower Spa & Starlink High-Speed Wi-Fi',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 950, note: 'Great value', perks: ['2x 23kg Baggage', 'Complimentary meals'] },
-            bus: { name: 'Business Lie-flat Pod', price: 2850, note: 'A380 Lounge Access', perks: ['Full flat bed', 'Onboard cocktail bar'] },
-            fst: { name: 'First Sovereign Suite', price: 5400, note: 'Private Suite', perks: ['Shower Spa', 'Caviar Service'] }
-          }
-        }
-      ],
-      'LHR-JFK': [
-        {
-          id: 'sb101',
-          flightNum: 'SB 101',
-          aircraft: 'Airbus A350-1000',
-          status: 'On Schedule',
-          availableSeats: '11 seats left',
-          depTime: '11:15',
-          depDate: 'Fri 25 Sep 2026',
-          depCode: 'LHR',
-          depName: 'London Heathrow',
-          depTerminal: 'Terminal 3',
-          arrTime: '14:25',
-          arrDate: 'Fri 25 Sep 2026',
-          arrNextDay: '',
-          arrCode: 'JFK',
-          arrName: 'New York JFK',
-          arrTerminal: 'Terminal 4',
-          duration: '8h 10m',
-          depHour: 11,
-          nonstop: true,
-          featureText: '✦ Daylight Transatlantic crossing with award-winning catering',
-          tiers: {
-            eco: { name: 'Economy Horizon', price: 890, note: 'Best transatlantic fare', perks: ['1x 23kg Baggage', '2 Hot meals'] },
-            bus: { name: 'Business Lie-flat Pod', price: 3100, note: 'Clubhouse access', perks: ['Direct aisle access', 'Luxury kit'] },
-            fst: { name: 'First Sovereign Suite', price: 6200, note: 'Sovereign Suite', perks: ['Private Door', 'Helipad Transfer'] }
-          }
-        }
-      ]
-    };
+</script>
 
-    // State matching initial selected flight: Business on SB 918
+<script>
+    // Live Server Flights serialized from Database (100% Real SQL Server Data)
+    const SERVER_FLIGHTS = @Html.Raw(flightsJson);
+
+    // Dynamic Flight Database populated EXCLUSIVELY from SQL Server flights
+    const FLIGHT_DATABASE = {};
+    let activeCorridors = [];
+
+    // Helper to format ISO DateTime to HH:mm (24-hour exact database time)
+    function formatTime(isoStr) {
+      if (!isoStr) return '00:00';
+      try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return isoStr;
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+      } catch (e) {
+        return '00:00';
+      }
+    }
+
+    // Helper to format ISO DateTime to Short Date
+    function formatDateStr(isoStr) {
+      if (!isoStr) return 'Sat, 19 Sep 2026';
+      try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return 'Sat, 19 Sep 2026';
+        return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return 'Sat, 19 Sep 2026';
+      }
+    }
+
+    // Helper to calculate exact duration string between departure and arrival
+    function calculateDuration(depIso, arrIso) {
+      if (!depIso || !arrIso) return '4h 00m';
+      try {
+        const d1 = new Date(depIso);
+        const d2 = new Date(arrIso);
+        const diffMs = Math.abs(d2 - d1);
+        const totalMinutes = Math.floor(diffMs / (1000 * 60));
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return `${hours}h ${minutes > 0 ? minutes + 'm' : '00m'}`;
+      } catch (e) {
+        return '4h 00m';
+      }
+    }
+
+    // Build database mapping STRICTLY from SERVER_FLIGHTS (No fake flights!)
+    function initializeFlightDatabase() {
+      if (!Array.isArray(SERVER_FLIGHTS) || SERVER_FLIGHTS.length === 0) {
+        console.warn('No flights returned from SQL Server database.');
+        return;
+      }
+
+      SERVER_FLIGHTS.forEach(f => {
+        const depCode = (f.departureAirportCode || '').trim();
+        const arrCode = (f.arrivalAirportCode || '').trim();
+        if (!depCode || !arrCode) return;
+
+        const routeKey = `${depCode}-${arrCode}`;
+        if (!FLIGHT_DATABASE[routeKey]) {
+          FLIGHT_DATABASE[routeKey] = [];
+        }
+
+        const depTime = formatTime(f.departureTime);
+        const arrTime = formatTime(f.arrivalTime);
+        const depDate = formatDateStr(f.departureTime);
+        const arrDate = formatDateStr(f.arrivalTime);
+        const duration = calculateDuration(f.departureTime, f.arrivalTime);
+        const depHour = new Date(f.departureTime).getHours();
+
+        const ecoPrice = Number(f.economyPrice || f.price || 500);
+        const busPrice = Number(f.businessPrice || (ecoPrice * 2.5));
+        const fstPrice = Number(f.firstClassPrice || (ecoPrice * 4));
+
+        FLIGHT_DATABASE[routeKey].push({
+          id: `db-${f.id}`,
+          dbId: f.id,
+          flightNum: f.flightNumber || `SKB-${f.id}`,
+          aircraft: f.aircraftName || 'Airbus A350-1000 Flagship',
+          status: f.status === 0 ? 'On Schedule' : 'Scheduled',
+          availableSeats: (typeof f.availableSeats === 'number') ? `${f.availableSeats} Seats Available` : 'Live Inventory',
+          seatsCount: (typeof f.availableSeats === 'number') ? f.availableSeats : 340,
+          depTime: depTime,
+          depDate: depDate,
+          depCode: depCode,
+          depName: f.departureAirportName || f.departureAirportCity || depCode,
+          depCity: f.departureAirportCity || depCode,
+          depTerminal: 'Terminal 1',
+          arrTime: arrTime,
+          arrDate: arrDate,
+          arrNextDay: (new Date(f.arrivalTime).getDate() !== new Date(f.departureTime).getDate()) ? '+1' : '',
+          arrCode: arrCode,
+          arrName: f.arrivalAirportName || f.arrivalAirportCity || arrCode,
+          arrCity: f.arrivalAirportCity || arrCode,
+          arrTerminal: 'Terminal 2',
+          duration: duration,
+          depHour: isNaN(depHour) ? 0 : depHour,
+          stops: (Array.isArray(f.stops) ? f.stops.slice().sort((a, b) => (a.stopOrder || 0) - (b.stopOrder || 0)) : []),
+          nonstop: !(Array.isArray(f.stops) && f.stops.length > 0),
+          stopCount: Array.isArray(f.stops) ? f.stops.length : 0,
+          stopLabel: (Array.isArray(f.stops) && f.stops.length > 0)
+            ? (f.stops.length === 1
+                ? `1 Stop (${f.stops[0].airportCode || f.stops[0].airportCity || 'Transit'})`
+                : `${f.stops.length} Stops (${f.stops.map(s => s.airportCode || 'Stop').join(', ')})`)
+            : 'Non-Stop Direct',
+          stopsRouteNames: (Array.isArray(f.stops) && f.stops.length > 0)
+            ? f.stops.map(s => s.airportCity || s.airportCode).join(' ➔ ')
+            : '',
+          featureText: (Array.isArray(f.stops) && f.stops.length > 0)
+            ? `✦ Transit via ${f.stops.map(s => s.airportCity || s.airportCode).join(' ➔ ')} • Dedicated Layover Lounge & Checked Luggage Transfer`
+            : '✦ Flagship Long-Haul Intercontinental Service with High-Speed Wi-Fi',
+          tiers: {
+            eco: {
+              name: 'Economy Horizon',
+              price: ecoPrice,
+              note: 'Standard Flex',
+              perks: ['2x 23kg Baggage Allowance', 'Michelin-curated Dining', 'USB-C In-seat Power']
+            },
+            bus: {
+              name: 'Business Lie-flat Pod',
+              price: busPrice,
+              note: 'Direct Aisle Access',
+              perks: ['Fully Lie-flat Bed Suite', 'Flagship Lounge Access', 'Priority Security & Boarding']
+            },
+            fst: {
+              name: 'First Sovereign Suite',
+              price: fstPrice,
+              note: 'Private Suite Door',
+              perks: ['Enclosed Private Cabin Door', 'Oscietra Caviar Service', 'Complimentary Chauffeur Drive']
+            }
+          }
+        });
+      });
+
+      // Update count badge
+      const countBadge = document.getElementById('db-flights-count-badge');
+      if (countBadge) {
+        countBadge.textContent = SERVER_FLIGHTS.length === 1 ? '1 Live Flight' : `${SERVER_FLIGHTS.length} Live Flights`;
+      }
+
+      // Collect available corridors
+      activeCorridors = Object.keys(FLIGHT_DATABASE).map(k => {
+        const [from, to] = k.split('-');
+        const sample = FLIGHT_DATABASE[k][0];
+        return {
+          key: k,
+          fromCode: from,
+          fromCity: sample.depCity,
+          toCode: to,
+          toCity: sample.arrCity,
+          minPrice: Math.min(...FLIGHT_DATABASE[k].map(f => f.tiers.eco.price)),
+          flightCount: FLIGHT_DATABASE[k].length
+        };
+      });
+
+      calibrateBudgetSlider();
+    }
+
+    // Calibrate Budget Slider to Real Flight Prices
+    function calibrateBudgetSlider() {
+      let minP = 999999;
+      let maxP = 0;
+
+      Object.values(FLIGHT_DATABASE).forEach(flights => {
+        flights.forEach(f => {
+          const eco = f.tiers.eco.price;
+          const fst = f.tiers.fst.price;
+          if (eco < minP) minP = eco;
+          if (fst > maxP) maxP = fst;
+        });
+      });
+
+      if (minP === 999999) minP = 500;
+      if (maxP === 0) maxP = 25000;
+
+      let sliderCeiling = Math.ceil(maxP * 1.15 / 1000) * 1000;
+      let sliderFloor = Math.floor(minP * 0.8 / 100) * 100;
+      if (sliderFloor < 0) sliderFloor = 0;
+      if (sliderCeiling <= sliderFloor) sliderCeiling = sliderFloor + 1000;
+
+      const slider = document.getElementById('budget-slider');
+      const badge = document.getElementById('budget-val-badge');
+      if (slider && badge) {
+        slider.min = sliderFloor;
+        slider.max = sliderCeiling;
+        slider.value = sliderCeiling;
+        badge.textContent = '$' + sliderCeiling.toLocaleString();
+        appState.filters.maxBudget = sliderCeiling;
+      }
+    }
+
+    // Application State
     const appState = {
       tripMode: 'round-trip',
       activeSegmentIndex: 0,
       expandedFlightId: null,
+      passengerSummary: '1 Passenger, Business Class',
+      passengerCount: 1,
+      searchedCabin: 'bus',
       filters: {
-        nonstop: true,
+        nonstop: false,
         depWindow: 'all',
         cabins: { eco: true, bus: true, fst: true },
-        maxBudget: 4500,
+        maxBudget: 35000,
         sortBy: 'recommended'
       },
       segments: []
     };
 
-    function setupSegmentsForMode(mode) {
+    function selectCorridor(routeKey) {
+      const [from, to] = routeKey.split('-');
+      const flights = FLIGHT_DATABASE[routeKey];
+      if (!flights || !flights.length) return;
+
+      const sample = flights[0];
+      const curSeg0 = appState.segments[0] || {};
+      
+      // Update primary segment preserving search dates
+      appState.segments[0] = {
+        key: routeKey,
+        fromCode: from,
+        fromCity: sample.depCity,
+        toCode: to,
+        toCity: sample.arrCity,
+        dateStr: curSeg0.dateStr || sample.depDate,
+        shortDate: curSeg0.shortDate || sample.depDate,
+        title: `${from} → ${to}`,
+        selectedFlight: null
+      };
+
+      if (appState.tripMode === 'round-trip') {
+        const returnKey = `${to}-${from}`;
+        const hasReturnInDb = !!FLIGHT_DATABASE[returnKey];
+        const returnSample = hasReturnInDb ? FLIGHT_DATABASE[returnKey][0] : null;
+        const curSeg1 = appState.segments[1] || {};
+
+        appState.segments[1] = {
+          key: returnKey,
+          fromCode: to,
+          fromCity: sample.arrCity,
+          toCode: from,
+          toCity: sample.depCity,
+          dateStr: curSeg1.dateStr || (returnSample ? returnSample.depDate : 'Return Date'),
+          shortDate: curSeg1.shortDate || (returnSample ? returnSample.depDate : 'Return Date'),
+          title: `${to} → ${from}`,
+          selectedFlight: null
+        };
+      } else if (appState.tripMode === 'one-way') {
+        appState.segments = [appState.segments[0]];
+      }
+
+      appState.activeSegmentIndex = 0;
+      dismissRouteNotice();
+      renderAll();
+    }
+
+    function setupSegmentsForMode(mode, originCode, originCity, destCode, destCity, depDateLabel, depShortDate, retDateLabel, retShortDate) {
+      // Use searched codes if provided, otherwise fall back to first DB corridor or placeholder
+      const hasCodes = originCode && destCode;
+      const defaultKey = hasCodes ? `${originCode}-${destCode}` : (activeCorridors.length > 0 ? activeCorridors[0].key : 'CAI-DXB');
+      const [defFrom, defTo] = defaultKey.split('-');
+      const sample = (FLIGHT_DATABASE[defaultKey] && FLIGHT_DATABASE[defaultKey][0]) || null;
+      const fromCity = (hasCodes ? originCity : (sample ? sample.depCity : defFrom)) || defFrom;
+      const toCity = (hasCodes ? destCity : (sample ? sample.arrCity : defTo)) || defTo;
+
       if (mode === 'one-way') {
         appState.segments = [
           {
-            key: 'CAI-DXB',
-            fromCode: 'CAI',
-            fromCity: 'Cairo',
-            toCode: 'DXB',
-            toCity: 'Dubai',
-            dateStr: 'Friday, 11 Sep 2026',
-            shortDate: 'Fri 11 Sep',
-            title: 'CAI → DXB',
+            key: defaultKey,
+            fromCode: defFrom,
+            fromCity: fromCity,
+            toCode: defTo,
+            toCity: toCity,
+            dateStr: depDateLabel || 'Saturday, 2026 • Oct 24',
+            shortDate: depShortDate || 'Oct 24',
+            title: `${defFrom} → ${defTo}`,
             selectedFlight: null
           }
         ];
       } else if (mode === 'round-trip') {
+        const returnKey = `${defTo}-${defFrom}`;
         appState.segments = [
           {
-            key: 'CAI-DXB',
-            fromCode: 'CAI',
-            fromCity: 'Cairo',
-            toCode: 'DXB',
-            toCity: 'Dubai',
-            dateStr: 'Friday, 11 Sep 2026',
-            shortDate: 'Fri 11 Sep',
-            title: 'CAI → DXB',
+            key: defaultKey,
+            fromCode: defFrom,
+            fromCity: fromCity,
+            toCode: defTo,
+            toCity: toCity,
+            dateStr: depDateLabel || 'Saturday, 2026 • Oct 24',
+            shortDate: depShortDate || 'Oct 24',
+            title: `${defFrom} → ${defTo}`,
             selectedFlight: null
           },
           {
-            key: 'DXB-CAI',
-            fromCode: 'DXB',
-            fromCity: 'Dubai',
-            toCode: 'CAI',
-            toCity: 'Cairo',
-            dateStr: 'Friday, 18 Sep 2026',
-            shortDate: 'Fri 18 Sep',
-            title: 'DXB → CAI',
+            key: returnKey,
+            fromCode: defTo,
+            fromCity: toCity,
+            toCode: defFrom,
+            toCity: fromCity,
+            dateStr: retDateLabel || 'Monday, 2026 • Nov 02',
+            shortDate: retShortDate || 'Nov 02',
+            title: `${defTo} → ${defFrom}`,
             selectedFlight: null
           }
         ];
       } else if (mode === 'multi-city') {
         appState.segments = [
           {
-            key: 'CAI-DXB',
-            fromCode: 'CAI',
-            fromCity: 'Cairo',
-            toCode: 'DXB',
-            toCity: 'Dubai',
-            dateStr: 'Friday, 11 Sep 2026',
-            shortDate: 'Fri 11 Sep',
-            title: 'CAI → DXB',
-            selectedFlight: null
-          },
-          {
-            key: 'DXB-LHR',
-            fromCode: 'DXB',
-            fromCity: 'Dubai',
-            toCode: 'LHR',
-            toCity: 'London',
-            dateStr: 'Friday, 18 Sep 2026',
-            shortDate: 'Fri 18 Sep',
-            title: 'DXB → LHR',
-            selectedFlight: null
-          },
-          {
-            key: 'LHR-JFK',
-            fromCode: 'LHR',
-            fromCity: 'London',
-            toCode: 'JFK',
-            toCity: 'New York',
-            dateStr: 'Friday, 25 Sep 2026',
-            shortDate: 'Fri 25 Sep',
-            title: 'LHR → JFK',
+            key: defaultKey,
+            fromCode: defFrom,
+            fromCity: fromCity,
+            toCode: defTo,
+            toCity: toCity,
+            dateStr: depDateLabel || 'Saturday, 2026 • Oct 24',
+            shortDate: depShortDate || 'Oct 24',
+            title: `${defFrom} → ${defTo}`,
             selectedFlight: null
           }
         ];
@@ -1395,46 +606,182 @@
       appState.activeSegmentIndex = 0;
     }
 
+    function showRouteNotice(message) {
+      const banner = document.getElementById('route-search-notice-banner');
+      const text = document.getElementById('route-search-notice-text');
+      if (banner && text) {
+        text.innerHTML = message;
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+      }
+    }
+
+    window.dismissRouteNotice = function() {
+      const banner = document.getElementById('route-search-notice-banner');
+      if (banner) {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }
+    };
+
     function applySearchContext(context) {
-      if (!context || !context.originCode || !context.destinationCode) return;
-      const requestedKey = `${context.originCode}-${context.destinationCode}`;
-      if (!FLIGHT_DATABASE[requestedKey] || !appState.segments[0]) return;
+      if (!context) return;
 
-      appState.segments[0].key = requestedKey;
-      appState.segments[0].fromCode = context.originCode;
-      appState.segments[0].fromCity = context.originCity;
-      appState.segments[0].toCode = context.destinationCode;
-      appState.segments[0].toCity = context.destinationCity;
-      appState.segments[0].title = `${context.originCode} → ${context.destinationCode}`;
+      // 1. Ingest Trip Mode
+      const tripMode = context.mode || sessionStorage.getItem('skybook-trip-mode') || 'round-trip';
+      appState.tripMode = tripMode;
+      sessionStorage.setItem('skybook-trip-mode', tripMode);
 
-      if (appState.tripMode === 'round-trip') {
-        const returnKey = `${context.destinationCode}-${context.originCode}`;
-        if (FLIGHT_DATABASE[returnKey] && appState.segments[1]) {
-          appState.segments[1].key = returnKey;
-          appState.segments[1].fromCode = context.destinationCode;
-          appState.segments[1].fromCity = context.destinationCity;
-          appState.segments[1].toCode = context.originCode;
-          appState.segments[1].toCity = context.originCity;
-          appState.segments[1].title = `${context.destinationCode} → ${context.originCode}`;
+      // 2. Ingest Passengers and Cabin
+      if (context.passengers) {
+        appState.passengerSummary = context.passengers;
+      }
+      appState.passengerCount = context.passengerCount || 1;
+      if (context.cabin) {
+        const cab = context.cabin.toLowerCase();
+        if (cab.includes('bus')) appState.searchedCabin = 'bus';
+        else if (cab.includes('first')) appState.searchedCabin = 'fst';
+        else if (cab.includes('eco')) appState.searchedCabin = 'eco';
+      }
+
+      // 3. Ingest Search Dates
+      const depDateLabel = (context.departure && context.departureSub) 
+        ? `${context.departureSub} • ${context.departure}` 
+        : (context.departure || 'Saturday, 2026 • Oct 24');
+      const depShortDate = context.departure || 'Oct 24';
+
+      const retDateLabel = (context.returnDate && context.returnSub) 
+        ? `${context.returnSub} • ${context.returnDate}` 
+        : (context.returnDate || 'Monday, 2026 • Nov 02');
+      const retShortDate = context.returnDate || 'Nov 02';
+
+      // 4. Ingest Origin and Destination
+      const originCode = (context.originCode || '').trim();
+      const originCity = context.originCity || originCode;
+      const destCode = (context.destinationCode || '').trim();
+      const destCity = context.destinationCity || destCode;
+
+      const outboundKey = `${originCode}-${destCode}`;
+
+      // Check if searched route exists in the FLIGHT_DATABASE
+      if (originCode && destCode && FLIGHT_DATABASE[outboundKey] && FLIGHT_DATABASE[outboundKey].length > 0) {
+        // Route found — set segments accurately
+        const sample = FLIGHT_DATABASE[outboundKey][0];
+        appState.segments[0] = {
+          key: outboundKey,
+          fromCode: originCode,
+          fromCity: sample.depCity || originCity,
+          toCode: destCode,
+          toCity: sample.arrCity || destCity,
+          dateStr: depDateLabel,
+          shortDate: depShortDate,
+          title: `${originCode} → ${destCode}`,
+          selectedFlight: null
+        };
+
+        if (tripMode === 'round-trip') {
+          const returnKey = `${destCode}-${originCode}`;
+          const retSample = (FLIGHT_DATABASE[returnKey] && FLIGHT_DATABASE[returnKey][0]) || null;
+          appState.segments[1] = {
+            key: returnKey,
+            fromCode: destCode,
+            fromCity: retSample ? retSample.depCity : destCity,
+            toCode: originCode,
+            toCity: retSample ? retSample.arrCity : originCity,
+            dateStr: retDateLabel,
+            shortDate: retShortDate,
+            title: `${destCode} → ${originCode}`,
+            selectedFlight: null
+          };
+        } else if (tripMode === 'one-way') {
+          appState.segments = [appState.segments[0]];
+        }
+        dismissRouteNotice();
+      } else if (originCode && destCode) {
+        // Route searched but NO flights found in DB — show empty state
+        appState.noResultsRoute = { originCode, originCity, destCode, destCity };
+        appState.segments[0] = {
+          key: outboundKey,
+          fromCode: originCode,
+          fromCity: originCity,
+          toCode: destCode,
+          toCity: destCity,
+          dateStr: depDateLabel,
+          shortDate: depShortDate,
+          title: `${originCode} → ${destCode}`,
+          selectedFlight: null
+        };
+        if (tripMode === 'round-trip') {
+          const returnKey = `${destCode}-${originCode}`;
+          appState.segments[1] = {
+            key: returnKey,
+            fromCode: destCode,
+            fromCity: destCity,
+            toCode: originCode,
+            toCity: originCity,
+            dateStr: retDateLabel,
+            shortDate: retShortDate,
+            title: `${destCode} → ${originCode}`,
+            selectedFlight: null
+          };
+        } else if (tripMode === 'one-way') {
+          appState.segments = [appState.segments[0]];
+        }
+        dismissRouteNotice();
+      } else {
+        // No origin/dest — just use first available corridor from DB
+        appState.noResultsRoute = null;
+        if (activeCorridors.length > 0) {
+          selectCorridor(activeCorridors[0].key);
+          return;
         }
       }
+
+      // Update Trip Mode toggle buttons in UI
+      ['one-way', 'round-trip', 'multi-city'].forEach(m => {
+        const btn = document.getElementById('toggle-btn-' + m);
+        if (!btn) return;
+        if (m === tripMode) {
+          btn.className = 'trip-toggle-btn px-4 py-1.5 rounded-md bg-[#0B192C] text-white font-bold shadow-sm whitespace-nowrap cursor-pointer';
+        } else {
+          btn.className = 'trip-toggle-btn px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap cursor-pointer';
+        }
+      });
     }
 
     window.setTripMode = function(newMode) {
       if (appState.tripMode === newMode) return;
       appState.tripMode = newMode;
+      sessionStorage.setItem('skybook-trip-mode', newMode);
 
       ['one-way', 'round-trip', 'multi-city'].forEach(m => {
         const btn = document.getElementById('toggle-btn-' + m);
         if (!btn) return;
         if (m === newMode) {
-          btn.className = 'trip-toggle-btn px-3.5 py-1.5 rounded-lg font-bold transition bg-[#C5A880] text-[#0B192C] shadow-sm';
+          btn.className = 'trip-toggle-btn px-4 py-1.5 rounded-md bg-[#0B192C] text-white font-bold shadow-sm whitespace-nowrap cursor-pointer';
         } else {
-          btn.className = 'trip-toggle-btn px-3.5 py-1.5 rounded-lg font-bold transition text-slate-300 hover:text-white';
+          btn.className = 'trip-toggle-btn px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#0B192C] transition whitespace-nowrap cursor-pointer';
         }
       });
 
-      setupSegmentsForMode(newMode);
+      let ctx = null;
+      try { ctx = JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null'); } catch (e) {}
+      if (ctx) ctx.mode = newMode;
+
+      const seg0 = appState.segments[0] || {};
+      const oCode = ctx?.originCode || seg0.fromCode || 'CAI';
+      const oCity = ctx?.originCity || seg0.fromCity || 'Cairo';
+      const dCode = ctx?.destinationCode || seg0.toCode || 'DXB';
+      const dCity = ctx?.destinationCity || seg0.toCity || 'Dubai';
+      const dep = ctx?.departure || seg0.shortDate || 'Oct 24';
+      const depSub = ctx?.departureSub || 'Saturday, 2026';
+      const ret = ctx?.returnDate || 'Nov 02';
+      const retSub = ctx?.returnSub || 'Monday, 2026';
+
+      setupSegmentsForMode(newMode, oCode, oCity, dCode, dCity, depSub ? `${depSub} • ${dep}` : dep, dep, retSub ? `${retSub} • ${ret}` : ret, ret);
+      try {
+        if (ctx) applySearchContext(ctx);
+      } catch (e) {}
       renderAll();
     };
 
@@ -1443,14 +790,6 @@
         appState.activeSegmentIndex = idx;
         renderAll();
       }
-    };
-
-    window.selectCurrency = function(curr) {
-      document.getElementById('selected-currency-label').textContent = curr;
-      const dd = document.getElementById('currency-dropdown');
-      if (dd) dd.classList.add('hidden');
-      const chev = document.getElementById('currency-chevron');
-      if (chev) chev.style.transform = 'rotate(0deg)';
     };
 
     function findFlightById(flightId) {
@@ -1479,153 +818,255 @@
 
       const title = document.getElementById('flight-info-title');
       const body = document.getElementById('flight-info-body');
-      if (title) title.textContent = flight.flightNum + ' · ' + flight.aircraft;
-
-      const eco = flight.tiers && flight.tiers.eco;
-      const bus = flight.tiers && flight.tiers.bus;
-      const fst = flight.tiers && flight.tiers.fst;
-
-      body.innerHTML = `
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="px-2.5 py-1 rounded-md bg-[#0B192C] text-white font-mono font-bold text-xs">${flight.flightNum}</span>
-          <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">${flight.status}</span>
-        </div>
-
-        <div class="rounded-xl border-2 border-[#C5A880]/50 bg-white p-4">
-          <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#A0825B] mb-3">Route</p>
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-2xl font-black text-[#0B192C] tabular-nums">${flight.depTime}</div>
-              <div class="text-sm font-bold text-slate-800">${flight.depCode}</div>
-              <div class="text-[11px] text-slate-500">${flight.depName}</div>
-              <div class="text-[11px] text-slate-400">${flight.depTerminal || ''}</div>
-              <div class="text-[11px] text-slate-400 mt-1">${flight.depDate}</div>
-            </div>
-            <div class="flex-1 text-center px-2">
-              <div class="text-[11px] font-semibold text-slate-500">${flight.duration}</div>
-              <div class="flex items-center my-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#C5A880]"></span>
-                <span class="flex-1 h-px bg-slate-200"></span>
-                <svg class="w-4 h-4 text-[#0B192C] mx-1" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-                <span class="flex-1 h-px bg-slate-200"></span>
-                <span class="w-1.5 h-1.5 rounded-full bg-[#C5A880]"></span>
-              </div>
-              <div class="text-[11px] font-bold text-emerald-700">${flight.nonstop ? 'Non-stop' : 'Connecting'}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-2xl font-black text-[#0B192C] tabular-nums">${flight.arrTime}${flight.arrNextDay ? '<span class="text-xs text-[#855D29] ml-0.5">'+flight.arrNextDay+'</span>' : ''}</div>
-              <div class="text-sm font-bold text-slate-800">${flight.arrCode}</div>
-              <div class="text-[11px] text-slate-500">${flight.arrName}</div>
-              <div class="text-[11px] text-slate-400">${flight.arrTerminal || ''}</div>
-              <div class="text-[11px] text-slate-400 mt-1">${flight.arrDate}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-1">
-          <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Aircraft</p>
-          <p class="text-sm font-bold text-[#0B192C]">${flight.aircraft}</p>
-          <p class="text-xs text-slate-500">Seat availability: <span class="font-semibold text-slate-800">${flight.availableSeats}</span></p>
-          ${flight.featureText ? '<p class="text-xs text-[#855D29] font-medium pt-1">'+flight.featureText+'</p>' : ''}
-        </div>
-
-        <div>
-          <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">Cabins</p>
-          <div class="space-y-2">
-            ${eco ? `<div class="rounded-xl border border-[#C5A880]/40 bg-white p-3.5">
-              <div class="flex justify-between items-start gap-2">
-                <p class="text-sm font-bold text-[#0B192C]">Economy</p>
-                ${eco.price ? '<p class="text-sm font-extrabold text-[#0B192C]">$'+eco.price.toLocaleString()+'</p>' : ''}
-              </div>
-              <p class="text-xs text-slate-500 mt-1">${eco.note || eco.name || ''}</p>
-            </div>` : ''}
-            ${bus ? `<div class="rounded-xl border border-[#C5A880]/40 bg-white p-3.5">
-              <div class="flex justify-between items-start gap-2">
-                <p class="text-sm font-bold text-[#0B192C]">Business</p>
-                ${bus.price ? '<p class="text-sm font-extrabold text-[#0B192C]">$'+bus.price.toLocaleString()+'</p>' : ''}
-              </div>
-              <p class="text-xs text-slate-500 mt-1">${bus.note || bus.name || ''}</p>
-            </div>` : ''}
-            ${fst ? `<div class="rounded-xl border border-[#C5A880]/40 bg-white p-3.5">
-              <div class="flex justify-between items-start gap-2">
-                <p class="text-sm font-bold text-[#0B192C]">First Suite</p>
-                ${fst.soldOut ? '<p class="text-xs font-bold text-rose-600">Sold out</p>' : (fst.price ? '<p class="text-sm font-extrabold text-[#0B192C]">$'+fst.price.toLocaleString()+'</p>' : '')}
-              </div>
-              <p class="text-xs text-slate-500 mt-1">${fst.note || fst.name || ''}</p>
-            </div>` : ''}
-          </div>
-        </div>
-      `;
-
       const overlay = document.getElementById('flight-info-overlay');
       const drawer = document.getElementById('flight-info-drawer');
-      overlay.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        drawer.classList.remove('translate-x-full');
-      });
-      document.body.style.overflow = 'hidden';
-    };
+      const curSeg = appState.segments[appState.activeSegmentIndex] || {};
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') window.closeFlightInfoDrawer();
-    });
+      if (title) title.textContent = `${flight.flightNum} · ${flight.aircraft}`;
+
+      if (body) {
+        body.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-1 rounded-md bg-[#0B192C] text-[#C5A880] font-mono font-bold text-xs">${flight.flightNum}</span>
+            <span class="text-xs font-bold text-slate-700">${flight.aircraft}</span>
+            <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">${flight.status}</span>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#A0825B] block">Route & Schedule (Database Grounded)</span>
+            <div class="flex items-center justify-between text-xs">
+              <div>
+                <span class="text-2xl font-mono font-black text-[#0B192C] block">${flight.depTime}</span>
+                <span class="font-bold text-slate-800">${flight.depCode} (${flight.depCity})</span>
+                <span class="text-[11px] text-slate-500 block">${flight.depName}</span>
+                <span class="text-[10px] text-slate-400 block mt-1">${flight.depDate}</span>
+              </div>
+              <div class="text-center px-4">
+                <span class="font-bold text-slate-500">${flight.duration}</span>
+                <div class="w-24 h-0.5 bg-slate-300 relative my-1.5 flex items-center justify-center">
+                  ${!flight.nonstop && flight.stops && flight.stops.length > 0 ? `
+                    <div class="flex items-center justify-center gap-1.5">
+                      ${flight.stops.map(() => `<div class="w-2 h-2 rounded-full bg-amber-500 border border-white"></div>`).join('')}
+                    </div>
+                  ` : `
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#C5A880] absolute left-1/2 -top-1 -translate-x-1/2"></div>
+                  `}
+                </div>
+                ${flight.nonstop ? `
+                  <span class="text-[10px] text-emerald-600 font-bold">Non-Stop Direct</span>
+                ` : `
+                  <span class="text-[10px] text-amber-800 font-bold bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded">${flight.stopLabel}</span>
+                `}
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-mono font-black text-[#0B192C] block">${flight.arrTime}</span>
+                <span class="font-bold text-slate-800">${flight.arrCode} (${flight.arrCity})</span>
+                <span class="text-[11px] text-slate-500 block">${flight.arrName}</span>
+                <span class="text-[10px] text-slate-400 block mt-1">${flight.arrDate}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stops Breakdown in Details -->
+          ${!flight.nonstop && flight.stops && flight.stops.length > 0 ? `
+            <div class="bg-amber-50/70 border border-amber-200/90 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  <span>Flight Intermediate Stops (${flight.stops.length})</span>
+                </span>
+                <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">${flight.stopCount === 1 ? '1 Stop Itinerary' : `${flight.stopCount} Stops Itinerary`}</span>
+              </div>
+
+              <!-- Journey Progress Step-by-Step -->
+              <div class="relative pl-6 space-y-3 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-amber-300">
+                
+                <!-- Origin -->
+                <div class="relative text-xs">
+                  <div class="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-[#0B192C] border-2 border-white ring-1 ring-slate-300"></div>
+                  <div class="font-bold text-[#0B192C]">Departure: ${flight.depCity} (${flight.depCode})</div>
+                  <div class="text-[11px] text-slate-500">${flight.depName}</div>
+                </div>
+
+                <!-- Stops -->
+                ${flight.stops.map((stop, idx) => `
+                  <div class="relative text-xs bg-white border border-amber-200/90 rounded-lg p-2.5 shadow-xs">
+                    <div class="absolute -left-[27px] top-3 w-3 h-3 rounded-full bg-amber-500 border-2 border-white ring-1 ring-amber-400"></div>
+                    <div class="flex items-center justify-between">
+                      <span class="font-extrabold text-[#0B192C] text-xs">Stop ${idx + 1}: ${stop.airportCity || stop.airportCode} <span class="font-mono text-[#A0825B]">(${stop.airportCode})</span></span>
+                      <span class="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded uppercase">Transit Layover</span>
+                    </div>
+                    <div class="text-[11px] text-slate-600 mt-0.5">${stop.airportName || 'International Airport'}</div>
+                    <div class="text-[10px] text-amber-700 mt-1 flex items-center gap-1">
+                      <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      <span>Transit hall transfer • Checked baggage transferred automatically</span>
+                    </div>
+                  </div>
+                `).join('')}
+
+                <!-- Final Destination -->
+                <div class="relative text-xs">
+                  <div class="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-emerald-600 border-2 border-white ring-1 ring-emerald-400"></div>
+                  <div class="font-bold text-[#0B192C]">Final Arrival: ${flight.arrCity} (${flight.arrCode})</div>
+                  <div class="text-[11px] text-slate-500">${flight.arrName}</div>
+                </div>
+
+              </div>
+            </div>
+          ` : `
+            <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex items-center space-x-2 text-emerald-800 text-xs">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="font-semibold">Direct Non-Stop Flight — No intermediate stops or layovers.</span>
+            </div>
+          `}
+
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#A0825B] block">Cabin Inclusions & Exact Database Pricing</span>
+            <div class="grid grid-cols-1 gap-2.5">
+              <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-[#0B192C]">Economy Horizon</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.eco.price.toLocaleString()}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">2x 23kg Checked Bags • Complimentary Dining • USB-C In-seat Power</p>
+              </div>
+              <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-[#0B192C]">Business Lie-flat Pod</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.bus.price.toLocaleString()}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">2x 32kg Checked Bags • Fully Lie-Flat Bed • Flagship Lounge Access • Priority Boarding</p>
+              </div>
+              <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-[#0B192C]">First Sovereign Suite</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.fst.price.toLocaleString()}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">3x 32kg Checked Bags • Private Enclosed Suite Door • Michelin-curated Caviar • Chauffeur Drive</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (overlay && drawer) {
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          overlay.classList.remove('opacity-0');
+          drawer.classList.remove('translate-x-full');
+        });
+        document.body.style.overflow = 'hidden';
+      }
+    };
 
     window.selectFare = function(segmentIndex, flightId, flightNum, cabinName, price, tierKey) {
       const seg = appState.segments[segmentIndex];
       if (!seg) return;
 
+      const flightObj = findFlightById(flightId);
+      const dbId = flightObj ? flightObj.dbId : 0;
+
       if (seg.selectedFlight && seg.selectedFlight.cardId === flightId && seg.selectedFlight.tierKey === tierKey) {
-        // Deselect if clicked again
         seg.selectedFlight = null;
       } else {
         seg.selectedFlight = {
           cardId: flightId,
-          flightNum,
+          dbId: dbId,
+          flightNum: flightNum,
           cabin: cabinName,
-          price,
-          tierKey
+          price: price,
+          tierKey: tierKey,
+          aircraft: flightObj ? flightObj.aircraft : 'Airbus A350-1000 Flagship',
+          depTime: flightObj ? flightObj.depTime : '00:00',
+          arrTime: flightObj ? flightObj.arrTime : '14:30',
+          duration: flightObj ? flightObj.duration : '4h 00m'
         };
       }
+
+      // Check if all flight segments are selected
+      if (appState.segments.every(s => s.selectedFlight != null)) {
+        const paxCount = appState.passengerCount || 1;
+        const total = appState.segments.reduce((sum, s) => sum + (s.selectedFlight ? (s.selectedFlight.price * paxCount) : 0), 0);
+        sessionStorage.setItem('skybook-selected-flights', JSON.stringify({
+          segments: appState.segments,
+          totalPrice: total,
+          passengerSummary: appState.passengerSummary || '1 Passenger, Business Class',
+          passengerCount: paxCount,
+          tripMode: appState.tripMode
+        }));
+
+        // Unlock Step 2: Seats in top progress bar
+        if (window.SkyBookProgress) {
+          window.SkyBookProgress.unlockStep(2);
+        } else {
+          const step2 = document.getElementById('skybook-step-btn-2') || document.querySelector('#skybook-booking-progress .skybook-step:nth-child(3)');
+          if (step2 && step2.classList.contains('skybook-disabled')) {
+            step2.outerHTML = '<a id="skybook-step-btn-2" data-step-index="1" class="skybook-step skybook-unlocked" href="/Booking/SelectSeats" title="Go to Seats">' +
+              '<span class="skybook-step-number">2</span><span>SEATS</span></a>';
+          }
+        }
+      } else {
+        sessionStorage.removeItem('skybook-selected-flights');
+        // Re-lock Step 2, 3, 4
+        if (window.SkyBookProgress) {
+          window.SkyBookProgress.lockStep(2);
+          window.SkyBookProgress.lockStep(3);
+          window.SkyBookProgress.lockStep(4);
+        } else {
+          const step2 = document.getElementById('skybook-step-btn-2') || document.querySelector('#skybook-booking-progress a[href*="SelectSeats"]');
+          if (step2) {
+            step2.outerHTML = '<span id="skybook-step-btn-2" data-step-index="1" class="skybook-step skybook-disabled" title="Locked - Complete flight selection first" aria-disabled="true">' +
+              '<span class="skybook-step-number">2</span><span>SEATS</span></span>';
+          }
+        }
+      }
+
       renderSidebar();
       renderFlightCards();
-      // On mobile the primary Next button sits in the trip summary above the
-      // results. Bring it back into view after a fare is chosen.
+
       if (seg.selectedFlight && window.matchMedia('(max-width: 1023px)').matches) {
         requestAnimationFrame(() => {
-          document.getElementById('sidebar-left-column')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
+          document.getElementById('sidebar-left-column')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       }
     };
 
     window.handlePrimaryAction = function() {
       const curSeg = appState.segments[appState.activeSegmentIndex];
-      if (!curSeg.selectedFlight) {
+      if (!curSeg || !curSeg.selectedFlight) {
+        // Disallow proceeding without completing flight selection!
         return;
       }
 
       if (appState.activeSegmentIndex < appState.segments.length - 1) {
         setActiveSegment(appState.activeSegmentIndex + 1);
+        window.scrollTo({ top: 120, behavior: 'smooth' });
       } else {
         const unselected = appState.segments.findIndex(s => !s.selectedFlight);
         if (unselected !== -1) {
           setActiveSegment(unselected);
+          window.scrollTo({ top: 120, behavior: 'smooth' });
           return;
         }
-        // Proceed to modal
-        let sumHtml = `<div class="text-left space-y-1.5 my-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">`;
-        let total = 0;
-        appState.segments.forEach((s, i) => {
-          total += s.selectedFlight.price;
-          sumHtml += `<div><strong>${i + 1}. ${s.title}:</strong> ${s.selectedFlight.flightNum} (${s.selectedFlight.cabin}) — $${s.selectedFlight.price.toLocaleString()}</div>`;
-        });
-        sumHtml += `<div class="pt-2 border-t border-slate-200 font-bold text-[#0B192C]">Total Fare: $${total.toLocaleString()} USD</div></div>`;
 
-        document.getElementById('modal-summary-text').innerHTML = `All flights selected successfully! Ready to choose seats:<br>${sumHtml}`;
-        document.getElementById('seat-selection-modal').classList.remove('hidden');
+        const paxCount = appState.passengerCount || 1;
+        const total = appState.segments.reduce((sum, s) => sum + (s.selectedFlight ? (s.selectedFlight.price * paxCount) : 0), 0);
+        sessionStorage.setItem('skybook-selected-flights', JSON.stringify({
+          segments: appState.segments,
+          totalPrice: total,
+          passengerSummary: appState.passengerSummary || '1 Passenger, Business Class',
+          passengerCount: paxCount,
+          tripMode: appState.tripMode
+        }));
+
+        const firstSelected = appState.segments[0].selectedFlight;
+        const flightParam = firstSelected && firstSelected.dbId ? `?flightId=${firstSelected.dbId}&cabinClass=${firstSelected.tierKey}` : '';
+        window.location.href = `/Booking/SelectSeats${flightParam}`;
       }
     };
 
@@ -1653,101 +1094,52 @@
     };
 
     window.applyFilters = function() {
-      appState.filters.nonstop = document.getElementById('filter-nonstop').checked;
-      appState.filters.cabins.eco = document.getElementById('filter-cabin-eco').checked;
-      appState.filters.cabins.bus = document.getElementById('filter-cabin-bus').checked;
-      appState.filters.cabins.fst = document.getElementById('filter-cabin-fst').checked;
+      appState.filters.nonstop = document.getElementById('filter-nonstop')?.checked ?? true;
+      appState.filters.cabins.eco = document.getElementById('filter-cabin-eco')?.checked ?? true;
+      appState.filters.cabins.bus = document.getElementById('filter-cabin-bus')?.checked ?? true;
+      appState.filters.cabins.fst = document.getElementById('filter-cabin-fst')?.checked ?? true;
       renderFlightCards();
     };
 
     window.resetFilters = function() {
-      appState.filters.nonstop = true;
+      appState.filters.nonstop = false;
       appState.filters.depWindow = 'all';
       appState.filters.cabins = { eco: true, bus: true, fst: true };
-      appState.filters.maxBudget = 5000;
+      
+      const slider = document.getElementById('budget-slider');
+      const maxVal = slider ? Number(slider.max) : 35000;
+      appState.filters.maxBudget = maxVal;
       appState.filters.sortBy = 'recommended';
 
-      document.getElementById('filter-nonstop').checked = true;
-      document.getElementById('filter-cabin-eco').checked = true;
-      document.getElementById('filter-cabin-bus').checked = true;
-      document.getElementById('filter-cabin-fst').checked = true;
-      document.getElementById('budget-slider').value = '5000';
-      document.getElementById('budget-val-badge').textContent = '$5,000';
-      document.getElementById('flight-sort-select').value = 'recommended';
+      const chkNonstop = document.getElementById('filter-nonstop');
+      const chkEco = document.getElementById('filter-cabin-eco');
+      const chkBus = document.getElementById('filter-cabin-bus');
+      const chkFst = document.getElementById('filter-cabin-fst');
+      const sortSel = document.getElementById('flight-sort-select');
+
+      if (chkNonstop) chkNonstop.checked = false;
+      if (chkEco) chkEco.checked = true;
+      if (chkBus) chkBus.checked = true;
+      if (chkFst) chkFst.checked = true;
+      if (slider) slider.value = maxVal;
+      const budgetBadge = document.getElementById('budget-val-badge');
+      if (budgetBadge) budgetBadge.textContent = '$' + maxVal.toLocaleString();
+      if (sortSel) sortSel.value = 'recommended';
       setDepartureWindow('all');
     };
-
-    function renderSubheader() {
-      const container = document.getElementById('subheader-route-info');
-      if (!container) return;
-
-      if (appState.tripMode === 'one-way') {
-        container.innerHTML = `
-          <div class="flex items-center space-x-2 font-bold tracking-tight text-base whitespace-nowrap">
-            <span class="text-white">Cairo (CAI)</span>
-            <svg class="w-4 h-4 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-            <span class="text-white">Dubai (DXB)</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>11 Sep 2026</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>1 Adult • Economy Class</span>
-          </div>
-        `;
-      } else if (appState.tripMode === 'round-trip') {
-        container.innerHTML = `
-          <div class="flex items-center space-x-2 font-bold tracking-tight text-base whitespace-nowrap">
-            <span class="text-white">Cairo (CAI)</span>
-            <svg class="w-4 h-4 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
-            <span class="text-white">Dubai (DXB)</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>11 Sep 2026 – 18 Sep 2026</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>1 Adult • Economy Class</span>
-          </div>
-        `;
-      } else if (appState.tripMode === 'multi-city') {
-        container.innerHTML = `
-          <div class="flex items-center space-x-2 font-bold tracking-tight text-base whitespace-nowrap">
-            <span class="text-white">Multi-City</span>
-            <span class="text-xs bg-[#C5A880]/20 text-[#C5A880] px-2 py-0.5 rounded-full font-bold">3 Segments</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>11 Sep – 25 Sep 2026</span>
-          </div>
-          <div class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-          <div class="flex items-center space-x-1.5 text-slate-300 font-medium text-xs sm:text-sm whitespace-nowrap">
-            <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-            <span>1 Adult • Economy Class</span>
-          </div>
-        `;
-      }
-    }
 
     function renderSidebar() {
       const container = document.getElementById('sidebar-segments-container');
       if (!container) return;
 
       let html = '';
+      const paxCount = appState.passengerCount || 1;
       let totalFare = 0;
 
       appState.segments.forEach((seg, idx) => {
         const isCurrent = idx === appState.activeSegmentIndex;
         const isSelected = seg.selectedFlight !== null;
-        if (isSelected) totalFare += seg.selectedFlight.price;
+        if (isSelected) totalFare += (seg.selectedFlight.price * paxCount);
 
         let cardClass = isCurrent
           ? 'bg-slate-50 border-2 border-[#0B192C] shadow-sm'
@@ -1761,7 +1153,10 @@
 
         let descText = '';
         if (isSelected) {
-          descText = `${seg.shortDate} • ${seg.selectedFlight.flightNum} • ${seg.selectedFlight.cabin} ($${seg.selectedFlight.price.toLocaleString()})`;
+          const fareNote = paxCount > 1 
+            ? `$${seg.selectedFlight.price.toLocaleString()} × ${paxCount} = $${(seg.selectedFlight.price * paxCount).toLocaleString()}` 
+            : `$${seg.selectedFlight.price.toLocaleString()}`;
+          descText = `${seg.shortDate} • ${seg.selectedFlight.flightNum} • ${seg.selectedFlight.cabin} (${fareNote})`;
         } else if (isCurrent) {
           descText = `${seg.shortDate} • Select flight now`;
         } else {
@@ -1790,40 +1185,44 @@
 
       container.innerHTML = html;
 
-      // Update total price display
       const totalEl = document.getElementById('sidebar-total-price-val');
       if (totalEl) totalEl.textContent = '$' + totalFare.toLocaleString();
 
-      // Update CTA
+      const paxBadge = document.getElementById('sidebar-pax-badge');
+      if (paxBadge) paxBadge.textContent = appState.passengerSummary || '1 Passenger, Business Class';
+
+      const paxLabel = document.getElementById('sidebar-total-pax-label');
+      if (paxLabel) paxLabel.textContent = `Total Trip Fare (${appState.passengerSummary || '1 Passenger, Business Class'})`;
+
       const ctaBtn = document.getElementById('sidebar-main-cta');
       const ctaText = document.getElementById('sidebar-cta-text');
       const selectionNotice = document.getElementById('flight-selection-notice');
       const selectionNoticeText = document.getElementById('flight-selection-notice-text');
       const curSeg = appState.segments[appState.activeSegmentIndex];
-      const hasSelectedFare = !!curSeg.selectedFlight;
+      const hasSelectedFare = curSeg && !!curSeg.selectedFlight;
+      const allSegmentsSelected = appState.segments.every(s => s.selectedFlight != null);
 
       if (appState.tripMode === 'one-way') {
-        ctaText.textContent = hasSelectedFare ? 'Continue to Seat Selection →' : 'Select Outbound Flight';
+        ctaText.textContent = hasSelectedFare ? 'Continue to Seat Selection →' : 'Select Flight to Continue';
       } else if (appState.tripMode === 'round-trip') {
         if (appState.activeSegmentIndex === 0) {
           ctaText.textContent = hasSelectedFare ? 'Next: Select Return Flight →' : 'Select Outbound Flight';
         } else {
-          ctaText.textContent = appState.segments.every(s => s.selectedFlight) ? 'Continue to Seat Selection →' : 'Select Return Flight';
+          ctaText.textContent = allSegmentsSelected ? 'Continue to Seat Selection →' : 'Select Return Flight';
         }
       } else if (appState.tripMode === 'multi-city') {
         if (appState.activeSegmentIndex < appState.segments.length - 1) {
           ctaText.textContent = hasSelectedFare ? `Next: Select Segment ${appState.activeSegmentIndex + 2} →` : `Select Segment ${appState.activeSegmentIndex + 1}`;
         } else {
-          ctaText.textContent = hasSelectedFare ? 'Continue to Seat Selection →' : `Select Segment ${appState.activeSegmentIndex + 1}`;
+          ctaText.textContent = allSegmentsSelected ? 'Continue to Seat Selection →' : `Select Segment ${appState.activeSegmentIndex + 1}`;
         }
       }
 
-      // Dynamic toggle for button disabled/active state
       if (!hasSelectedFare) {
         ctaBtn.disabled = true;
         ctaBtn.className = 'w-full bg-slate-200 text-slate-400 py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition cursor-not-allowed flex items-center justify-center space-x-2 shadow-none select-none';
         if (selectionNotice && selectionNoticeText) {
-          selectionNoticeText.textContent = `Select a flight for Segment ${appState.activeSegmentIndex + 1} to continue.`;
+          selectionNoticeText.textContent = `Select a flight for ${curSeg?.title || 'this segment'} to continue.`;
           selectionNotice.classList.remove('hidden');
           selectionNotice.classList.add('flex');
         }
@@ -1839,22 +1238,32 @@
 
     function renderFlightHeader() {
       const curSeg = appState.segments[appState.activeSegmentIndex];
+      if (!curSeg) return;
+
       const total = appState.segments.length;
       const breadcrumb = document.getElementById('flight-view-breadcrumb');
       const heading = document.getElementById('flight-view-heading');
       const sub = document.getElementById('flight-view-subheading');
 
+      const fromCityDisp = curSeg.fromCity || curSeg.fromCode || 'ORIGIN';
+      const toCityDisp = curSeg.toCity || curSeg.toCode || 'DESTINATION';
+
       if (appState.tripMode === 'round-trip') {
-        breadcrumb.textContent = `STEP ${appState.activeSegmentIndex + 1} OF 2 • ${curSeg.fromCity.toUpperCase()} (${curSeg.fromCode}) TO ${curSeg.toCity.toUpperCase()} (${curSeg.toCode})`;
+        breadcrumb.textContent = `STEP ${appState.activeSegmentIndex + 1} OF 2 • ${fromCityDisp.toUpperCase()} (${curSeg.fromCode}) TO ${toCityDisp.toUpperCase()} (${curSeg.toCode})`;
         heading.textContent = appState.activeSegmentIndex === 0 ? 'Select Outbound Flight' : 'Select Return Flight';
       } else if (appState.tripMode === 'one-way') {
-        breadcrumb.textContent = `${curSeg.fromCity.toUpperCase()} (${curSeg.fromCode}) TO ${curSeg.toCity.toUpperCase()} (${curSeg.toCode})`;
+        breadcrumb.textContent = `${fromCityDisp.toUpperCase()} (${curSeg.fromCode}) TO ${toCityDisp.toUpperCase()} (${curSeg.toCode})`;
         heading.textContent = 'Select Flight';
       } else {
-        breadcrumb.textContent = `SEGMENT ${appState.activeSegmentIndex + 1} OF ${total} • ${curSeg.fromCity.toUpperCase()} (${curSeg.fromCode}) TO ${curSeg.toCity.toUpperCase()} (${curSeg.toCode})`;
-        heading.textContent = `Select Flight — ${curSeg.fromCity} to ${curSeg.toCity}`;
+        breadcrumb.textContent = `SEGMENT ${appState.activeSegmentIndex + 1} OF ${total} • ${fromCityDisp.toUpperCase()} (${curSeg.fromCode}) TO ${toCityDisp.toUpperCase()} (${curSeg.toCode})`;
+        heading.textContent = `Select Flight — ${fromCityDisp} to ${toCityDisp}`;
       }
-      sub.textContent = `${curSeg.dateStr} • ${curSeg.fromCity} (${curSeg.fromCode}) → ${curSeg.toCity} (${curSeg.toCode})`;
+      sub.textContent = `${curSeg.dateStr} • ${fromCityDisp} (${curSeg.fromCode}) → ${toCityDisp} (${curSeg.toCode})`;
+
+      const depLabel = document.getElementById('filter-dep-label');
+      if (depLabel) {
+        depLabel.textContent = `${fromCityDisp} Departure Window`;
+      }
     }
 
     function renderFlightCards() {
@@ -1862,40 +1271,101 @@
       if (!container) return;
 
       const curSeg = appState.segments[appState.activeSegmentIndex];
+      if (!curSeg) return;
+
+      // Active cabin filters
+      const activeCabins = [];
+      if (appState.filters.cabins.eco) activeCabins.push('eco');
+      if (appState.filters.cabins.bus) activeCabins.push('bus');
+      if (appState.filters.cabins.fst) activeCabins.push('fst');
+
+      if (activeCabins.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center shadow-sm space-y-4">
+            <div class="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+              <span class="material-symbols-outlined text-[30px]">tune</span>
+            </div>
+            <div class="space-y-1">
+              <h3 class="font-bold text-slate-900 text-lg">No Cabins Selected</h3>
+              <p class="text-sm text-slate-600 max-w-md mx-auto">
+                Please select at least one cabin class (Economy, Business, or First Class) in the filters above to view available flights.
+              </p>
+            </div>
+            <div class="pt-2">
+              <button type="button" onclick="resetFilters()" class="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#0B192C] hover:bg-[#162840] text-white rounded-xl text-xs font-bold shadow transition cursor-pointer">
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // STRICTLY GET FROM DATABASE MAPPING
       const raw = FLIGHT_DATABASE[curSeg.key] || [];
 
-      // Filters
+      // Filter
       const filtered = raw.filter(f => {
         if (appState.filters.nonstop && !f.nonstop) return false;
         if (appState.filters.depWindow === '06-12' && (f.depHour < 6 || f.depHour >= 12)) return false;
         if (appState.filters.depWindow === '12-18' && (f.depHour < 12 || f.depHour >= 18)) return false;
         if (appState.filters.depWindow === '18-24' && (f.depHour < 18 || f.depHour >= 24)) return false;
 
-        const lowestPrice = Math.min(
-          f.tiers.eco ? f.tiers.eco.price : 99999,
-          f.tiers.bus ? f.tiers.bus.price : 99999,
-          f.tiers.fst && !f.tiers.fst.soldOut ? f.tiers.fst.price : 99999
-        );
+        const visiblePrices = activeCabins
+          .map(k => f.tiers[k]?.price)
+          .filter(p => typeof p === 'number');
+
+        if (visiblePrices.length === 0) return false;
+        const lowestPrice = Math.min(...visiblePrices);
         if (lowestPrice > appState.filters.maxBudget) return false;
         return true;
       });
 
-      // Sorting
+      // Sort
+      function getLowestVisiblePrice(flight) {
+        const prices = [];
+        if (appState.filters.cabins.eco && flight.tiers.eco) prices.push(flight.tiers.eco.price);
+        if (appState.filters.cabins.bus && flight.tiers.bus) prices.push(flight.tiers.bus.price);
+        if (appState.filters.cabins.fst && flight.tiers.fst) prices.push(flight.tiers.fst.price);
+        return prices.length > 0 ? Math.min(...prices) : 999999;
+      }
+
       filtered.sort((a, b) => {
         if (appState.filters.sortBy === 'price-low') {
-          return (a.tiers.eco?.price || 9999) - (b.tiers.eco?.price || 9999);
+          return getLowestVisiblePrice(a) - getLowestVisiblePrice(b);
         } else if (appState.filters.sortBy === 'dep-early') {
-          return a.depHour - b.depHour;
+          return (a.depHour || 0) - (b.depHour || 0);
         }
         return 0;
       });
 
       if (filtered.length === 0) {
+        // No flights found for this route
+        const noResultsFrom = curSeg.fromCity ? `${curSeg.fromCity} (${curSeg.fromCode})` : curSeg.fromCode;
+        const noResultsTo = curSeg.toCity ? `${curSeg.toCity} (${curSeg.toCode})` : curSeg.toCode;
+        const searchDate = curSeg.dateStr || curSeg.shortDate || 'selected date';
+        const searchPax = appState.passengerSummary || `${appState.passengerCount || 1} Passenger`;
         container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-            <h3 class="font-bold text-slate-800 text-sm">No Flights Found</h3>
-            <p class="text-xs text-slate-500 mt-1">Try relaxing filters or adjusting departure times.</p>
-            <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-[#0B192C] text-white text-xs font-bold rounded-lg shadow">Reset Filters</button>
+          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center shadow-sm space-y-5">
+            <div class="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center mx-auto">
+              <span class="material-symbols-outlined text-[30px]">flight_takeoff</span>
+            </div>
+            <div class="space-y-2">
+              <h3 class="font-bold text-slate-900 text-lg">No Flights Found</h3>
+              <p class="text-sm text-slate-600 max-w-md mx-auto">
+                No scheduled flights found for <strong class="text-[#0B192C]">${noResultsFrom} → ${noResultsTo}</strong> on <strong class="text-[#0B192C]">${searchDate}</strong> for <strong class="text-[#0B192C]">${searchPax}</strong>.
+              </p>
+              <p class="text-xs text-slate-400 max-w-sm mx-auto">Try adjusting your filters or departure date to check other flights in the database.</p>
+            </div>
+            <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <a href="/" class="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#0B192C] hover:bg-[#162840] text-white rounded-xl text-xs font-bold shadow transition cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+                <span>Modify Search</span>
+              </a>
+              <button type="button" onclick="resetFilters()" class="inline-flex items-center space-x-2 px-5 py-2.5 border border-slate-300 hover:border-slate-500 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer bg-white">
+                <span>Reset Filters</span>
+              </button>
+            </div>
           </div>
         `;
         return;
@@ -1905,16 +1375,13 @@
       filtered.forEach(flight => {
         const isFlightSelected = curSeg.selectedFlight && curSeg.selectedFlight.cardId === flight.id;
         const selectedTier = isFlightSelected ? curSeg.selectedFlight.tierKey : null;
-        const isDetailsOpen = appState.expandedFlightId === flight.id;
 
-        // Requirement 1: Prominent Entire Outer Flight Card Boundary Selection
         const cardBorder = isFlightSelected
-          ? 'bg-white rounded-2xl border-2 border-[#0B192C] ring-1 ring-[#0B192C]/20 shadow-lg relative transition-all duration-200 overflow-visible'
-          : 'bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible';
+          ? 'bg-white rounded-2xl border-2 border-[#0B192C] ring-2 ring-[#0B192C]/20 shadow-lg relative transition-all duration-200 overflow-visible'
+          : 'bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible';
 
-        // Outer header tag if selected
         const outerSelectionBadge = isFlightSelected
-          ? `<div class="absolute -top-3 left-6 bg-[#0B192C] text-[#C5A880] text-[10px] font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full shadow flex items-center space-x-1 z-20">
+          ? `<div class="absolute -top-3 left-6 bg-[#0B192C] text-[#C5A880] text-[10px] font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full shadow flex items-center space-x-1.5 z-20">
                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
                <span>SELECTED FLIGHT</span>
              </div>`
@@ -1923,118 +1390,165 @@
         // TIER 1: Economy
         const eco = flight.tiers.eco;
         const isEcoSelected = isFlightSelected && selectedTier === 'eco';
+        const isEcoSearched = appState.searchedCabin === 'eco';
         const ecoCardBorderClass = isEcoSelected
-          ? 'border-2 border-[#0B192C] shadow-md relative rounded-2xl bg-white'
-          : 'border border-slate-200 hover:border-slate-300 rounded-2xl bg-white';
+          ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
+          : (isEcoSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
         const ecoBtn = isEcoSelected
-          ? `<button class="select-fare-btn w-full py-2.5 px-4 bg-[#0B192C] text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button">Selected✓</button>`
-          : `<button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>`;
+          ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco'); event.stopPropagation();">Selected ✓</button>`
+          : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco'); event.stopPropagation();">Select Fare</button>`;
         const ecoBadge = isEcoSelected
-          ? `<span class="selected-badge absolute -top-3 right-6 bg-[#0B192C] text-white text-[11px] font-bold tracking-widest px-2.5 py-0.5 rounded-md uppercase z-10 shadow-sm">SELECTED</span>`
-          : ``;
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
+          : (isEcoSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
+
+        const ecoHtml = `
+          <div class="bundle-col fare-card ${ecoCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco')">
+            ${ecoBadge}
+            <div>
+              <span class="text-[10px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${eco.price.toLocaleString()}</span>
+              <span class="text-[10px] text-emerald-700 font-bold mt-0.5 block">${eco.note}</span>
+              <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                ${eco.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}
+              </ul>
+            </div>
+            <div class="mt-4">
+              ${ecoBtn}
+            </div>
+          </div>
+        `;
 
         // TIER 2: Business
         const bus = flight.tiers.bus;
         const isBusSelected = isFlightSelected && selectedTier === 'bus';
+        const isBusSearched = appState.searchedCabin === 'bus';
         const busCardBorderClass = isBusSelected
-          ? 'border-2 border-[#0B192C] shadow-md relative rounded-2xl bg-white'
-          : 'border border-slate-200 hover:border-slate-300 rounded-2xl bg-white';
+          ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
+          : (isBusSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
         const busBtn = isBusSelected
-          ? `<button class="select-fare-btn w-full py-2.5 px-4 bg-[#0B192C] text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button">Selected✓</button>`
-          : `<button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>`;
+          ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus'); event.stopPropagation();">Selected ✓</button>`
+          : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus'); event.stopPropagation();">Select Fare</button>`;
         const busBadge = isBusSelected
-          ? `<span class="selected-badge absolute -top-3 right-6 bg-[#0B192C] text-white text-[11px] font-bold tracking-widest px-2.5 py-0.5 rounded-md uppercase z-10 shadow-sm">SELECTED</span>`
-          : ``;
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
+          : (isBusSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
+
+        const busHtml = `
+          <div class="bundle-col fare-card ${busCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus')">
+            ${busBadge}
+            <div>
+              <span class="text-[10px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${bus.price.toLocaleString()}</span>
+              <span class="text-[10px] text-slate-500 mt-0.5 block">${bus.note}</span>
+              <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                ${bus.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}
+              </ul>
+            </div>
+            <div class="mt-4">
+              ${busBtn}
+            </div>
+          </div>
+        `;
 
         // TIER 3: First Suite
         const fst = flight.tiers.fst;
         const isFstSelected = isFlightSelected && selectedTier === 'fst';
-        let fstCardContent = '';
+        const isFstSearched = appState.searchedCabin === 'fst';
+        const fstCardBorderClass = isFstSelected
+          ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
+          : (isFstSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
+        const fstBtn = isFstSelected
+          ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst'); event.stopPropagation();">Selected ✓</button>`
+          : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst'); event.stopPropagation();">Select Fare</button>`;
+        const fstBadge = isFstSelected
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
+          : (isFstSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
 
-        if (fst.soldOut) {
-          fstCardContent = `
-            <div class="bundle-col fare-card border border-slate-200 rounded-2xl p-4 flex flex-col justify-between bg-white opacity-70">
-              <div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-slate-400 block mt-1 font-mono">—</span>
-                <span class="text-[11px] text-rose-600 font-bold uppercase tracking-wider mt-1 block">SOLD OUT</span>
-                <p class="text-[11px] text-slate-400 mt-2">Fully booked for this departure.</p>
-              </div>
-              <button class="mt-4 w-full py-2.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed" disabled type="button">
-                Unavailable
-              </button>
+        const fstHtml = `
+          <div class="bundle-col fare-card ${fstCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst')">
+            ${fstBadge}
+            <div>
+              <span class="text-[10px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${fst.price.toLocaleString()}</span>
+              <span class="text-[10px] text-amber-800 font-bold mt-0.5 block">${fst.note}</span>
+              <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                ${fst.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}
+              </ul>
             </div>
-          `;
-        } else {
-          const fstCardBorderClass = isFstSelected
-            ? 'border-2 border-[#0B192C] shadow-md relative rounded-2xl bg-white'
-            : 'border border-slate-200 hover:border-slate-300 rounded-2xl bg-white';
-          const fstBtn = isFstSelected
-            ? `<button class="select-fare-btn w-full py-2.5 px-4 bg-[#0B192C] text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button">Selected✓</button>`
-            : `<button class="select-fare-btn w-full py-2.5 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button">Select Fare</button>`;
-          const fstBadge = isFstSelected
-            ? `<span class="selected-badge absolute -top-3 right-6 bg-[#0B192C] text-white text-[11px] font-bold tracking-widest px-2.5 py-0.5 rounded-md uppercase z-10 shadow-sm">SELECTED</span>`
-            : ``;
-
-          fstCardContent = `
-            <div class="bundle-col fare-card ${fstCardBorderClass} p-4 flex flex-col justify-between cursor-pointer relative" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst')">
-              ${fstBadge}
-              <div>
-                <span class="text-[11px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
-                <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${fst.price.toLocaleString()}</span>
-                <span class="text-[11px] text-amber-800 font-bold mt-0.5 block">${fst.note}</span>
-                <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                  ${fst.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span>${p}</span></li>`).join('')}
-                </ul>
-              </div>
-              <div class="mt-4">
-                ${fstBtn}
-              </div>
+            <div class="mt-4">
+              ${fstBtn}
             </div>
-          `;
-        }
+          </div>
+        `;
 
-        const detailsDrawerHtml = ``;
-
+        const gridColsClass = activeCabins.length === 3 ? 'sm:grid-cols-3' : (activeCabins.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1');
 
         html += `
           <div class="${cardBorder}">
             ${outerSelectionBadge}
             <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-center">
 
-              <!-- Left Side: Flight Timing & Badges -->
-              <div class="xl:col-span-5 space-y-4">
-                <div class="flex items-center space-x-2">
+              <!-- Left Side: Flight Timing, Departure, Arrival & Aircraft (xl:col-span-4) -->
+              <div class="xl:col-span-4 space-y-4">
+                <div class="flex items-center space-x-2 flex-wrap gap-y-1">
                   <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-800">${flight.flightNum}</span>
-                  <span class="text-xs text-slate-500">• ${flight.aircraft}</span>
-                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">${flight.status}</span>
+                  <span class="text-xs text-slate-500 font-medium">• ${flight.aircraft}</span>
+                  <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">${flight.status} • ${flight.availableSeats}</span>
+                  ${!flight.nonstop ? `
+                    <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-800 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md shadow-xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span>${flight.stopCount === 1 ? '1 STOP' : `${flight.stopCount} STOPS`}</span>
+                    </span>
+                  ` : ''}
                 </div>
 
                 <div class="flex items-center space-x-4">
-                  <!-- CAI -->
+                  <!-- Origin (Real Database Time) -->
                   <div>
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">${flight.depTime}</div>
-                    <div class="text-xs font-bold text-slate-800">${flight.depCode}</div>
-                    <div class="text-[11px] text-slate-400">${flight.depName} ${flight.depTerminal}</div>
+                    <div class="text-3xl font-extrabold text-[#0B192C] font-mono tracking-tight">${flight.depTime}</div>
+                    <div class="text-xs font-bold text-slate-800 mt-0.5">${flight.depCode}</div>
+                    <div class="text-[11px] text-slate-500 truncate max-w-[130px]">${flight.depCity}</div>
+                    <div class="text-[11px] font-semibold text-[#A0825B] mt-1">${flight.depDate}</div>
                   </div>
-                  <!-- Center Plane Graphic -->
-                  <div class="flex-grow flex flex-col items-center px-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase">${flight.duration}</span>
+
+                  <!-- Graphic Route Line with Computed Duration -->
+                  <div class="flex-grow flex flex-col items-center px-2">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">${flight.duration}</span>
                     <div class="relative w-full flex items-center my-1.5">
-                      <div class="h-0.5 w-full bg-slate-300"></div>
-                      <svg class="w-3.5 h-3.5 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
-                      </svg>
+                      <div class="h-0.5 w-full bg-slate-200"></div>
+                      ${!flight.nonstop && flight.stops && flight.stops.length > 0 ? `
+                        <div class="absolute inset-0 flex items-center justify-around pointer-events-none px-4">
+                          ${flight.stops.map(s => `
+                            <div class="relative pointer-events-auto" title="Stop: ${s.airportCity || s.airportCode} (${s.airportCode})">
+                              <div class="w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white ring-1 ring-amber-400 shadow-sm cursor-help"></div>
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : `
+                        <svg class="w-4 h-4 text-[#C5A880] absolute left-1/2 -translate-x-1/2 -top-1.5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path>
+                        </svg>
+                      `}
                     </div>
-                    <span class="text-[11px] text-emerald-600 font-bold">Non-stop Direct</span>
+                    ${flight.nonstop ? `
+                      <span class="text-[10px] text-emerald-600 font-bold">Non-Stop Direct</span>
+                    ` : `
+                      <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200/90 px-2 py-0.5 rounded-md shadow-xs">
+                        <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${flight.stopLabel}</span>
+                      </span>
+                    `}
                   </div>
-                  <!-- DXB -->
+
+                  <!-- Destination (Real Database Time) -->
                   <div class="text-right">
-                    <div class="text-2xl font-extrabold text-[#0B192C] font-mono">
+                    <div class="text-3xl font-extrabold text-[#0B192C] font-mono tracking-tight">
                       ${flight.arrTime} ${flight.arrNextDay ? `<span class="text-xs font-semibold text-amber-600 font-sans">${flight.arrNextDay}</span>` : ''}
                     </div>
-                    <div class="text-xs font-bold text-slate-800">${flight.arrCode}</div>
-                    <div class="text-[11px] text-slate-400">${flight.arrName} ${flight.arrTerminal}</div>
+                    <div class="text-xs font-bold text-slate-800 mt-0.5">${flight.arrCode}</div>
+                    <div class="text-[11px] text-slate-500 truncate max-w-[130px]">${flight.arrCity}</div>
+                    <div class="text-[11px] font-semibold text-[#A0825B] mt-1">${flight.arrDate}</div>
                   </div>
                 </div>
 
@@ -2045,58 +1559,24 @@
                 <!-- Flight Details Trigger -->
                 <div>
                   <button type="button" onclick="toggleFlightDetails('${flight.id}')" class="inline-flex items-center space-x-1 text-xs font-bold text-[#0B192C] hover:text-[#A0825B] transition-colors py-1 cursor-pointer">
-                    <span class="underline underline-offset-4 decoration-slate-300">Flight Details</span>
-                    <svg class="w-3.5 h-3.5 text-[#C5A880] transition-transform ${isDetailsOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    <span class="underline underline-offset-4 decoration-slate-300">View Flight Details &amp; Amenities</span>
+                    <svg class="w-3.5 h-3.5 text-[#C5A880]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </button>
                 </div>
               </div>
 
-              <!-- Right Side: 3 Fare Columns (Grid 3 cols) -->
-              <div class="xl:col-span-7">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-                  <!-- ECONOMY -->
-                  <div class="bundle-col fare-card ${ecoCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco')">
-                    ${ecoBadge}
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${eco.price.toLocaleString()}</span>
-                      <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">${eco.note}</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        ${eco.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span>${p}</span></li>`).join('')}
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      ${ecoBtn}
-                    </div>
-                  </div>
-
-                  <!-- BUSINESS -->
-                  <div class="bundle-col fare-card ${busCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus')">
-                    ${busBadge}
-                    <div>
-                      <span class="text-[11px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-                      <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${bus.price.toLocaleString()}</span>
-                      <span class="text-[11px] text-slate-500 mt-0.5 block">${bus.note}</span>
-                      <ul class="mt-2.5 space-y-1.5 text-[11px] text-slate-600">
-                        ${bus.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span>${p}</span></li>`).join('')}
-                      </ul>
-                    </div>
-                    <div class="mt-4">
-                      ${busBtn}
-                    </div>
-                  </div>
-
-                  <!-- FIRST SUITE -->
-                  ${fstCardContent}
+              <!-- Right Side: Fare Columns based on filter (xl:col-span-8) -->
+              <div class="xl:col-span-8">
+                <div class="grid grid-cols-1 ${gridColsClass} gap-3.5">
+                  ${appState.filters.cabins.eco ? ecoHtml : ''}
+                  ${appState.filters.cabins.bus ? busHtml : ''}
+                  ${appState.filters.cabins.fst ? fstHtml : ''}
                 </div>
               </div>
 
             </div>
-
-            <!-- Expandable Flight Details Drawer -->
-            ${detailsDrawerHtml}
           </div>
         `;
       });
@@ -2104,42 +1584,115 @@
       container.innerHTML = html;
     }
 
+    function updateRecapStrip() {
+      const recapMode = document.getElementById('recap-trip-mode');
+      const recapOrigCode = document.getElementById('recap-origin-code');
+      const recapOrigCity = document.getElementById('recap-origin-city');
+      const recapDestCode = document.getElementById('recap-dest-code');
+      const recapDestCity = document.getElementById('recap-dest-city');
+      const recapDates = document.getElementById('recap-dates');
+      const recapPax = document.getElementById('recap-pax');
+
+      const seg0 = appState.segments[0];
+      const seg1 = appState.segments[1];
+
+      if (recapMode) {
+        let modeLabel = 'Round Trip';
+        if (appState.tripMode === 'one-way') modeLabel = 'One Way';
+        else if (appState.tripMode === 'multi-city') modeLabel = 'Multi-City';
+        recapMode.textContent = modeLabel;
+      }
+      if (recapOrigCode && seg0) recapOrigCode.textContent = seg0.fromCode;
+      if (recapOrigCity && seg0) recapOrigCity.textContent = seg0.fromCity ? `(${seg0.fromCity})` : '';
+      if (recapDestCode && seg0) recapDestCode.textContent = seg0.toCode;
+      if (recapDestCity && seg0) recapDestCity.textContent = seg0.toCity ? `(${seg0.toCity})` : '';
+      if (recapDates) {
+        if (appState.tripMode === 'round-trip' && seg1) {
+          const d0 = seg0?.shortDate || 'Depart';
+          const d1 = seg1?.shortDate || 'Return';
+          const hasYear = /\b20\d{2}\b/.test(d0) || /\b20\d{2}\b/.test(d1);
+          recapDates.textContent = hasYear ? `${d0} – ${d1}` : `${d0} – ${d1}, 2026`;
+        } else if (seg0) {
+          const d0 = seg0.shortDate || 'Depart';
+          const hasYear = /\b20\d{2}\b/.test(d0);
+          recapDates.textContent = hasYear ? d0 : `${d0}, 2026`;
+        }
+      }
+      if (recapPax) recapPax.textContent = appState.passengerSummary || '1 Passenger, Business Class';
+    }
+
     function renderAll() {
-      renderSubheader();
+      updateRecapStrip();
       renderSidebar();
       renderFlightHeader();
       renderFlightCards();
     }
 
+    // Keyboard ESC closes drawer
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') window.closeFlightInfoDrawer();
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
-      const savedTripMode = sessionStorage.getItem('skybook-trip-mode');
-      const initialTripMode = ['round-trip', 'one-way', 'multi-city'].includes(savedTripMode) ? savedTripMode : 'round-trip';
-      appState.tripMode = initialTripMode;
-      setupSegmentsForMode(initialTripMode);
+      initializeFlightDatabase();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      let storedContext = null;
       try {
-        applySearchContext(JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null'));
+        storedContext = JSON.parse(sessionStorage.getItem('skybook-search-context') || 'null');
       } catch (error) {
-        sessionStorage.removeItem('skybook-search-context');
+        console.warn('Could not parse search context:', error);
       }
-      ['one-way', 'round-trip', 'multi-city'].forEach(mode => {
-        const toggle = document.getElementById(`toggle-btn-${mode}`);
-        if (toggle) {
-          toggle.disabled = mode !== initialTripMode;
-          toggle.setAttribute('aria-disabled', String(mode !== initialTripMode));
-          toggle.className = mode === initialTripMode
-            ? 'trip-toggle-btn px-3.5 py-1.5 rounded-md bg-[#0B192C] text-white font-bold shadow-sm whitespace-nowrap cursor-default'
-            : 'trip-toggle-btn px-3.5 py-1.5 rounded-md font-medium text-slate-400 bg-slate-200/60 cursor-not-allowed opacity-60';
-        }
-      });
-      const modeHeader = document.getElementById('trip-mode-header-row');
-      if (modeHeader && !document.getElementById('trip-mode-lock-note')) {
-        const note = document.createElement('span');
-        note.id = 'trip-mode-lock-note';
-        note.className = 'text-[10px] text-slate-400';
-        note.textContent = 'Trip type selected from search';
-        modeHeader.querySelector('div')?.appendChild(note);
-      }
+
+      const activeMode = urlParams.get('mode') || urlParams.get('tripMode') || storedContext?.mode || sessionStorage.getItem('skybook-trip-mode') || 'round-trip';
+      const validMode = ['round-trip', 'one-way', 'multi-city'].includes(activeMode) ? activeMode : 'round-trip';
+
+      appState.tripMode = validMode;
+      sessionStorage.setItem('skybook-trip-mode', validMode);
+
+      // Resolve origin/destination from URL first, then sessionStorage, then fallback to empty
+      const originCode = (urlParams.get('origin') || urlParams.get('originCode') || storedContext?.originCode || '').trim();
+      const originCity = urlParams.get('originCity') || storedContext?.originCity || originCode;
+      const destinationCode = (urlParams.get('destination') || urlParams.get('destinationCode') || storedContext?.destinationCode || '').trim();
+      const destinationCity = urlParams.get('destinationCity') || storedContext?.destinationCity || destinationCode;
+      const departure = urlParams.get('departure') || urlParams.get('departureDate') || storedContext?.departure || 'Oct 24';
+      const departureSub = urlParams.get('departureSub') || storedContext?.departureSub || 'Saturday, 2026';
+      const returnDate = urlParams.get('return') || urlParams.get('returnDate') || storedContext?.returnDate || 'Nov 02';
+      const returnSub = urlParams.get('returnSub') || storedContext?.returnSub || 'Monday, 2026';
+      const depDateLabel = departureSub ? `${departureSub} • ${departure}` : departure;
+      const retDateLabel = returnSub ? `${returnSub} • ${returnDate}` : returnDate;
+
+      setupSegmentsForMode(validMode, originCode, originCity, destinationCode, destinationCity, depDateLabel, departure, retDateLabel, returnDate);
+
+      const passengerCount = parseInt(urlParams.get('passengerCount') || storedContext?.passengerCount || '1', 10);
+      const depDate = urlParams.get('depDate') || storedContext?.depDate || '';
+      const retDate = urlParams.get('retDate') || storedContext?.retDate || '';
+
+      const context = {
+        mode: validMode,
+        originCode: originCode,
+        originCity: originCity,
+        destinationCode: destinationCode,
+        destinationCity: destinationCity,
+        departure: departure,
+        departureSub: departureSub,
+        depDate: depDate,
+        returnDate: returnDate,
+        returnSub: returnSub,
+        retDate: retDate,
+        passengers: urlParams.get('passengers') || storedContext?.passengers || (passengerCount === 1 ? '1 Passenger, Business Class' : `${passengerCount} Passengers, Business Class`),
+        passengerCount: passengerCount,
+        cabin: urlParams.get('cabin') || storedContext?.cabin || 'Business Class'
+      };
+
+      sessionStorage.removeItem('skybook-selected-flights');
+      sessionStorage.removeItem('skybook-seat-assignments');
+      sessionStorage.removeItem('skybook-passenger-manifest');
+
+      sessionStorage.setItem('skybook-search-context', JSON.stringify(context));
+      applySearchContext(context);
+
       renderAll();
     });
-  </script>
+</script>
 }

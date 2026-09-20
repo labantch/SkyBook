@@ -140,6 +140,7 @@
                data-arrival-date='@item.ArrivalTime.ToString("ddd, MMM dd, yyyy")'
                data-seat='@(string.IsNullOrEmpty(item.SeatNumber) ? "Not Assigned" : item.SeatNumber)'
                data-passenger='@(string.IsNullOrWhiteSpace(item.PassengerName) ? "Mohamed Laban" : item.PassengerName)'
+               data-passengers='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Passengers, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))'
                data-price='$@item.TotalPrice.ToString("N2")'
                data-booked-date='@item.BookingDate.ToString("MMM dd, yyyy")'
                data-status="@item.Status.ToString()"
@@ -463,11 +464,12 @@
               <span class="material-symbols-outlined text-[16px] text-[#0B192C]">group</span>
               <span>Passenger Details</span>
             </h3>
-            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">Confirmed Traveler</span>
+            <span id="drawer-manifest-count" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70">1 Confirmed Traveler</span>
           </div>
 
-          <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
-            <div class="flex items-center justify-between gap-3">
+          <!-- Dynamic Multi-Passenger Manifest List -->
+          <div id="drawer-passengers-manifest-list" class="space-y-2.5">
+            <div class="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
                   <span class="material-symbols-outlined text-xl">person</span>
@@ -482,9 +484,11 @@
                 <span id="drawer-manifest-seat" class="text-sm font-black text-[#855D29] px-2.5 py-0.5 rounded-lg bg-[#FBF7F0] border border-[#C5A880]/40">10A</span>
               </div>
             </div>
+          </div>
 
-            <!-- Detailed Grid: Booking Reference, Total Price, Booking Date, Ticket Status -->
-            <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100 text-xs">
+          <!-- Detailed Grid: Booking Reference, Total Price, Booking Date, Ticket Status -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+            <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Booking Reference</span>
                 <span id="drawer-manifest-ref" class="font-mono font-bold text-[#0B192C]">SB-XXXXXXXX</span>
@@ -678,6 +682,12 @@
     const card = btn.closest('.booking-card');
     if (!card) return;
 
+    let parsedPassengers = [];
+    try {
+      const rawPax = card.getAttribute('data-passengers');
+      if (rawPax) parsedPassengers = JSON.parse(rawPax);
+    } catch(e) { }
+
     openFlightDetails({
       ref: card.getAttribute('data-display-ref') || card.getAttribute('data-ref') || '',
       flight: card.getAttribute('data-flight') || '',
@@ -689,6 +699,7 @@
       arrivalDate: card.getAttribute('data-arrival-date') || '',
       seat: card.getAttribute('data-seat') || 'Not Assigned',
       passenger: card.getAttribute('data-passenger') || 'Mohamed Laban',
+      passengers: parsedPassengers,
       price: card.getAttribute('data-price') || '$0.00',
       bookingDate: card.getAttribute('data-booked-date') || '',
       status: card.getAttribute('data-status') || '',
@@ -719,12 +730,12 @@
     const priceEl = document.getElementById('drawer-price');
     const bookedDateEl = document.getElementById('drawer-booked-date');
 
-    const manifestNameEl = document.getElementById('drawer-manifest-name');
-    const manifestSeatEl = document.getElementById('drawer-manifest-seat');
     const manifestRefEl = document.getElementById('drawer-manifest-ref');
     const manifestPriceEl = document.getElementById('drawer-manifest-price');
     const manifestDateEl = document.getElementById('drawer-manifest-date');
     const manifestStatusEl = document.getElementById('drawer-manifest-status');
+    const manifestCountEl = document.getElementById('drawer-manifest-count');
+    const manifestListEl = document.getElementById('drawer-passengers-manifest-list');
 
     if (flightNumberEl) flightNumberEl.textContent = 'Flight ' + (data.flight || '');
     if (flightDateEl) flightDateEl.textContent = data.date || '';
@@ -737,11 +748,42 @@
     if (priceEl) priceEl.textContent = data.price || '$0.00';
     if (bookedDateEl) bookedDateEl.textContent = data.bookingDate || data.date || '';
 
-    if (manifestNameEl) manifestNameEl.textContent = data.passenger || 'Mohamed Laban';
-    if (manifestSeatEl) manifestSeatEl.textContent = data.seat || 'Not Assigned';
+    // Render All Passengers dynamically
+    const paxList = (data.passengers && data.passengers.length > 0)
+      ? data.passengers
+      : [{ fullName: data.passenger || 'Mohamed Laban', seatNumber: data.seat || '10A', nationality: 'Confirmed', passportNumber: '' }];
+
+    if (manifestCountEl) {
+      manifestCountEl.textContent = `${paxList.length} Confirmed ${paxList.length === 1 ? 'Traveler' : 'Travelers'}`;
+    }
+
+    if (manifestListEl) {
+      manifestListEl.innerHTML = paxList.map((p, idx) => `
+        <div class="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+              <span class="material-symbols-outlined text-xl">person</span>
+            </div>
+            <div>
+              <p class="text-sm font-extrabold text-[#0B192C]">${p.fullName || p.name || 'Passenger'}</p>
+              <p class="text-[11px] text-slate-400 font-medium">
+                ${idx === 0 ? 'Primary Passenger' : 'Passenger ' + (idx + 1)} • ${p.nationality || 'Adult'}
+                ${p.passportNumber && p.passportNumber !== '-' ? ` • <span class="font-mono text-slate-500 font-semibold">${p.passportNumber}</span>` : ''}
+              </p>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Assigned Seat</span>
+            <span class="text-sm font-black text-[#855D29] px-2.5 py-0.5 rounded-lg bg-[#FBF7F0] border border-[#C5A880]/40">${p.seatNumber || 'Not Assigned'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
     if (manifestRefEl) manifestRefEl.textContent = data.ref || '';
     if (manifestPriceEl) manifestPriceEl.textContent = data.price || '$0.00';
     if (manifestDateEl) manifestDateEl.textContent = data.bookingDate || data.date || '';
+
     if (manifestStatusEl) {
       if (data.isCancelled) {
         manifestStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span>Cancelled</span>';

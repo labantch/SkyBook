@@ -1,6 +1,17 @@
 @{
     ViewData["Title"] = "Home";
     Layout = "_Layout";
+    var dbAirports = ViewBag.Airports as List<SkyBook.Business.ViewModels.AirportVM> ?? new List<SkyBook.Business.ViewModels.AirportVM>();
+    var defaultOrigin = dbAirports.FirstOrDefault(a => a.Code == "CAI") ?? dbAirports.FirstOrDefault();
+    var defaultDest = dbAirports.FirstOrDefault(a => a.Code == "DXB") ?? dbAirports.Skip(1).FirstOrDefault() ?? defaultOrigin;
+    var airportDataJson = System.Text.Json.JsonSerializer.Serialize(
+        dbAirports.Select(a => new {
+            code = a.Code,
+            city = !string.IsNullOrWhiteSpace(a.City) ? a.City : a.Name,
+            country = a.Country ?? "",
+            name = a.Name ?? ""
+        })
+    );
 }
 
 @section Styles {
@@ -83,10 +94,10 @@
 <span class="material-symbols-outlined text-[16px] text-secondary">flight_takeoff</span>
 </div>
 <div class="flex items-baseline gap-2">
-<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="origin-code">LHR</span>
-<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="origin-city">London Heathrow</span>
+<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="origin-code">@(defaultOrigin?.Code ?? "CAI")</span>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="origin-city">@(!string.IsNullOrWhiteSpace(defaultOrigin?.City) ? defaultOrigin.City : (defaultOrigin?.Name ?? "Cairo Intl"))</span>
 </div>
-<span class="font-body-sm text-body-sm text-on-surface-variant" id="origin-country">United Kingdom</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="origin-country">@(defaultOrigin?.Country ?? "Egypt")</span>
 </div>
 <!-- Overlapping Centered Route Swap Button -->
 <div class="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto">
@@ -101,10 +112,10 @@
 <span class="material-symbols-outlined text-[16px] text-secondary">flight_land</span>
 </div>
 <div class="flex items-baseline gap-2">
-<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="destination-code">DXB</span>
-<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="destination-city">Dubai Intl</span>
+<span class="font-title-flight-code text-title-flight-code text-primary tabular-nums transition-transform duration-300" id="destination-code">@(defaultDest?.Code ?? "DXB")</span>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate" id="destination-city">@(!string.IsNullOrWhiteSpace(defaultDest?.City) ? defaultDest.City : (defaultDest?.Name ?? "Dubai Intl"))</span>
 </div>
-<span class="font-body-sm text-body-sm text-on-surface-variant" id="destination-country">United Arab Emirates</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="destination-country">@(defaultDest?.Country ?? "United Arab Emirates")</span>
 </div>
 </div>
 <!-- Dates (Departure & Return) with Interactive Popup Calendar -->
@@ -241,42 +252,17 @@
 <span class="material-symbols-outlined text-[18px]">close</span>
 </button>
 </div>
-<!-- Steppers Container -->
-<div class="py-3.5 space-y-3.5 divide-y divide-surface-container/60">
-<!-- Adults -->
-<div class="flex items-center justify-between pt-1">
+<!-- Steppers Container: Single Number of Passengers -->
+<div class="py-4">
+<div class="flex items-center justify-between">
 <div>
-<div class="text-sm font-semibold text-primary">Adults</div>
-<div class="text-xs text-on-surface-variant">Age 12+ years</div>
+<div class="text-sm font-semibold text-primary">Passengers</div>
+<div class="text-xs text-on-surface-variant">Number of passengers</div>
 </div>
 <div class="flex items-center gap-3">
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-adults" type="button" disabled="">-</button>
-<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-adults">1</span>
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-adults" type="button">+</button>
-</div>
-</div>
-<!-- Children -->
-<div class="flex items-center justify-between pt-3">
-<div>
-<div class="text-sm font-semibold text-primary">Children</div>
-<div class="text-xs text-on-surface-variant">Age 2-11 years</div>
-</div>
-<div class="flex items-center gap-3">
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-children" type="button" disabled="">-</button>
-<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-children">0</span>
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-children" type="button">+</button>
-</div>
-</div>
-<!-- Infants -->
-<div class="flex items-center justify-between pt-3">
-<div>
-<div class="text-sm font-semibold text-primary">Infants</div>
-<div class="text-xs text-on-surface-variant">Under 2 years (on lap)</div>
-</div>
-<div class="flex items-center gap-3">
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-infants" type="button" disabled="">-</button>
-<span class="font-headline-sm text-sm tabular-nums font-semibold min-w-[20px] text-center text-primary" id="val-infants">0</span>
-<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-infants" type="button">+</button>
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold disabled:opacity-30 disabled:cursor-not-allowed" id="btn-dec-passengers" type="button" disabled="">-</button>
+<span class="font-headline-sm text-base tabular-nums font-semibold min-w-[24px] text-center text-primary" id="val-passengers">1</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant/60 flex items-center justify-center text-primary hover:bg-surface-container hover:border-secondary transition-colors font-bold" id="btn-inc-passengers" type="button">+</button>
 </div>
 </div>
 </div>
@@ -318,7 +304,7 @@
 </div>
 <div class="px-2 py-1 flex items-center justify-between text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant border-b border-surface-container">
 <span class="">Sovereign Gateways</span>
-<span class="text-[10px] text-secondary font-semibold" id="airport-results-count">11 Airfields</span>
+<span class="text-[10px] text-secondary font-semibold" id="airport-results-count">@(dbAirports.Count) Airfield@(dbAirports.Count == 1 ? "" : "s")</span>
 </div>
 <div class="max-h-64 overflow-y-auto divide-y divide-surface-container/60 mt-1 pr-0.5" id="airport-items-container">
 <!-- Populated Dynamically via JS with full 11 Curated Luxury Gateways -->
@@ -570,776 +556,13 @@
 <!-- Interactive Flight Frequency & Fleet Showcase Strip -->
 <section class="w-full py-12 px-6 lg:px-12 max-w-7xl mx-auto"><div class="relative overflow-hidden rounded-2xl min-h-[220px] p-8 lg:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl"><img alt="Ultra-modern private VIP jet at dusk" class="w-full h-full object-cover absolute inset-0" src="/images/img-9d7df59a71.jpg"><div class="bg-gradient-to-r from-[#0B192C]/90 via-[#0B192C]/75 to-[#0B192C]/50 absolute inset-0"></div><div class="relative z-10 max-w-xl"><span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary-fixed font-semibold">GLOBAL SOVEREIGN NETWORK</span><h3 class="font-headline-lg text-headline-lg text-white mt-1 tracking-tight">Need a Private Falcon or VIP Charter?</h3><p class="font-body-md text-body-md text-surface-variant mt-2 leading-relaxed">Beyond our scheduled long-haul routes, SkyBook Private Aviation Concierge provides bespoke charter solutions on ultra-long-range Gulfstream G700 and Bombardier Global 7500 jets.</p></div><div class="relative z-10 flex items-center gap-4 shrink-0"><button class="px-6 py-3 rounded-lg bg-secondary text-white font-body-md text-body-md font-medium hover:bg-secondary-fixed hover:text-primary transition-all duration-200 shadow-md flex items-center gap-2" type="button"><span class="">Explore SkyClub Tiers</span><span class="material-symbols-outlined text-[18px]">verified</span></button></div></div></section><section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-20" id="about-us"><div class="text-center max-w-3xl mx-auto mb-16"><div class="inline-flex items-center gap-2 mb-2"></div><h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Pioneering the Future of Sovereign Flight</h2><p class="font-body-lg text-body-lg text-on-surface-variant mt-3 text-balance">Founded on the belief that aviation should elevate human potential, safeguard our biosphere, and honor exceptional hospitality.</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-8"><!-- Card 1: Our Business --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Private luxury business jet at modern terminal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-c5e0657bf6.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">apartment</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our Business</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Engineered for sustainable long-term enterprise value. Operating an uncompromising modern fleet with zero debt distress, industry-leading punctuality, and curated intercontinental corridors that power global commerce and sovereign leadership.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">99.4% ON-TIME RELIABILITY • AAA CAPITAL RATING</span></div></div><!-- Card 2: Our Planet --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Airliner soaring above lush green mountains" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-9a36587a2e.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">eco</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our Planet</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Committed to Net-Zero flight operations by 2035. SkyBook leads sovereign SAF (Sustainable Aviation Fuel) procurement, employs AI-optimized supersonic flight paths that cut fuel burn by 18%, and restores 100% of our ecosystem footprint.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">100% CARBON-NEUTRAL PATHWAYS • 45% SAF FLEET MIX</span></div></div><!-- Card 3: Our People --><div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"><div class="flex flex-col"><div class="relative w-full h-52 overflow-hidden"><img alt="Captains and flight crew welcoming guests at jet steps" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="/images/img-e5e8d258b5.jpg"></div><div class="relative px-6"><div class="w-11 h-11 rounded-xl bg-white border border-[#C5A880]/30 shadow-md flex items-center justify-center -mt-6 relative z-10 text-secondary"><span class="material-symbols-outlined text-[22px]">groups</span></div></div><div class="px-6 pt-4 pb-4 flex flex-col"><h3 class="font-headline-sm text-headline-sm text-primary mb-3 font-semibold">Our People</h3><p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Our captains, diplomatic concierges, and master chefs represent the pinnacle of global aviation. We cultivate a culture of uncompromising safety, world-class continuous training, and heartfelt, bespoke service.</p></div></div><div class="px-6 pb-6 pt-4 border-t border-surface-container mx-6 mb-2"><span class="font-label-caps text-[11px] uppercase tracking-wider text-secondary font-semibold block">1,200+ MASTER AVIATORS • 24/7 BESPOKE BUTLER CONCIERGE</span></div></div></div></section>
 </div>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // LUXURY AIRPORT DATA REPOSITORY
-    const AIRPORTS_DATA = [
-      { code: 'DXB', city: 'Dubai Intl', country: 'United Arab Emirates' },
-      { code: 'LHR', city: 'London Heathrow', country: 'United Kingdom' },
-      { code: 'JFK', city: 'New York JFK', country: 'United States' },
-      { code: 'HND', city: 'Tokyo Haneda', country: 'Japan' },
-      { code: 'SIN', city: 'Singapore Changi', country: 'Singapore' },
-      { code: 'CAI', city: 'Cairo Intl', country: 'Egypt' },
-      { code: 'YJC', city: 'A Coruña', country: 'Spain' },
-      { code: 'CDG', city: 'Paris Charles de Gaulle', country: 'France' },
-      { code: 'SYD', city: 'Sydney Kingsford Smith', country: 'Australia' },
-      { code: 'FRA', city: 'Frankfurt am Main', country: 'Germany' },
-      { code: 'ZRH', city: 'Zurich Airport', country: 'Switzerland' }
-    ];
-
-    // 1. TRIP TABS & SWITCHING MODES
-    const tripTabButtons = document.querySelectorAll('#trip-tabs button');
-    const returnDateContainer = document.getElementById('return-date-container');
-    const standardContainer = document.getElementById('standard-search-container');
-    const multicityContainer = document.getElementById('multicity-search-container');
-    let currentTripMode = 'round-trip';
-
-    tripTabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tripTabButtons.forEach(b => {
-          b.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all text-on-surface-variant hover:text-on-surface';
-        });
-        btn.className = 'px-5 py-2 rounded-md font-label-caps text-label-caps uppercase tracking-wider transition-all bg-[#0B192C] text-white shadow-sm';
-
-        currentTripMode = btn.getAttribute('data-trip');
-        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
-
-        if (currentTripMode === 'multi-city') {
-          standardContainer.classList.add('hidden');
-          multicityContainer.classList.remove('hidden');
-        } else {
-          multicityContainer.classList.add('hidden');
-          standardContainer.classList.remove('hidden');
-
-          if (currentTripMode === 'one-way') {
-            returnDateContainer.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
-          } else {
-            returnDateContainer.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
-          }
-        }
-        closeAirportDropdown();
-        closeCalendar();
-        closePassengersPopover();
-      });
-    });
-
-    // 2. UNIVERSAL AIRPORT PICKER DROPDOWN SYSTEM
-    const airportDropdown = document.getElementById('luxury-airport-dropdown');
-    const airportSearchInput = document.getElementById('airport-search-input');
-    const airportSearchClear = document.getElementById('airport-search-clear');
-    const airportItemsContainer = document.getElementById('airport-items-container');
-    const airportResultsCount = document.getElementById('airport-results-count');
-
-    let activeAirportAnchor = null;
-
-    function renderAirportList(query = '') {
-      airportItemsContainer.innerHTML = '';
-      const filter = query.trim().toLowerCase();
-      const filtered = AIRPORTS_DATA.filter(a => {
-        return a.code.toLowerCase().includes(filter) ||
-               a.city.toLowerCase().includes(filter) ||
-               a.country.toLowerCase().includes(filter);
-      });
-
-      airportResultsCount.textContent = `${filtered.length} Airfield${filtered.length === 1 ? '' : 's'}`;
-
-      if (filtered.length === 0) {
-        const noResult = document.createElement('div');
-        noResult.className = 'py-6 text-center text-xs text-on-surface-variant';
-        noResult.textContent = 'No matching sovereign gateways found';
-        airportItemsContainer.appendChild(noResult);
-        return;
-      }
-
-      filtered.forEach(item => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'airport-option w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-container transition-colors flex items-center justify-between group';
-        btn.innerHTML = `
-          <div>
-            <div class="font-headline-sm text-sm text-primary font-bold">
-              <span class="tabular-nums font-title-flight-code text-base mr-2 text-secondary">${item.code}</span>
-              ${item.city}
-            </div>
-            <span class="text-xs text-on-surface-variant">${item.country}</span>
-          </div>
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">flight</span>
-        `;
-
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          selectAirport(item);
-        });
-
-        airportItemsContainer.appendChild(btn);
-      });
-    }
-
-    function selectAirport(item) {
-      if (!activeAirportAnchor) return;
-
-      const role = activeAirportAnchor.getAttribute('data-field-role');
-
-      if (role === 'origin') {
-        const codeEl = document.getElementById('origin-code');
-        const cityEl = document.getElementById('origin-city');
-        const countryEl = document.getElementById('origin-country');
-        if (codeEl) codeEl.textContent = item.code;
-        if (cityEl) cityEl.textContent = item.city;
-        if (countryEl) countryEl.textContent = item.country;
-      } else if (role === 'destination') {
-        const codeEl = document.getElementById('destination-code');
-        const cityEl = document.getElementById('destination-city');
-        const countryEl = document.getElementById('destination-country');
-        if (codeEl) codeEl.textContent = item.code;
-        if (cityEl) cityEl.textContent = item.city;
-        if (countryEl) countryEl.textContent = item.country;
-      } else if (role === 'multicity-from') {
-        const input = activeAirportAnchor.querySelector('.segment-from-input');
-        if (input) input.value = `${item.city} ${item.code}`;
-      } else if (role === 'multicity-to') {
-        const input = activeAirportAnchor.querySelector('.segment-to-input');
-        if (input) input.value = `${item.city} ${item.code}`;
-      }
-
-      closeAirportDropdown();
-    }
-
-    function openAirportDropdown(anchorElement) {
-      if (!airportDropdown.classList.contains('hidden') && activeAirportAnchor === anchorElement) {
-        closeAirportDropdown();
-        return;
-      }
-
-      activeAirportAnchor = anchorElement;
-      airportSearchInput.value = '';
-      airportSearchClear.classList.add('hidden');
-      renderAirportList('');
-
-      anchorElement.appendChild(airportDropdown);
-      airportDropdown.classList.remove('hidden');
-
-      const rect = anchorElement.getBoundingClientRect();
-      const dropWidth = 380;
-      if (rect.left + dropWidth > window.innerWidth - 16) {
-        airportDropdown.style.left = 'auto';
-        airportDropdown.style.right = '0';
-      } else {
-        airportDropdown.style.left = '0';
-        airportDropdown.style.right = 'auto';
-      }
-      airportDropdown.style.top = '100%';
-
-      setTimeout(() => airportSearchInput.focus(), 50);
-
-      closeCalendar();
-      closePassengersPopover();
-    }
-
-    function closeAirportDropdown() {
-      airportDropdown.classList.add('hidden');
-      activeAirportAnchor = null;
-    }
-
-    airportSearchInput.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (val.length > 0) {
-        airportSearchClear.classList.remove('hidden');
-      } else {
-        airportSearchClear.classList.add('hidden');
-      }
-      renderAirportList(val);
-    });
-
-    airportSearchClear.addEventListener('click', (e) => {
-      e.stopPropagation();
-      airportSearchInput.value = '';
-      airportSearchClear.classList.add('hidden');
-      renderAirportList('');
-      airportSearchInput.focus();
-    });
-
-    // Standard swap button
-    const swapBtn = document.getElementById('btn-swap-airports');
-    if (swapBtn) {
-      swapBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        swapBtn.classList.toggle('rotate-180');
-
-        const originCode = document.getElementById('origin-code').textContent;
-        const originCity = document.getElementById('origin-city').textContent;
-        const originCountry = document.getElementById('origin-country').textContent;
-
-        const destCode = document.getElementById('destination-code').textContent;
-        const destCity = document.getElementById('destination-city').textContent;
-        const destCountry = document.getElementById('destination-country').textContent;
-
-        document.getElementById('origin-code').textContent = destCode;
-        document.getElementById('origin-city').textContent = destCity;
-        document.getElementById('origin-country').textContent = destCountry;
-
-        document.getElementById('destination-code').textContent = originCode;
-        document.getElementById('destination-city').textContent = originCity;
-        document.getElementById('destination-country').textContent = originCountry;
-      });
-    }
-
-    // Bind standard mode origin and destination boxes
-    const originBox = document.getElementById('origin-box');
-    const destinationBox = document.getElementById('destination-box');
-
-    if (originBox) {
-      originBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openAirportDropdown(originBox);
-      });
-    }
-
-    if (destinationBox) {
-      destinationBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openAirportDropdown(destinationBox);
-      });
-    }
-
-    // 3. INTERACTIVE LUXURY CALENDAR POPUP SYSTEM
-    const calendarModal = document.getElementById('luxury-calendar-modal');
-    const calTitle = document.getElementById('cal-title');
-    const calDaysGrid = document.getElementById('cal-days-grid');
-    const btnPrevMonth = document.getElementById('btn-prev-month');
-    const btnNextMonth = document.getElementById('btn-next-month');
-    const btnCloseCalendar = document.getElementById('btn-close-calendar');
-
-    const depDateContainer = document.getElementById('departure-date-container');
-    const retDateContainer = document.getElementById('return-date-container');
-    const depDateDisplay = document.getElementById('departure-date-display');
-    const depSubDisplay = document.getElementById('departure-sub-display');
-    const retDateDisplay = document.getElementById('return-date-display');
-    const retSubDisplay = document.getElementById('return-sub-display');
-
-    let activeCalendarTarget = 'departure';
-    let activeMulticityDateBox = null;
-    let activeAnchorElement = null;
-
-    let selectedDepartureDate = new Date(2026, 9, 24);
-    let selectedReturnDate = new Date(2026, 10, 2);
-    let currentCalViewMonth = 9;
-    let currentCalViewYear = 2026;
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-    function renderCalendar() {
-      calTitle.textContent = `${monthNames[currentCalViewMonth]} ${currentCalViewYear}`;
-      calDaysGrid.innerHTML = '';
-
-      const firstDayIndex = new Date(currentCalViewYear, currentCalViewMonth, 1).getDay();
-      const totalDays = new Date(currentCalViewYear, currentCalViewMonth + 1, 0).getDate();
-
-      for (let i = 0; i < firstDayIndex; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'h-9 w-9';
-        calDaysGrid.appendChild(emptyCell);
-      }
-
-      const minSelectableDate = new Date(2026, 0, 1);
-
-      for (let day = 1; day <= totalDays; day++) {
-        const thisDate = new Date(currentCalViewYear, currentCalViewMonth, day);
-        const dayBtn = document.createElement('button');
-        dayBtn.type = 'button';
-        dayBtn.textContent = day;
-        dayBtn.className = 'h-9 w-9 mx-auto flex items-center justify-center rounded-lg text-xs font-semibold tabular-nums transition-all';
-
-        const isPast2026 = thisDate < minSelectableDate;
-
-        if (isPast2026) {
-          dayBtn.className += ' text-on-surface-variant/30 cursor-not-allowed';
-          dayBtn.disabled = true;
-        } else {
-          let isCurrentSelection = false;
-          if (activeCalendarTarget === 'departure' && thisDate.toDateString() === selectedDepartureDate.toDateString()) {
-            isCurrentSelection = true;
-          } else if (activeCalendarTarget === 'return' && thisDate.toDateString() === selectedReturnDate.toDateString()) {
-            isCurrentSelection = true;
-          }
-
-          if (isCurrentSelection) {
-            dayBtn.className += ' bg-[#0B192C] text-white shadow-md font-bold scale-105 ring-2 ring-secondary/50';
-          } else {
-            dayBtn.className += ' text-primary hover:bg-secondary/15 hover:text-secondary';
-          }
-
-          dayBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            onDateSelected(new Date(thisDate));
-          });
-        }
-        calDaysGrid.appendChild(dayBtn);
-      }
-    }
-
-    function onDateSelected(dateObj) {
-      if (activeCalendarTarget === 'departure') {
-        selectedDepartureDate = dateObj;
-        depDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
-        depSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
-
-        if (selectedReturnDate < selectedDepartureDate) {
-          selectedReturnDate = new Date(selectedDepartureDate.getTime() + (7 * 24 * 60 * 60 * 1000));
-          retDateDisplay.textContent = `${monthShortNames[selectedReturnDate.getMonth()]} ${String(selectedReturnDate.getDate()).padStart(2, '0')}`;
-          retSubDisplay.textContent = `${dayNames[selectedReturnDate.getDay()]}, ${selectedReturnDate.getFullYear()}`;
-        }
-      } else if (activeCalendarTarget === 'return') {
-        selectedReturnDate = dateObj;
-        retDateDisplay.textContent = `${monthShortNames[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
-        retSubDisplay.textContent = `${dayNames[dateObj.getDay()]}, ${dateObj.getFullYear()}`;
-      } else if (activeCalendarTarget === 'multicity' && activeMulticityDateBox) {
-        const valElem = activeMulticityDateBox.querySelector('.segment-date-val');
-        if (valElem) {
-          valElem.textContent = `${String(dateObj.getDate()).padStart(2, '0')} ${monthShortNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-        }
-      }
-
-      closeCalendar();
-    }
-
-    btnPrevMonth.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (currentCalViewYear === 2026 && currentCalViewMonth === 0) return;
-      if (currentCalViewMonth === 0) {
-        currentCalViewMonth = 11;
-        currentCalViewYear--;
-      } else {
-        currentCalViewMonth--;
-      }
-      renderCalendar();
-    });
-
-    btnNextMonth.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (currentCalViewMonth === 11) {
-        currentCalViewMonth = 0;
-        currentCalViewYear++;
-      } else {
-        currentCalViewMonth++;
-      }
-      renderCalendar();
-    });
-
-    function closeCalendar() {
-      calendarModal.classList.add('hidden');
-      activeAnchorElement = null;
-    }
-
-    btnCloseCalendar.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeCalendar();
-    });
-
-    function openCalendar(targetType, initialDate, anchorElem) {
-      if (!calendarModal.classList.contains('hidden') && activeAnchorElement === anchorElem) {
-        closeCalendar();
-        return;
-      }
-      activeCalendarTarget = targetType;
-      activeAnchorElement = anchorElem;
-      currentCalViewMonth = initialDate.getMonth();
-      currentCalViewYear = initialDate.getFullYear();
-      renderCalendar();
-
-      anchorElem.appendChild(calendarModal);
-      calendarModal.classList.remove('hidden');
-
-      const rect = anchorElem.getBoundingClientRect();
-      const calWidth = 340;
-      if (rect.left + calWidth > window.innerWidth - 16) {
-        calendarModal.style.left = 'auto';
-        calendarModal.style.right = '0';
-      } else {
-        calendarModal.style.left = '0';
-        calendarModal.style.right = 'auto';
-      }
-      calendarModal.style.top = '100%';
-
-      closeAirportDropdown();
-      closePassengersPopover();
-    }
-
-    depDateContainer.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openCalendar('departure', selectedDepartureDate, depDateContainer);
-    });
-
-    retDateContainer.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (currentTripMode === 'one-way') return;
-      openCalendar('return', selectedReturnDate, retDateContainer);
-    });
-
-    // 4. MULTI-CITY ROWS INTERACTION & DYNAMIC ADDITION
-    const multicityRowsContainer = document.getElementById('multicity-rows-container');
-    const btnAddFlight = document.getElementById('btn-add-flight');
-    let multicityFlightCount = 2;
-
-    function attachSegmentEvents(row) {
-      // From Airport Picker
-      const fromField = row.querySelector('.segment-origin-trigger');
-      if (fromField) {
-        fromField.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openAirportDropdown(fromField);
-        });
-      }
-
-      // To Airport Picker
-      const toField = row.querySelector('.segment-dest-trigger');
-      if (toField) {
-        toField.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openAirportDropdown(toField);
-        });
-      }
-
-      // Date Picker Trigger
-      const dateBox = row.querySelector('.segment-date-box');
-      if (dateBox) {
-        dateBox.addEventListener('click', (e) => {
-          e.stopPropagation();
-          activeMulticityDateBox = dateBox;
-          openCalendar('multicity', new Date(2026, 8, 11), dateBox);
-        });
-      }
-
-      // Swap button
-      const swap = row.querySelector('.segment-swap-btn');
-      if (swap) {
-        swap.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const fromInput = row.querySelector('.segment-from-input');
-          const toInput = row.querySelector('.segment-to-input');
-          if (fromInput && toInput) {
-            const temp = fromInput.value;
-            fromInput.value = toInput.value;
-            toInput.value = temp;
-          }
-        });
-      }
-
-      // Passengers / Class trigger in multi-city
-      const passTrigger = row.querySelector('.multicity-passenger-trigger');
-      if (passTrigger) {
-        passTrigger.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openPassengersPopover(passTrigger);
-        });
-      }
-
-      // Remove button
-      const removeBtn = row.querySelector('.btn-remove-segment');
-      if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const allRows = multicityRowsContainer.querySelectorAll('.multicity-row');
-          if (allRows.length > 2) {
-            if (row.contains(airportDropdown)) {
-              closeAirportDropdown();
-              document.body.appendChild(airportDropdown);
-            }
-            if (row.contains(calendarModal)) {
-              closeCalendar();
-              document.body.appendChild(calendarModal);
-            }
-            if (row.contains(passengersPopover)) {
-              closePassengersPopover();
-              document.body.appendChild(passengersPopover);
-            }
-            row.remove();
-            btnAddFlight.disabled = false;
-            btnAddFlight.classList.remove('opacity-50', 'cursor-not-allowed');
-          }
-        });
-      }
-    }
-
-    document.querySelectorAll('.multicity-row').forEach(r => attachSegmentEvents(r));
-
-    btnAddFlight.addEventListener('click', () => {
-      const currentRows = multicityRowsContainer.querySelectorAll('.multicity-row');
-      if (currentRows.length >= 3) {
-        return;
-      }
-
-      multicityFlightCount++;
-      const lastRow = currentRows[currentRows.length - 1];
-      const lastToVal = lastRow.querySelector('.segment-to-input')?.value || 'Dubai DXB';
-
-      const newRow = document.createElement('div');
-      newRow.className = 'multicity-row bg-surface-container-lowest border border-outline-variant/60 rounded-xl shadow-sm hover:border-secondary/70 transition-all p-2 sm:p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 relative group';
-      newRow.setAttribute('data-row-id', multicityFlightCount);
-
-      newRow.innerHTML = `
-        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-origin-trigger relative" data-field-role="multicity-from">
-          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">From</span>
-          <div class="flex items-baseline gap-1.5">
-            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-from-input pointer-events-none" placeholder="Origin" readonly type="text" value="${lastToVal}"/>
-          </div>
-        </div>
-        <div class="flex items-center justify-center px-1">
-          <button class="w-8 h-8 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center segment-swap-btn" title="Swap cities" type="button">
-            <span class="material-symbols-outlined text-[18px]">sync_alt</span>
-          </button>
-        </div>
-        <div class="airport-field flex-1 min-w-[140px] px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-dest-trigger relative" data-field-role="multicity-to">
-          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">To</span>
-          <div class="flex items-baseline gap-1.5">
-            <input class="w-full bg-transparent border-none p-0 text-sm md:text-base font-semibold text-primary focus:ring-0 segment-to-input pointer-events-none" placeholder="Destination" readonly type="text" value="Tokyo HND"/>
-          </div>
-        </div>
-        <div class="hidden md:block w-px h-9 bg-outline-variant/40 my-auto"></div>
-        <div class="relative w-full md:w-44 px-3 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer segment-date-box" data-target="multicity-${multicityFlightCount}">
-          <span class="block text-[11px] font-label-caps uppercase tracking-wider text-on-surface-variant">Departure</span>
-          <span class="text-sm md:text-base font-semibold text-primary block tabular-nums segment-date-val">15 Sep 2026</span>
-        </div>
-        <div class="flex items-center justify-end px-2">
-          <button class="w-8 h-8 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/40 flex items-center justify-center transition-colors btn-remove-segment" title="Remove Flight" type="button">
-            <span class="material-symbols-outlined text-[18px]">close</span>
-          </button>
-        </div>
-      `;
-
-      multicityRowsContainer.appendChild(newRow);
-      attachSegmentEvents(newRow);
-      if (multicityRowsContainer.querySelectorAll('.multicity-row').length >= 3) {
-        btnAddFlight.disabled = true;
-        btnAddFlight.classList.add('opacity-50', 'cursor-not-allowed');
-      }
-    });
-
-    // 5. UNIFIED PASSENGERS & CLASS SELECTOR SYSTEM
-    const passengersPopover = document.getElementById('universal-passengers-popover');
-    const standardPassengerTrigger = document.querySelector('.passenger-trigger-standard');
-    const btnClosePassengers = document.getElementById('btn-close-passengers');
-    const btnApplyPassengers = document.getElementById('btn-apply-passengers');
-
-    let activePassengerAnchor = null;
-
-    let countAdults = 1;
-    let countChildren = 0;
-    let countInfants = 0;
-    let currentCabinChoice = 'Business Class';
-
-    const valAdults = document.getElementById('val-adults');
-    const valChildren = document.getElementById('val-children');
-    const valInfants = document.getElementById('val-infants');
-    const btnDecAdults = document.getElementById('btn-dec-adults');
-    const btnDecChildren = document.getElementById('btn-dec-children');
-    const btnDecInfants = document.getElementById('btn-dec-infants');
-
-    function updateCountersDisplay() {
-      valAdults.textContent = countAdults;
-      valChildren.textContent = countChildren;
-      valInfants.textContent = countInfants;
-      btnDecAdults.disabled = countAdults <= 1;
-      btnDecChildren.disabled = countChildren <= 0;
-      btnDecInfants.disabled = countInfants <= 0;
-    }
-
-    document.getElementById('btn-inc-adults').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countAdults < 9) countAdults++;
-      updateCountersDisplay();
-    });
-    btnDecAdults.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countAdults > 1) countAdults--;
-      updateCountersDisplay();
-    });
-
-    document.getElementById('btn-inc-children').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countChildren < 9) countChildren++;
-      updateCountersDisplay();
-    });
-    btnDecChildren.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countChildren > 0) countChildren--;
-      updateCountersDisplay();
-    });
-
-    document.getElementById('btn-inc-infants').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countInfants < 4) countInfants++;
-      updateCountersDisplay();
-    });
-    btnDecInfants.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countInfants > 0) countInfants--;
-      updateCountersDisplay();
-    });
-
-    document.querySelectorAll('input[name="cabin-class-choice"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        currentCabinChoice = e.target.value;
-      });
-    });
-
-    function getPassengerSummaryText() {
-      const total = countAdults + countChildren + countInfants;
-      const passWord = total === 1 ? '1 Passenger' : `${total} Passengers`;
-      return `${passWord}, ${currentCabinChoice}`;
-    }
-
-    function applyPassengerSelection() {
-      const summary = getPassengerSummaryText();
-
-      // Standard mode trigger update
-      const guestsDisplay = document.getElementById('guests-display');
-      const cabinDisplay = document.getElementById('cabin-display');
-      if (guestsDisplay) guestsDisplay.textContent = summary;
-      if (cabinDisplay) cabinDisplay.textContent = currentCabinChoice.toUpperCase();
-
-      // Multi-city triggers update
-      document.querySelectorAll('.mc-passenger-label').forEach(label => {
-        label.textContent = summary;
-      });
-
-      closePassengersPopover();
-    }
-
-    function openPassengersPopover(anchor) {
-      if (!passengersPopover.classList.contains('hidden') && activePassengerAnchor === anchor) {
-        closePassengersPopover();
-        return;
-      }
-
-      activePassengerAnchor = anchor;
-      updateCountersDisplay();
-
-      anchor.appendChild(passengersPopover);
-      passengersPopover.classList.remove('hidden');
-
-      const rect = anchor.getBoundingClientRect();
-      const popWidth = 380;
-      if (rect.left + popWidth > window.innerWidth - 16) {
-        passengersPopover.style.left = 'auto';
-        passengersPopover.style.right = '0';
-      } else {
-        passengersPopover.style.left = '0';
-        passengersPopover.style.right = 'auto';
-      }
-      passengersPopover.style.top = '100%';
-
-      closeAirportDropdown();
-      closeCalendar();
-    }
-
-    function closePassengersPopover() {
-      passengersPopover.classList.add('hidden');
-      activePassengerAnchor = null;
-    }
-
-    if (standardPassengerTrigger) {
-      standardPassengerTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openPassengersPopover(standardPassengerTrigger);
-      });
-    }
-
-    btnClosePassengers.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closePassengersPopover();
-    });
-
-    btnApplyPassengers.addEventListener('click', (e) => {
-      e.stopPropagation();
-      applyPassengerSelection();
-    });
-
-    // Close popovers on click outside
-    document.addEventListener('click', (e) => {
-      if (airportDropdown && !airportDropdown.contains(e.target) && !e.target.closest('.airport-field')) {
-        closeAirportDropdown();
-      }
-      if (passengersPopover && !passengersPopover.contains(e.target) && !e.target.closest('.passenger-trigger-standard') && !e.target.closest('.multicity-passenger-trigger')) {
-        closePassengersPopover();
-      }
-      if (calendarModal && !calendarModal.contains(e.target) && !depDateContainer?.contains(e.target) && !retDateContainer?.contains(e.target) && !e.target.closest('.segment-date-box')) {
-        closeCalendar();
-      }
-    });
-
-    // ESC key closes any open dropdown
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeAirportDropdown();
-        closeCalendar();
-        closePassengersPopover();
-      }
-    });
-
-    // Search Flights Button Feedback
-    const searchBtn = document.getElementById('btn-search-flights');
-    if (searchBtn) {
-      searchBtn.addEventListener('click', () => {
-        sessionStorage.setItem('skybook-search-context', JSON.stringify({
-          mode: currentTripMode,
-          originCode: document.getElementById('origin-code')?.textContent.trim(),
-          originCity: document.getElementById('origin-city')?.textContent.trim(),
-          destinationCode: document.getElementById('destination-code')?.textContent.trim(),
-          destinationCity: document.getElementById('destination-city')?.textContent.trim(),
-          departure: document.getElementById('departure-date-display')?.textContent.trim(),
-          returnDate: document.getElementById('return-date-display')?.textContent.trim(),
-          passengers: document.getElementById('guests-display')?.textContent.trim(),
-          cabin: currentCabinChoice
-        }));
-        sessionStorage.setItem('skybook-trip-mode', currentTripMode);
-        searchBtn.classList.add('scale-95');
-        setTimeout(() => {
-          searchBtn.classList.remove('scale-95');
-          window.location.href = '/Flight/Results';
-        }, 150);
-      });
-    }
-
-    const skyClubButton = [...document.querySelectorAll('button')].find(button => button.textContent.includes('Explore SkyClub Tiers'));
-    if (skyClubButton) {
-      skyClubButton.addEventListener('click', () => {
-                    window.location.href = '/Home/SkyClub';
-      });
-    }
-
-    const featuredFlightButton = document.getElementById('featured-flight-btn');
-    if (featuredFlightButton) {
-      featuredFlightButton.addEventListener('click', () => {
-                    window.location.href = '/Flight/Results';
-      });
-    }
-
-    // Initialize displays
-    updateCountersDisplay();
-  });
-</script>
 
 @section Scripts {
 <script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-low":"#f3f4f5","on-secondary":"#ffffff","on-secondary-fixed":"#281800","surface-bright":"#f8f9fa","secondary-container":"#fedeb2","on-surface-variant":"#44474c","on-primary-fixed-variant":"#3a475c","on-secondary-fixed-variant":"#584323","primary-fixed-dim":"#bac7e1","inverse-primary":"#bac7e1","primary-container":"#0e1c2f","on-background":"#191c1d","error-container":"#ffdad6","primary-fixed":"#d6e3fe","on-tertiary-fixed":"#001c38","on-tertiary-fixed-variant":"#29486d","tertiary-fixed":"#d3e4ff","outline-variant":"#c5c6cd","surface":"#f8f9fa","secondary":"#725b38","surface-container-high":"#e7e8e9","on-tertiary":"#ffffff","on-surface":"#191c1d","tertiary-fixed-dim":"#aac9f4","on-error-container":"#93000a","surface-container-highest":"#e1e3e4","primary":"#000000","on-primary":"#ffffff","on-primary-fixed":"#0e1c2f","surface-variant":"#e1e3e4","on-error":"#ffffff","on-primary-container":"#77849c","inverse-on-surface":"#f0f1f2","surface-container-lowest":"#ffffff","tertiary-container":"#001c38","error":"#ba1a1a","outline":"#75777d","background":"#f8f9fa","tertiary":"#000000","on-secondary-container":"#78603e","inverse-surface":"#2e3132","surface-dim":"#d9dadb","secondary-fixed":"#fedeb2","surface-tint":"#525f75","surface-container":"#edeeef","on-tertiary-container":"#6886ae","secondary-fixed-dim":"#e0c298"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-sm":"0.5rem","space-md":"1rem","space-xs":"0.25rem",margin:"3rem","margin-mobile":"1.25rem","gutter-mobile":"1rem",gutter:"1.5rem","space-xl":"2.5rem"},fontFamily:{"display-hero":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"title-flight-code":["Space Grotesk"],"headline-lg":["Plus Jakarta Sans"],"label-caps":["Space Grotesk"],"body-sm":["Plus Jakarta Sans"],"price-lg":["Space Grotesk"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},fontSize:{"display-hero":["56px",{lineHeight:"64px",letterSpacing:"-0.03em",fontWeight:"700"}],"body-lg":["18px",{lineHeight:"28px",fontWeight:"400"}],"display-hero-mobile":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"title-flight-code":["28px",{lineHeight:"32px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-lg":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"600"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"price-lg":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],"body-md":["15px",{lineHeight:"22px",fontWeight:"400"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.015em",fontWeight:"600"}]}}}};</script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // LUXURY AIRPORT DATA REPOSITORY
-    const AIRPORTS_DATA = [
-      { code: 'DXB', city: 'Dubai Intl', country: 'United Arab Emirates' },
-      { code: 'LHR', city: 'London Heathrow', country: 'United Kingdom' },
-      { code: 'JFK', city: 'New York JFK', country: 'United States' },
-      { code: 'HND', city: 'Tokyo Haneda', country: 'Japan' },
-      { code: 'SIN', city: 'Singapore Changi', country: 'Singapore' },
-      { code: 'CAI', city: 'Cairo Intl', country: 'Egypt' },
-      { code: 'YJC', city: 'A Coruña', country: 'Spain' },
-      { code: 'CDG', city: 'Paris Charles de Gaulle', country: 'France' },
-      { code: 'SYD', city: 'Sydney Kingsford Smith', country: 'Australia' },
-      { code: 'FRA', city: 'Frankfurt am Main', country: 'Germany' },
-      { code: 'ZRH', city: 'Zurich Airport', country: 'Switzerland' }
-    ];
+    // LUXURY AIRPORT DATA REPOSITORY (LOADED DYNAMICALLY FROM DATABASE)
+    const AIRPORTS_DATA = @Html.Raw(airportDataJson);
 
     // 1. TRIP TABS & SWITCHING MODES
     const tripTabButtons = document.querySelectorAll('#trip-tabs button');
@@ -1879,57 +1102,28 @@
 
     let activePassengerAnchor = null;
 
-    let countAdults = 1;
-    let countChildren = 0;
-    let countInfants = 0;
+    let passengerCount = 1;
     let currentCabinChoice = 'Business Class';
 
-    const valAdults = document.getElementById('val-adults');
-    const valChildren = document.getElementById('val-children');
-    const valInfants = document.getElementById('val-infants');
-    const btnDecAdults = document.getElementById('btn-dec-adults');
-    const btnDecChildren = document.getElementById('btn-dec-children');
-    const btnDecInfants = document.getElementById('btn-dec-infants');
+    const valPassengers = document.getElementById('val-passengers');
+    const btnDecPassengers = document.getElementById('btn-dec-passengers');
+    const btnIncPassengers = document.getElementById('btn-inc-passengers');
 
     function updateCountersDisplay() {
-      valAdults.textContent = countAdults;
-      valChildren.textContent = countChildren;
-      valInfants.textContent = countInfants;
-      btnDecAdults.disabled = countAdults <= 1;
-      btnDecChildren.disabled = countChildren <= 0;
-      btnDecInfants.disabled = countInfants <= 0;
+      if (valPassengers) valPassengers.textContent = passengerCount;
+      if (btnDecPassengers) btnDecPassengers.disabled = passengerCount <= 1;
+      if (btnIncPassengers) btnIncPassengers.disabled = passengerCount >= 9;
     }
 
-    document.getElementById('btn-inc-adults').addEventListener('click', (e) => {
+    btnIncPassengers?.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (countAdults < 9) countAdults++;
-      updateCountersDisplay();
-    });
-    btnDecAdults.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countAdults > 1) countAdults--;
+      if (passengerCount < 9) passengerCount++;
       updateCountersDisplay();
     });
 
-    document.getElementById('btn-inc-children').addEventListener('click', (e) => {
+    btnDecPassengers?.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (countChildren < 9) countChildren++;
-      updateCountersDisplay();
-    });
-    btnDecChildren.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countChildren > 0) countChildren--;
-      updateCountersDisplay();
-    });
-
-    document.getElementById('btn-inc-infants').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countInfants < 4) countInfants++;
-      updateCountersDisplay();
-    });
-    btnDecInfants.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (countInfants > 0) countInfants--;
+      if (passengerCount > 1) passengerCount--;
       updateCountersDisplay();
     });
 
@@ -1940,8 +1134,7 @@
     });
 
     function getPassengerSummaryText() {
-      const total = countAdults + countChildren + countInfants;
-      const passWord = total === 1 ? '1 Passenger' : `${total} Passengers`;
+      const passWord = passengerCount === 1 ? '1 Passenger' : `${passengerCount} Passengers`;
       return `${passWord}, ${currentCabinChoice}`;
     }
 
@@ -2037,22 +1230,67 @@
     const searchBtn = document.getElementById('btn-search-flights');
     if (searchBtn) {
       searchBtn.addEventListener('click', () => {
-        sessionStorage.setItem('skybook-search-context', JSON.stringify({
+        const originCode = (document.getElementById('origin-code')?.textContent.trim()) || 'CAI';
+        const originCity = (document.getElementById('origin-city')?.textContent.trim()) || 'Cairo';
+        const destinationCode = (document.getElementById('destination-code')?.textContent.trim()) || 'DXB';
+        const destinationCity = (document.getElementById('destination-city')?.textContent.trim()) || 'Dubai';
+        const departure = (document.getElementById('departure-date-display')?.textContent.trim()) || 'Oct 24';
+        const departureSub = (document.getElementById('departure-sub-display')?.textContent.trim()) || 'Saturday, 2026';
+        const returnDate = (document.getElementById('return-date-display')?.textContent.trim()) || 'Nov 02';
+        const returnSub = (document.getElementById('return-sub-display')?.textContent.trim()) || 'Monday, 2026';
+        const guestsText = (document.getElementById('guests-display')?.textContent.trim()) || '1 Passenger, Business Class';
+
+        function toIsoDate(d) {
+          if (!d || isNaN(d.getTime())) return '';
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+        const depIso = toIsoDate(selectedDepartureDate);
+        const retIso = toIsoDate(selectedReturnDate);
+
+        const searchContext = {
           mode: currentTripMode,
-          originCode: document.getElementById('origin-code')?.textContent.trim(),
-          originCity: document.getElementById('origin-city')?.textContent.trim(),
-          destinationCode: document.getElementById('destination-code')?.textContent.trim(),
-          destinationCity: document.getElementById('destination-city')?.textContent.trim(),
-          departure: document.getElementById('departure-date-display')?.textContent.trim(),
-          returnDate: document.getElementById('return-date-display')?.textContent.trim(),
-          passengers: document.getElementById('guests-display')?.textContent.trim(),
+          originCode: originCode,
+          originCity: originCity,
+          destinationCode: destinationCode,
+          destinationCity: destinationCity,
+          departure: departure,
+          departureSub: departureSub,
+          depDate: depIso,
+          returnDate: returnDate,
+          returnSub: returnSub,
+          retDate: retIso,
+          passengers: guestsText,
+          passengerCount: passengerCount,
           cabin: currentCabinChoice
-        }));
+        };
+
+        sessionStorage.setItem('skybook-search-context', JSON.stringify(searchContext));
         sessionStorage.setItem('skybook-trip-mode', currentTripMode);
+
+        const params = new URLSearchParams({
+          mode: currentTripMode,
+          origin: originCode,
+          originCity: originCity,
+          destination: destinationCode,
+          destinationCity: destinationCity,
+          departure: departure,
+          departureSub: departureSub,
+          depDate: depIso,
+          return: returnDate,
+          returnSub: returnSub,
+          retDate: retIso,
+          passengers: guestsText,
+          passengerCount: passengerCount,
+          cabin: currentCabinChoice
+        });
+
         searchBtn.classList.add('scale-95');
         setTimeout(() => {
           searchBtn.classList.remove('scale-95');
-          window.location.href = '/Flight/Results';
+          window.location.href = '/Flight/Results?' + params.toString();
         }, 150);
       });
     }

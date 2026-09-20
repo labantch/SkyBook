@@ -92,16 +92,24 @@
         </div>
 
         <div>
-          <span class="text-[10px] uppercase text-slate-400 font-semibold block mb-2">Passenger</span>
+          <span class="text-[10px] uppercase text-slate-400 font-semibold block mb-2">Customer Account</span>
           <div class="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div id="bd-avatar-container" class="shrink-0">
               <div class="w-12 h-12 rounded-full bg-midnight-900 text-champagne-400 font-bold text-base flex items-center justify-center border-2 border-champagne-500/50" id="bd-initials">--</div>
             </div>
             <div>
               <h3 class="text-base font-bold text-midnight-900" id="bd-name">--</h3>
-              <p class="text-[11px] font-medium text-champagne-700 mt-0.5" id="bd-tier">--</p>
+              <p class="text-[11px] font-medium text-slate-500 mt-0.5" id="bd-email">--</p>
             </div>
           </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] uppercase text-slate-400 font-semibold block">Passengers Manifest</span>
+            <span id="bd-passenger-count" class="text-[10px] font-bold text-champagne-700 bg-champagne-50 px-2.5 py-0.5 rounded-full border border-champagne-200/60">0 Travelers</span>
+          </div>
+          <div id="bd-passengers-container" class="space-y-2"></div>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
@@ -175,7 +183,6 @@
 
 @section Scripts {
 <script data-purpose="application-logic">
-    // Convert C# Model (IEnumerable<BookingDetailsVm>) to a JS Array dynamically.
     const serverBookings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
 
     const state = {
@@ -185,22 +192,27 @@
       pageSize: 10,
       searchQuery: '',
       statusFilter: 'ALL',
-      bookings: (serverBookings || []).map(b => ({
-        ...b,
-        userImageUrl: b.userImageUrl || '',
-        // Map model properties to display-friendly names
-        pnr: b.bookingReference || '-',
-        customerName: b.passengerName || '-',
-        initials: getInitialsFromName(b.passengerName),
-        tier: '',
-        flightCode: b.flightNumber || '-',
-        routeSummary: (b.departureAirPort && b.arrivalAirPort) ? `${b.departureAirPort} → ${b.arrivalAirPort}` : '-',
-        travelDate: b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
-        seat: b.seatNumber || '-',
-        price: b.totalPrice != null ? `$${parseFloat(b.totalPrice).toFixed(2)}` : '-',
-        status: b.status != null ? getStatusText(b.status) : 'Confirmed',
-        id: b.bookingId
-      }))
+      bookings: (serverBookings || []).map(b => {
+        // Customer in table is strictly the User account who made the reservation
+        const userDisplayName = b.userFullName || b.userName || b.passengerName || 'Customer';
+        return {
+          ...b,
+          userImageUrl: b.userImageUrl || '',
+          pnr: b.bookingReference || '-',
+          customerName: userDisplayName,
+          initials: getInitialsFromName(userDisplayName),
+          userEmail: b.userEmail || '',
+          tier: '',
+          flightCode: b.flightNumber || '-',
+          routeSummary: (b.departureAirPort && b.arrivalAirPort) ? `${b.departureAirPort} → ${b.arrivalAirPort}` : '-',
+          travelDate: b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+          seat: b.seatNumber || '-',
+          price: b.totalPrice != null ? `$${parseFloat(b.totalPrice).toFixed(2)}` : '-',
+          status: b.status != null ? getStatusText(b.status) : 'Confirmed',
+          id: b.bookingId,
+          passengers: b.passengers || []
+        };
+      })
     };
 
     function getInitialsFromName(name) {
@@ -325,9 +337,9 @@
             <div class="inline-flex items-center justify-end space-x-2">
               <button onclick="openBookingDetailsDrawer(${b.id})" class="text-xs text-champagne-600 hover:text-champagne-700 font-semibold px-2 py-1 hover:underline">View Details</button>
               <button type="button" 
-                      onclick="promptToggleStatus(${b.id}, '${b.pnr}', '${b.status}')"
-                      title="${isCancelled ? 'Booking is Cancelled. Click to Restore (Turn ON)' : 'Booking is Active. Click to Cancel (Turn OFF)'}"
-                      class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 border cursor-pointer select-none ${
+                      onclick="toggleBookingStatus(${b.id}, '${b.pnr}', this)"
+                      title="${isCancelled ? 'Click to Restore Booking (Turn ON)' : 'Click to Cancel Booking (Turn OFF)'}"
+                      class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 border cursor-pointer select-none active:scale-95 ${
                         isCancelled 
                           ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300' 
                           : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-300'
@@ -486,12 +498,47 @@
       }
 
       document.getElementById('bd-name').innerText = booking.customerName;
-      document.getElementById('bd-tier').innerText = booking.tier || '';
+      const emailEl = document.getElementById('bd-email');
+      if (emailEl) emailEl.innerText = booking.userEmail || 'Registered Customer';
+      
       document.getElementById('bd-flight').innerText = booking.flightCode;
       document.getElementById('bd-route').innerText = booking.routeSummary;
       document.getElementById('bd-date').innerText = booking.travelDate;
       document.getElementById('bd-seat').innerText = booking.seat;
       document.getElementById('bd-price').innerText = booking.price;
+
+      // Populate Passengers Manifest (All passengers in this reservation)
+      const paxContainer = document.getElementById('bd-passengers-container');
+      const paxCountEl = document.getElementById('bd-passenger-count');
+      const paxList = (booking.passengers && booking.passengers.length > 0) 
+        ? booking.passengers 
+        : [{ fullName: booking.passengerName || booking.customerName, seatNumber: booking.seat, passportNumber: '-', nationality: 'Confirmed' }];
+
+      if (paxCountEl) paxCountEl.innerText = `${paxList.length} ${paxList.length === 1 ? 'Traveler' : 'Travelers'}`;
+
+      if (paxContainer) {
+        paxContainer.innerHTML = paxList.map((p, idx) => `
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-midnight-900 text-champagne-400 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                ${getInitialsFromName(p.fullName || p.name || 'P')}
+              </div>
+              <div>
+                <p class="font-bold text-midnight-900 text-xs">${p.fullName || p.name || 'Passenger'}</p>
+                <p class="text-[10px] text-slate-500">
+                  <span class="font-semibold text-champagne-700">${idx === 0 ? 'Primary Passenger' : 'Passenger ' + (idx + 1)}</span>
+                  ${p.nationality ? ' • ' + p.nationality : ''}
+                  ${p.passportNumber && p.passportNumber !== '-' ? ` • <span class="font-mono text-slate-400">${p.passportNumber}</span>` : ''}
+                </p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">Seat</span>
+              <span class="font-mono font-bold text-xs px-2 py-0.5 rounded bg-white border border-slate-200 text-midnight-900">${p.seatNumber || '-'}</span>
+            </div>
+          </div>
+        `).join('');
+      }
 
       const isCancelled = (booking.status === 'Cancelled');
       const cancelBtn = document.getElementById('bd-cancel-btn');
@@ -508,15 +555,106 @@
             : 'text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200/60'
         }`;
         cancelBtn.onclick = () => { 
-          closeDrawer('drawer-booking-details'); 
-          promptToggleStatus(booking.id, booking.pnr, booking.status); 
+          toggleBookingStatus(booking.id, booking.pnr, cancelBtn); 
         };
       }
 
       openDrawer('drawer-booking-details');
     }
 
-    // Toggle Status Workflow (Cancel <-> Restore)
+    // Direct Toggle Status Function with instant AJAX & feedback
+    async function toggleBookingStatus(id, pnr, btnElement) {
+      if (!id) return;
+      const booking = state.bookings.find(b => b.id === id);
+      const isCurrentlyCancelled = booking ? (booking.status === 'Cancelled') : false;
+      const targetPnr = pnr || booking?.pnr || ('#' + id);
+
+      // Disable button during network call to prevent duplicate rapid clicks
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.style.opacity = '0.6';
+        btnElement.style.pointerEvents = 'none';
+      }
+
+      const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+      const token = tokenInput ? tokenInput.value : '';
+
+      try {
+        const formData = new FormData();
+        formData.append('id', id);
+        if (token) formData.append('__RequestVerificationToken', token);
+
+        const response = await fetch(`@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          let result = {};
+          if (contentType.includes('application/json')) {
+            result = await response.json();
+          }
+
+          const newStatus = result.status != null ? getStatusText(result.status) : (isCurrentlyCancelled ? 'Confirmed' : 'Cancelled');
+          if (booking) {
+            booking.status = newStatus;
+          }
+          renderBookingsTable();
+
+          const message = result.message || (isCurrentlyCancelled 
+            ? `Booking ${targetPnr} restored to Active.` 
+            : `Booking ${targetPnr} cancelled.`);
+          showToast(message, 'success');
+
+          // If drawer is open with this booking, refresh drawer
+          const drawerPnr = document.getElementById('bd-pnr')?.innerText;
+          if (drawerPnr === targetPnr) {
+            openBookingDetailsDrawer(id);
+          }
+          return;
+        } else {
+          let errorMsg = 'Failed to update booking status.';
+          try {
+            const err = await response.json();
+            if (err && err.message) errorMsg = err.message;
+          } catch (_) {}
+          showToast(errorMsg, 'error');
+        }
+      } catch (err) {
+        console.error('AJAX toggle failed, falling back to form submit:', err);
+        // Fallback form submit if fetch fails completely
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = `@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`;
+        if (token) {
+          const tokenField = document.createElement('input');
+          tokenField.type = 'hidden';
+          tokenField.name = '__RequestVerificationToken';
+          tokenField.value = token;
+          form.appendChild(tokenField);
+        }
+        const idField = document.createElement('input');
+        idField.type = 'hidden';
+        idField.name = 'id';
+        idField.value = id;
+        form.appendChild(idField);
+        document.body.appendChild(form);
+        form.submit();
+      } finally {
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.style.opacity = '';
+          btnElement.style.pointerEvents = '';
+        }
+      }
+    }
+
+    // Modal Confirmation Workflow (Optional / Alternative)
     function promptToggleStatus(id, pnr, currentStatus) {
       const isCancelled = (currentStatus === 'Cancelled');
       state.cancellationTarget = { id, pnr, isCancelled };
@@ -558,67 +696,9 @@
 
     async function executeServerToggle() {
       if (!state.cancellationTarget) return;
-      const { id, pnr, isCancelled } = state.cancellationTarget;
+      const { id, pnr } = state.cancellationTarget;
       closeModal('modal-confirm-cancel');
-
-      const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-      const token = tokenInput ? tokenInput.value : '';
-
-      try {
-        const formData = new FormData();
-        if (token) formData.append('__RequestVerificationToken', token);
-
-        const response = await fetch(`@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-          },
-          body: formData
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          // Update local state
-          const booking = state.bookings.find(b => b.id === id);
-          if (booking) {
-            booking.status = result.status != null ? getStatusText(result.status) : (isCancelled ? 'Confirmed' : 'Cancelled');
-          }
-          renderBookingsTable();
-          showToast(result.message || (isCancelled ? `Booking ${pnr} restored to Active.` : `Booking ${pnr} cancelled.`), 'success');
-          
-          // If drawer is open with this booking, refresh drawer
-          const drawerPnr = document.getElementById('bd-pnr')?.innerText;
-          if (drawerPnr === pnr) {
-            openBookingDetailsDrawer(id);
-          }
-          return;
-        } else {
-          let errorMsg = 'Failed to update booking status.';
-          try {
-            const err = await response.json();
-            if (err && err.message) errorMsg = err.message;
-          } catch (_) {}
-          showToast(errorMsg, 'error');
-          return;
-        }
-      } catch (err) {
-        console.warn('AJAX toggle failed, falling back to form submit:', err);
-      }
-
-      // Fallback form submit
-      const form = document.createElement('form');
-      form.method = 'post';
-      form.action = `@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`;
-      if (token) {
-        const tokenField = document.createElement('input');
-        tokenField.type = 'hidden';
-        tokenField.name = '__RequestVerificationToken';
-        tokenField.value = token;
-        form.appendChild(tokenField);
-      }
-      document.body.appendChild(form);
-      form.submit();
+      await toggleBookingStatus(id, pnr);
     }
 
     function exportBookingsCsv() {

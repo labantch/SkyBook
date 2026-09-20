@@ -12,9 +12,20 @@
       <p class="text-sm text-slate-500 mt-1">Enter your details to create an account and join SkyBook.</p>
     </div>
     <div class="w-full bg-slate-100 p-1.5 rounded-lg flex mb-6">
-      <a href="@Url.Action("Login", "Account")" class="flex-1 py-2 text-center rounded-md text-xs font-semibold text-slate-500 hover:text-[#0B192C]">Log In</a>
-      <a href="@Url.Action("Register", "Account")" class="flex-1 py-2 text-center rounded-md text-xs font-bold bg-white text-[#0B192C] shadow-sm">Create Account</a>
+      <a href="@Url.Action("Login", "Account", new { returnUrl = ViewData["ReturnUrl"] })" class="flex-1 py-2 text-center rounded-md text-xs font-semibold text-slate-500 hover:text-[#0B192C]">Log In</a>
+      <a href="@Url.Action("Register", "Account", new { returnUrl = ViewData["ReturnUrl"] })" class="flex-1 py-2 text-center rounded-md text-xs font-bold bg-white text-[#0B192C] shadow-sm">Create Account</a>
     </div>
+
+    @if (ViewData["ReturnUrl"] != null && ViewData["ReturnUrl"]!.ToString()!.Contains("ConfirmPayment", StringComparison.OrdinalIgnoreCase))
+    {
+      <div class="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 flex items-start gap-3 shadow-xs">
+        <span class="material-symbols-outlined text-amber-600 text-[20px] shrink-0 mt-0.5">lock</span>
+        <div class="text-xs leading-relaxed">
+          <span class="font-bold block text-amber-950 text-[13px] mb-0.5">Create an account to complete your booking</span>
+          <span>Your selected flights, seats, and passenger details are safely saved. Once your account is created, you will proceed directly to payment.</span>
+        </div>
+      </div>
+    }
 
  @if (!ViewData.ModelState.IsValid)
     {
@@ -28,7 +39,7 @@
       </div>
     }
 
- <form class="flex flex-col gap-space-md" id="form-signup" method="post" asp-action="Register" asp-controller="Account">
+  <form class="flex flex-col gap-space-md" id="form-signup" method="post" asp-action="Register" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]">
       @Html.AntiForgeryToken()
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
         <div class="flex flex-col gap-space-xs">
@@ -127,7 +138,7 @@
         <span class="material-symbols-outlined text-headline-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
       </button>
       <p class="text-center text-xs text-slate-400 mt-2">
-        Already have an account? <a href="@Url.Action("Login", "Account")" class="text-secondary font-semibold hover:underline">Log in here</a>
+        Already have an account? <a href="@Url.Action("Login", "Account", new { returnUrl = ViewData["ReturnUrl"] })" class="text-secondary font-semibold hover:underline">Log in here</a>
       </p>
     </form>
   </div>

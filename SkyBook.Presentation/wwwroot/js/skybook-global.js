@@ -153,15 +153,164 @@
         header.classList.toggle('skybook-open');
     });
 
+    function isFlightsCompleted() {
+        try {
+            var raw = sessionStorage.getItem('skybook-selected-flights');
+            if (!raw) return false;
+            var data = JSON.parse(raw);
+            if (!data || !Array.isArray(data.segments) || data.segments.length === 0) return false;
+            return data.segments.every(function (s) {
+                return s && s.selectedFlight && s.selectedFlight.flightNum;
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isSeatsCompleted() {
+        if (!isFlightsCompleted()) return false;
+        try {
+            var raw = sessionStorage.getItem('skybook-seat-assignments');
+            if (!raw) return false;
+            var data = JSON.parse(raw);
+            if (!data) return false;
+            var keys = Object.keys(data);
+            if (keys.length === 0) return false;
+            return keys.every(function (k) {
+                var seg = data[k];
+                if (!seg || !seg.passengers) return false;
+                var paxKeys = Object.keys(seg.passengers);
+                return paxKeys.length > 0 && paxKeys.every(function (pk) {
+                    return seg.passengers[pk] && seg.passengers[pk].seat;
+                });
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isPassengerCompleted() {
+        if (!isSeatsCompleted()) return false;
+        try {
+            var raw = sessionStorage.getItem('skybook-passenger-manifest');
+            if (!raw) return false;
+            var data = JSON.parse(raw);
+            return !!(data && data.p1 && data.p1.firstName && data.p1.lastName);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Reset downstream data when entering an earlier step so forward steps are genuinely locked
+    if (flowIndex === 0) {
+        sessionStorage.removeItem('skybook-selected-flights');
+        sessionStorage.removeItem('skybook-seat-assignments');
+        sessionStorage.removeItem('skybook-passenger-manifest');
+    } else if (flowIndex === 1) {
+        sessionStorage.removeItem('skybook-passenger-manifest');
+    }
+
+    // Strict route gating: prevent direct URL navigation to later steps if prerequisites are missing
+    if (flowIndex === 1) {
+        if (!isFlightsCompleted()) {
+            window.location.replace(routes.flights);
+            return;
+        }
+    } else if (flowIndex === 2) {
+        if (!isFlightsCompleted()) {
+            window.location.replace(routes.flights);
+            return;
+        } else if (!isSeatsCompleted()) {
+            window.location.replace(routes.seats);
+            return;
+        }
+    } else if (flowIndex === 3) {
+        if (!isFlightsCompleted()) {
+            window.location.replace(routes.flights);
+            return;
+        } else if (!isSeatsCompleted()) {
+            window.location.replace(routes.seats);
+            return;
+        } else if (!isPassengerCompleted()) {
+            window.location.replace(routes.passenger);
+            return;
+        }
+    }
+
     if (flowIndex >= 0) {
         var progress = document.createElement('nav');
         progress.id = 'skybook-booking-progress';
         progress.setAttribute('aria-label', 'Booking progress');
+
+        // Gating policy:
+        // - You can only navigate backwards to steps you have already passed.
+        // - You CANNOT click forward to any step that hasn't been completed yet.
+        var stepUnlocked = [
+            true,                                              // Step 1 (Flights): always accessible
+            flowIndex > 1 || (flowIndex === 0 && isFlightsCompleted()), // Step 2 (Seats): unlocked only if on later step or flights selected
+            flowIndex > 2 || (flowIndex === 1 && isSeatsCompleted()),   // Step 3 (Passenger Details): unlocked only if on confirm or seats completed
+            flowIndex === 3 || isPassengerCompleted()          // Step 4 (Confirm & Pay): unlocked only if passenger details completed
+        ];
+
         progress.innerHTML = '<div class="skybook-progress-inner">' + flowSteps.map(function (step, index) {
-            return (index ? '<span class="skybook-separator" aria-hidden="true">›</span>' : '') +
-                '<a class="skybook-step' + (index === flowIndex ? ' skybook-current' : '') + '" href="' + step[1] + '">' +
-                '<span class="skybook-step-number">' + (index + 1) + '</span><span>' + step[0].toUpperCase() + '</span></a>';
+            var separator = index ? '<span class="skybook-separator" aria-hidden="true">›</span>' : '';
+            var isCurrent = index === flowIndex;
+            var unlocked = stepUnlocked[index];
+            var stepNum = index + 1;
+            var stepId = 'skybook-step-btn-' + stepNum;
+
+            if (isCurrent) {
+                return separator +
+                    '<span id="' + stepId + '" data-step-index="' + index + '" class="skybook-step skybook-current" aria-current="step">' +
+                    '<span class="skybook-step-number">' + stepNum + '</span>' +
+                    '<span>' + step[0].toUpperCase() + '</span></span>';
+            } else if (unlocked) {
+                return separator +
+                    '<a id="' + stepId + '" data-step-index="' + index + '" class="skybook-step skybook-unlocked" href="' + step[1] + '" title="Go to ' + step[0] + '">' +
+                    '<span class="skybook-step-number">' + stepNum + '</span>' +
+                    '<span>' + step[0].toUpperCase() + '</span></a>';
+            } else {
+                return separator +
+                    '<span id="' + stepId + '" data-step-index="' + index + '" class="skybook-step skybook-disabled" title="Locked - Complete previous step first" aria-disabled="true">' +
+                    '<span class="skybook-step-number">' + stepNum + '</span>' +
+                    '<span>' + step[0].toUpperCase() + '</span></span>';
+            }
         }).join('') + '</div>';
+
         header.insertAdjacentElement('afterend', progress);
+
+        window.SkyBookProgress = {
+            unlockStep: function (stepNum) {
+                var el = document.getElementById('skybook-step-btn-' + stepNum);
+                if (el && el.classList.contains('skybook-disabled')) {
+                    var idx = stepNum - 1;
+                    var target = flowSteps[idx][1];
+                    var label = flowSteps[idx][0].toUpperCase();
+                    var newEl = document.createElement('a');
+                    newEl.id = 'skybook-step-btn-' + stepNum;
+                    newEl.setAttribute('data-step-index', idx);
+                    newEl.className = 'skybook-step skybook-unlocked';
+                    newEl.href = target;
+                    newEl.title = 'Go to ' + flowSteps[idx][0];
+                    newEl.innerHTML = '<span class="skybook-step-number">' + stepNum + '</span><span>' + label + '</span>';
+                    el.parentNode.replaceChild(newEl, el);
+                }
+            },
+            lockStep: function (stepNum) {
+                var el = document.getElementById('skybook-step-btn-' + stepNum);
+                if (el && !el.classList.contains('skybook-current') && !el.classList.contains('skybook-disabled')) {
+                    var idx = stepNum - 1;
+                    var label = flowSteps[idx][0].toUpperCase();
+                    var newEl = document.createElement('span');
+                    newEl.id = 'skybook-step-btn-' + stepNum;
+                    newEl.setAttribute('data-step-index', idx);
+                    newEl.className = 'skybook-step skybook-disabled';
+                    newEl.title = 'Locked - Complete previous step first';
+                    newEl.setAttribute('aria-disabled', 'true');
+                    newEl.innerHTML = '<span class="skybook-step-number">' + stepNum + '</span><span>' + label + '</span>';
+                    el.parentNode.replaceChild(newEl, el);
+                }
+            }
+        };
     }
 })();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,10 +23,14 @@ namespace SkyBook.Data.Models
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
         public decimal Price { get; set; }
+        public decimal EconomyPrice { get; set; }
+        public decimal BusinessPrice { get; set; }
+        public decimal FirstClassPrice { get; set; }
         public FlightStatus Status { get; set; }
         public Airport DepartureAirport { get; set; }
         public Airport ArrivalAirport { get; set; }
         public Aircraft Aircraft { get; set; }
         public ICollection<Booking> Bookings { get; set; }
+        public ICollection<FlightStop> Stops { get; set; } = new List<FlightStop>();
     }
 }
