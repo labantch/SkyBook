@@ -61,8 +61,9 @@ namespace SkyBook.Presentation.Controllers
 
         #region CreatePost
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBookingVM model)
+            [ValidateAntiForgeryToken]
+    
+        public async Task<IActionResult> Create(  CreateBookingVM model)
         {
             if (!ModelState.IsValid)
                 return View(model);

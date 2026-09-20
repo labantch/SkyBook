@@ -6,7 +6,7 @@ namespace SkyBook.Data.Models
 {
     public enum BookingStatus
     {
-        Pending = 1,
+        PendingPayment = 1,
         Confirmed = 2,
         Cancelled = 3
     }
@@ -25,5 +25,6 @@ namespace SkyBook.Data.Models
         public Passenger Passenger { get; set; }
         public Flight Flight { get; set; }
         public Seat Seat { get; set; }
+        public Payment Payment { get; set; }
     }
 }

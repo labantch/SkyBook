@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
+using SkyBook.Business.PaymentGateway;
+using SkyBook.Business.Service;
 using SkyBook.Business.Service;
 using SkyBook.Data.Data;
 using SkyBook.Data.Models;
@@ -19,6 +21,9 @@ builder.Services.AddDbContext<SkyBook.Data.Data.ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+builder.Services.AddHttpClient<IPaymentGateway, PaymobPaymentGateway>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -36,7 +41,9 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.ISeatService, SkyBook.Bus
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBook.Business.Service.DashboardService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, SkyBook.Business.Service.ApplicationUserService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IProfileService, SkyBook.Business.Service.ProfileService>();
-builder.Services.AddScoped<SkyBook.Business.Interfaces.IPassengerService, SkyBook.Business.Service.PassengerService>();
+builder.Services.AddScoped<SkyBook.Business.Interfaces.IPaymentService, SkyBook.Business.Service.PaymentService>();
+builder.Services.AddScoped<IPaymentGateway, SkyBook.Business.PaymentGateway.PaymobPaymentGateway>();
+
 
 
 

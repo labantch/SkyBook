@@ -27,6 +27,7 @@ namespace SkyBook.Data.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Passenger> Passengers { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Payment>payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -40,6 +41,7 @@ namespace SkyBook.Data.Data
             builder.ApplyConfiguration(new BookingConfiguration());
             builder.ApplyConfiguration(new PassengerConfiguration());
             builder.ApplyConfiguration(new ApplicationUserConfiguration());
+            builder.ApplyConfiguration(new PaymentConfigration());
         }
     }
 }

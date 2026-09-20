@@ -17,12 +17,12 @@ namespace SkyBook.Presentation.Controllers
                 _flightService = flightService;
             }
         #region Index
-        public async Task<IActionResult> Index()
-            {
-                var flights = await _flightService.GetAllFlightsAsync();
+        //public async Task<IActionResult> Index()
+        //    {
+        //        var flights = await _flightService.GetAllFlightsAsync();
 
-                return View(flights);
-            }
+        //        return View(flights);
+        //    }
         #endregion
 
         #region Details 
@@ -38,70 +38,70 @@ namespace SkyBook.Presentation.Controllers
         #endregion
         
         #region CreateGet
-        [HttpGet]
-            public IActionResult Create()
-            {
-                return View();
-            }
+        //[HttpGet]
+        //    public IActionResult Create()
+        //    {
+        //        return View();
+        //    }
         #endregion
 
         #region CreatePost
-        [HttpPost]
-            public async Task<IActionResult> Create(FlightVM model)
-            {
-                if (!ModelState.IsValid)
-                    return View(model);
+        //[HttpPost]
+        //    public async Task<IActionResult> Create(FlightVM model)
+        //    {
+        //        if (!ModelState.IsValid)
+        //            return View(model);
 
-                await _flightService.CreateFlightAsync(model);
+        //        await _flightService.CreateFlightAsync(model);
 
-                return RedirectToAction(nameof(Index));
-            }
+        //        return RedirectToAction(nameof(Index));
+        //    }
         #endregion
 
         #region EditGet
-        [HttpGet]
-            public async Task<IActionResult> Edit(int id)
-            {
-                var flight = await _flightService.GetFlightForEditAsync(id);
+        //[HttpGet]
+        //    public async Task<IActionResult> Edit(int id)
+        //    {
+        //        var flight = await _flightService.GetFlightForEditAsync(id);
 
-                if (flight == null)
-                    return NotFound();
+        //        if (flight == null)
+        //            return NotFound();
 
-                return View(flight);
-            }
+        //        return View(flight);
+        //    }
         #endregion
 
         #region EditPost
-        [HttpPost]
-            public async Task<IActionResult> Edit(FlightVM model)
-            {
-                if (!ModelState.IsValid)
-                    return View(model);
+        //[HttpPost]
+        //    public async Task<IActionResult> Edit(FlightVM model)
+        //    {
+        //        if (!ModelState.IsValid)
+        //            return View(model);
 
-                await _flightService.UpdateFlightAsync(model);
+        //        await _flightService.UpdateFlightAsync(model);
 
-                return RedirectToAction(nameof(Index));
-            }
+        //        return RedirectToAction(nameof(Index));
+        //    }
         #endregion
 
         #region Delete
-        [HttpPost]
-            public async Task<IActionResult> Delete(int id)
-            {
-                await _flightService.DeleteFlightAsync(id);
+        //[HttpPost]
+        //    public async Task<IActionResult> Delete(int id)
+        //    {
+        //        await _flightService.DeleteFlightAsync(id);
 
-                return RedirectToAction(nameof(Index));
-            }
+        //        return RedirectToAction(nameof(Index));
+        //    }
         #endregion
 
         #region ChangeStatus
-        [HttpPost]
-            public async Task<IActionResult> ChangeStatus(int id, FlightStatus status)
-            {
-                await _flightService.ChangeStatusAsync(id, status);
+        //[HttpPost]
+        //    public async Task<IActionResult> ChangeStatus(int id, FlightStatus status)
+        //    {
+        //        await _flightService.ChangeStatusAsync(id, status);
 
-                return RedirectToAction(nameof(Index));
-            }
+        //        return RedirectToAction(nameof(Index));
+        //    }
         #endregion
 
         #region SearchGet

@@ -105,7 +105,7 @@ public class AccountService : IAccountService
     }
     #endregion
 
-    //#region GetProfile
+    #region GetProfile
     //public async Task<ProfileVM?> GetProfileAsync(string userId)
     //{
     //    if (string.IsNullOrEmpty(userId))
@@ -125,9 +125,9 @@ public class AccountService : IAccountService
     //        ImageUrl = user.ImageUrl
     //    };
     //}
-    //#endregion
+    #endregion
 
-    //#region UpdateProfile
+    #region UpdateProfile
     //public async Task<IdentityResult> UpdateProfileAsync(string userId, ProfileVM model)
     //{
     //    if (string.IsNullOrEmpty(userId) || model == null)
@@ -174,8 +174,8 @@ public class AccountService : IAccountService
     //            return usernameResult;
     //        await _userManager.UpdateSecurityStampAsync(user);
     //    }
-    //    return await _userManager.UpdateAsync(user);
+    //    return await _userManager.UpdateAsync(user);}
 
 
-    //#endregion
-} 
+        #endregion
+    }

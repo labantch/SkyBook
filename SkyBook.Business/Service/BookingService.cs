@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -15,7 +16,7 @@ public class BookingService : IBookingService
             _context = context;
         }
     #region CreateBooking
-    public async Task CreateBookingAsync( string userId, CreateBookingVM model)
+    public async Task<int> CreateBookingAsync( string userId, CreateBookingVM model)
         {
     
             var flight = await _context.Flights
@@ -62,10 +63,12 @@ public class BookingService : IBookingService
                 BookingDate = DateTime.Now,
                 TotalPrice = seatPrice,
                 BookingReference = bookingReference,
-                Status = BookingStatus.Confirmed
+                Status = BookingStatus.PendingPayment
             };
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
+       
+        _context.Bookings.Add(booking);
+         await _context.SaveChangesAsync();
+        return booking.Id;
         }
     #endregion
 

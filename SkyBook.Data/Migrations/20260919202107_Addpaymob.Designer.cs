@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyBook.Data.Data;
 
@@ -11,9 +12,11 @@ using SkyBook.Data.Data;
 namespace SkyBook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919202107_Addpaymob")]
+    partial class Addpaymob
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,26 +377,11 @@ namespace SkyBook.Data.Migrations
                     b.Property<DateTime>("ArrivalTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("BusinessPrice")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
                     b.Property<int>("DepartureAirportId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DepartureTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<decimal>("EconomyPrice")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal>("FirstClassPrice")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
 
                     b.Property<string>("FlightNumber")
                         .IsRequired()
@@ -418,45 +406,6 @@ namespace SkyBook.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Flights");
-                });
-
-            modelBuilder.Entity("SkyBook.Data.Models.FlightStop", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AirportId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ArrivalTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DepartureTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FlightId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LayoverMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int>("StopOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AirportId");
-
-                    b.HasIndex("FlightId");
-
-                    b.ToTable("FlightStops", (string)null);
                 });
 
             modelBuilder.Entity("SkyBook.Data.Models.Passenger", b =>
@@ -685,23 +634,15 @@ namespace SkyBook.Data.Migrations
                     b.Navigation("DepartureAirport");
                 });
 
-            modelBuilder.Entity("SkyBook.Data.Models.FlightStop", b =>
+            modelBuilder.Entity("SkyBook.Data.Models.Payment", b =>
                 {
-                    b.HasOne("SkyBook.Data.Models.Airport", "Airport")
-                        .WithMany()
-                        .HasForeignKey("AirportId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SkyBook.Data.Models.Flight", "Flight")
-                        .WithMany("Stops")
-                        .HasForeignKey("FlightId")
+                    b.HasOne("SkyBook.Data.Models.Booking", "Booking")
+                        .WithOne("Payment")
+                        .HasForeignKey("SkyBook.Data.Models.Payment", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Airport");
-
-                    b.Navigation("Flight");
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("SkyBook.Data.Models.Seat", b =>
@@ -743,8 +684,6 @@ namespace SkyBook.Data.Migrations
             modelBuilder.Entity("SkyBook.Data.Models.Flight", b =>
                 {
                     b.Navigation("Bookings");
-
-                    b.Navigation("Stops");
                 });
 
             modelBuilder.Entity("SkyBook.Data.Models.Passenger", b =>

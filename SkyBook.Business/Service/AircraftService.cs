@@ -120,7 +120,6 @@ public class AircraftService : IAircraftService
         aircraft.ImageUrl = string.IsNullOrWhiteSpace(model.ImageUrl) ? null : model.ImageUrl.Trim();
         aircraft.Status = model.Status;
 
-        // Check if seat configuration changed
         int currentEconomy = aircraft.Seats?.Count(s => s.Class == SeatClass.Economy) ?? 0;
         int currentBusiness = aircraft.Seats?.Count(s => s.Class == SeatClass.Business) ?? 0;
         int currentFirst = aircraft.Seats?.Count(s => s.Class == SeatClass.FirstClass) ?? 0;
@@ -177,7 +176,7 @@ public class AircraftService : IAircraftService
         var seats = new List<Seat>();
         int currentRow = 1;
 
-        // 1. First Class Seats (typically 4 across: A, B, C, D)
+      
         if (firstClassCount > 0)
         {
             char[] firstLetters = new[] { 'A', 'B', 'C', 'D' };
@@ -198,7 +197,7 @@ public class AircraftService : IAircraftService
             }
         }
 
-        // 2. Business Class Seats (typically 6 across: A, B, C, D, E, F)
+      
         if (businessCount > 0)
         {
             char[] busLetters = new[] { 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -219,7 +218,7 @@ public class AircraftService : IAircraftService
             }
         }
 
-        // 3. Economy Class Seats (6 across: A, B, C, D, E, F)
+      
         if (economyCount > 0)
         {
             char[] econLetters = new[] { 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -241,7 +240,7 @@ public class AircraftService : IAircraftService
         }
         else if (firstClassCount == 0 && businessCount == 0 && totalCapacity > 0)
         {
-            // Default fallback if no cabin breakdown was specified: populate as Economy seats
+         
             char[] econLetters = new[] { 'A', 'B', 'C', 'D', 'E', 'F' };
             int created = 0;
             while (created < totalCapacity)

@@ -8,7 +8,7 @@ public interface IBookingService
     public Task<List<MyBookingVM>> GetUserBookingsAsync(string userId);
     public Task<BookingDetailsVm> GetBookingByIdAsync (int bookingId,string userId);
     public Task CancelAsync(int bookingId,string userId);
-    public Task CreateBookingAsync(string userId,CreateBookingVM model);
+    public Task<int> CreateBookingAsync(string userId,CreateBookingVM model);
     public Task<bool> IsSeatAvailableAsync(int flightId, int SeatId);
     public Task<int> GetAvailableSeatsCountAsync(int flightId);
     public Task<List<BookingDetailsVm>> GetAllBookingsAsync();
