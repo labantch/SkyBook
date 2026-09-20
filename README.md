@@ -6,3 +6,8 @@ A modern airline flight booking and management system built with ASP.NET Core MV
 
 ## Mapping 
 [View Mapping](Mapping.pdf)
+
+## Requirements 
+[View Requirements](Requirements.pdf)
+
+
