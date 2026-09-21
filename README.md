@@ -11,7 +11,7 @@ A modern airline flight booking and management system built with ASP.NET Core MV
 [View Requirements.](SkyBook.pdf)
 
 ## Requiements2
-[View Requirements.](SkyBook2.pdf)
+[View Requirements2.](SkyBook2.pdf)
 
 
 
