@@ -46,6 +46,7 @@ namespace SkyBook.Business.PaymentGateway
                     int.Parse(integrationId!)
                 },
                 notification_url=_configuration["Paymob:NotificationUrl"],
+                redirection_url = _configuration["Paymob:RedirectionUrl"],
 
                 items = new[]
                 {
