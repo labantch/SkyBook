@@ -106,23 +106,23 @@
               var displayImg = ResolveAircraftImage(aircraft.ImageUrl);
 
               <!-- SINGLE AIRCRAFT CARD (ROW) -->
-              <div class="aircraft-card group bg-white hover:bg-slate-50/40 rounded-[22px] border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col md:flex-row items-stretch gap-5 lg:gap-6"
+              <div class="aircraft-card group bg-white hover:bg-slate-50/40 rounded-[22px] border border-slate-200/90 p-3 sm:p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col md:flex-row items-stretch gap-4 lg:gap-5"
                    data-name="@aircraft.Name.ToLower()"
                    data-id="@aircraft.Id"
                    data-capacity="@aircraft.Capacity"
                    data-status="@aircraft.Status.ToString().ToLower()">
 
                   <!-- Left: Wide Thumbnail Image with Fleet ID Badge -->
-                  <div class="relative w-full md:w-64 lg:w-72 h-44 md:h-36 lg:h-38 rounded-2xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200/80 shadow-2xs">
+                  <div class="relative w-full md:w-52 lg:w-60 h-32 md:h-28 lg:h-32 rounded-2xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200/80 shadow-2xs">
                       <img src="@displayImg"
                            alt="@aircraft.Name"
                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                            onerror="this.onerror=null; this.src='@fallbackImg';" />
                       
                       <!-- Floating Fleet ID Badge at Bottom-Left of Image -->
-                      <div class="absolute bottom-2.5 left-2.5 bg-black/65 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/15 text-center shadow-lg pointer-events-none">
-                          <span class="block text-base sm:text-lg font-black font-mono text-white tracking-wider leading-none">#@aircraft.Id</span>
-                          <span class="block text-[8px] font-bold text-champagne-400 uppercase tracking-widest leading-none mt-1">FLEET ID</span>
+                      <div class="absolute bottom-2.5 left-2.5 bg-black/65 backdrop-blur-md rounded-xl px-2.5 py-1 border border-white/15 text-center shadow-lg pointer-events-none min-w-[64px]">
+                          <span class="block text-sm sm:text-base font-black font-mono text-white tracking-wider leading-none">#@aircraft.Id</span>
+                          <span class="block text-[7px] font-bold text-champagne-400 uppercase tracking-[0.18em] leading-none mt-1">FLEET ID</span>
                       </div>
                   </div>
 
@@ -291,14 +291,14 @@
     <!-- Pagination Bar -->
     <div id="aircraft-pagination" class="bg-white rounded-2xl border border-slate-200/90 px-5 py-3 shadow-2xs flex items-center justify-center mt-2">
       <nav id="aircraft-pagination-nav" class="flex items-center gap-1.5" aria-label="Aircraft pagination">
-        <button type="button" id="aircraft-prev-btn" onclick="prevAircraftPage()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
+        <button type="button" id="aircraft-prev-btn" onclick="prevAircraftPage()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           <span>Previous</span>
         </button>
         <div id="aircraft-page-numbers" class="flex items-center gap-1">
           <!-- Page numbers rendered dynamically -->
         </div>
-        <button type="button" id="aircraft-next-btn" onclick="nextAircraftPage()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
+        <button type="button" id="aircraft-next-btn" onclick="nextAircraftPage()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs">
           <span>Next</span>
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>
@@ -336,6 +336,7 @@
               method="post"
               class="flex items-center gap-2">
             @Html.AntiForgeryToken()
+            <input type="hidden" id="delete-aircraft-return-page" name="returnPage" value="1" />
             <input type="hidden" id="da-aircraft-id" name="id" />
 
             <button type="button"
@@ -433,9 +434,9 @@
                 btn.type = 'button';
                 btn.textContent = p;
                 if (p === current) {
-                    btn.className = 'w-8 h-8 rounded-lg bg-midnight-900 text-white font-bold text-xs shadow-xs border border-midnight-950 flex items-center justify-center';
+                    btn.className = 'w-7 h-7 rounded-lg bg-midnight-900 text-white font-bold text-[11px] shadow-xs border border-midnight-950 flex items-center justify-center';
                 } else {
-                    btn.className = 'w-8 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 hover:border-slate-300 transition flex items-center justify-center';
+                    btn.className = 'w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-semibold text-[11px] border border-slate-200 hover:border-slate-300 transition flex items-center justify-center';
                     btn.onclick = () => goToAircraftPage(p);
                 }
                 container.appendChild(btn);
@@ -504,7 +505,20 @@
                 const sumEl = document.getElementById('na-seat-sum');
                 if (sumEl) sumEl.innerText = '0';
             }
+            syncAircraftReturnPage('add-aircraft');
             openModal('modal-add-aircraft');
+        }
+    }
+
+    function getAircraftPageFromUrl() {
+        const page = Number(new URLSearchParams(window.location.search).get('page') || '1');
+        return Number.isFinite(page) && page > 0 ? page : 1;
+    }
+
+    function syncAircraftReturnPage(formId) {
+        const field = document.getElementById(formId + '-return-page');
+        if (field) {
+            field.value = aircraftPagination.currentPage;
         }
     }
 
@@ -518,6 +532,8 @@
         const business = btn.getAttribute('data-business') || 0;
         const first = btn.getAttribute('data-first') || 0;
 
+        syncAircraftReturnPage('edit-aircraft');
+
         if (typeof openEditAircraftModalById === 'function') {
             openEditAircraftModalById(id, name, capacity, image, economy, business, first, status);
         }
@@ -526,6 +542,7 @@
     function handleDeleteButtonClick(btn) {
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
+        syncAircraftReturnPage('delete-aircraft');
         openDeleteAircraftModal(id, name);
     }
 
@@ -545,7 +562,8 @@
             return;
         }
 
-        // Initialize pagination with loaded cards
+        aircraftPagination.currentPage = getAircraftPageFromUrl();
+
         const searchInput = document.getElementById('aircraft-search-input');
         filterAircrafts(searchInput ? searchInput.value : '');
     });

@@ -24,8 +24,14 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             _aircraftService = aircraftService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            ViewBag.CurrentPage = page;
             var flights = await _flightService.GetAllFlightsAsync();
 
             ViewBag.Airports = await _airportService.GetAllAirportAsync();
@@ -36,7 +42,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(FlightVM flight)
+        public async Task<IActionResult> Create(FlightVM flight, int returnPage = 1)
         {
             if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
             {
@@ -57,7 +63,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Invalid flight details.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -70,12 +76,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(FlightVM flight)
+        public async Task<IActionResult> Edit(FlightVM flight, int returnPage = 1)
         {
             if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
             {
@@ -96,7 +102,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Invalid flight details.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -109,12 +115,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, int returnPage = 1)
         {
             try
             {
@@ -126,12 +132,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangeStatus(int id, FlightStatus status)
+        public async Task<IActionResult> ChangeStatus(int id, FlightStatus status, int returnPage = 1)
         {
             try
             {
@@ -143,7 +149,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
     }
 }

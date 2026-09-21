@@ -298,6 +298,7 @@
       
       <form id="delete-flight-form" action="/Admin/AdminFlight/Delete" method="post" class="mt-4 flex space-x-2">
         @Html.AntiForgeryToken()
+        <input type="hidden" id="delete-flight-return-page" name="returnPage" value="1" />
         <input type="hidden" id="delete-flight-id" name="id" />
         <button type="button" class="flex-1 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition" onclick="closeModal('modal-delete-flight')">Cancel</button>
         <button type="submit" class="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition">Delete</button>
@@ -433,6 +434,18 @@
         }
     }
 
+    function getFlightPageFromUrl() {
+        const page = Number(new URLSearchParams(window.location.search).get('page') || '1');
+        return Number.isFinite(page) && page > 0 ? page : 1;
+    }
+
+    function syncFlightReturnPage(formId) {
+        const field = document.getElementById(formId + '-return-page');
+        if (field) {
+            field.value = flightPagination.currentPage;
+        }
+    }
+
     // --- Active Airports Data for Dynamic Transit Stops ---
     let activeAirports = [];
     try {
@@ -553,16 +566,17 @@
         const form = document.getElementById('form-add-flight');
         if (form) {
             form.reset();
+            syncFlightReturnPage('add-flight');
             // Default departure to 2 hours from now, arrival 6 hours from now
             const now = new Date();
             const dept = new Date(now.getTime() + (2 * 60 * 60 * 1000));
             const arr = new Date(now.getTime() + (6 * 60 * 60 * 1000));
-            
+
             const formatForInput = (d) => {
                 const pad = (n) => String(n).padStart(2, '0');
                 return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
             };
-            
+
             const deptInput = document.getElementById('add-dept-time');
             const arrInput = document.getElementById('add-arr-time');
             if (deptInput && !deptInput.value) deptInput.value = formatForInput(dept);
@@ -618,6 +632,7 @@
         if (efBusinessFare) efBusinessFare.value = businessPrice || '';
         if (efFirstFare) efFirstFare.value = firstPrice || '';
         if (efStatus) efStatus.value = status || '1';
+        syncFlightReturnPage('edit-flight');
 
         // Populate stops in edit modal
         const editContainer = document.getElementById('edit-stops-container');
@@ -647,6 +662,7 @@
         const label = document.getElementById('delete-flight-number');
         if (idInput) idInput.value = id;
         if (label) label.textContent = flightNo;
+        syncFlightReturnPage('delete-flight');
         openModal('modal-delete-flight');
     }
 
@@ -671,7 +687,12 @@
             noResults.classList.toggle('hidden', flightPagination.matchingRows.length > 0 || rows.length === 0);
         }
 
-        flightPagination.currentPage = 1;
+        if (q) {
+            flightPagination.currentPage = 1;
+        } else {
+            flightPagination.currentPage = getFlightPageFromUrl();
+        }
+
         updateFlightPagination();
     }
 
@@ -701,6 +722,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        flightPagination.currentPage = getFlightPageFromUrl();
         const searchInput = document.getElementById('flights-search');
         filterFlights(searchInput ? searchInput.value : '');
     });

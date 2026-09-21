@@ -16,8 +16,14 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             _aircraftService = aircraftService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            ViewBag.CurrentPage = page;
             var aircrafts = await _aircraftService.GetAllAircraftsAsync();
 
             return View(aircrafts);
@@ -25,14 +31,14 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(AircraftVM aircraft)
+        public async Task<IActionResult> Add(AircraftVM aircraft, int returnPage = 1)
         {
             SetCapacity(aircraft);
 
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please enter valid aircraft data.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -45,19 +51,19 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(AircraftVM aircraft)
+        public async Task<IActionResult> Edit(AircraftVM aircraft, int returnPage = 1)
         {
             SetCapacity(aircraft);
 
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please enter valid aircraft data.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -70,12 +76,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, int returnPage = 1)
         {
             try
             {
@@ -87,7 +93,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         private void SetCapacity(AircraftVM aircraft)

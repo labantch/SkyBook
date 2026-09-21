@@ -16,8 +16,14 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             _airportService = airportService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            ViewBag.CurrentPage = page;
             var airports = await _airportService.GetAllAirportAsync();
 
             return View(airports);
@@ -25,12 +31,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(AirportVM airport)
+        public async Task<IActionResult> Add(AirportVM airport, int returnPage = 1)
         {
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please enter valid airport data.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -43,17 +49,17 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(AirportVM airport)
+        public async Task<IActionResult> Edit(AirportVM airport, int returnPage = 1)
         {
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please enter valid airport data.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { page = returnPage });
             }
 
             try
@@ -66,12 +72,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, int returnPage = 1)
         {
             try
             {
@@ -83,7 +89,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { page = returnPage });
         }
     }
 }

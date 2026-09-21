@@ -40,6 +40,7 @@
               class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
             @Html.AntiForgeryToken()
 
+            <input type="hidden" id="edit-aircraft-return-page" name="returnPage" value="1" />
             <!-- Aircraft ID: pass both Id and id to guarantee model & route binding -->
             <input type="hidden" name="Id" id="edit-ac-id" value="" />
             <input type="hidden" name="id" id="edit-ac-id-route" value="" />

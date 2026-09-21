@@ -8,68 +8,68 @@ using SkyBook.Data.Models;
 namespace SkyBook.Business.Service;
 
 public class BookingService : IBookingService
+{
+    private readonly ApplicationDbContext _context;
+
+    public BookingService(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public BookingService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        _context = context;
+    }
     #region CreateBooking
-    public async Task<int> CreateBookingAsync( string userId, CreateBookingVM model)
+    public async Task<int> CreateBookingAsync(string userId, CreateBookingVM model)
+    {
+
+        var flight = await _context.Flights
+            .FirstOrDefaultAsync(f => f.Id == model.FlightId);
+        if (flight == null)
+            throw new Exception("Flight not found.");
+        var seat = await _context.Seats
+            .FirstOrDefaultAsync(s => s.Id == model.SeatId && s.AircraftId == flight.AircraftId);
+        if (seat == null)
+            throw new Exception("Seat not found for this aircraft.");
+        var isBooked = await IsSeatAvailableAsync(model.FlightId, model.SeatId);
+        if (!isBooked)
+            throw new Exception("This seat is already booked.");
+        var passenger = new Passenger
         {
-    
-            var flight = await _context.Flights
-                .FirstOrDefaultAsync(f => f.Id == model.FlightId);
-            if (flight == null)
-                throw new Exception("Flight not found.");
-            var seat = await _context.Seats
-                .FirstOrDefaultAsync(s => s.Id == model.SeatId && s.AircraftId == flight.AircraftId);
-            if (seat == null)
-                throw new Exception("Seat not found for this aircraft.");
-            var isBooked = await IsSeatAvailableAsync( model.FlightId, model.SeatId);
-            if (!isBooked)
-                throw new Exception("This seat is already booked.");
-            var passenger = new Passenger
-            {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                DateOfBirth = model.DateOfBirth,
-                Nationality = model.Nationality,
-                PassportNumber = model.PassportNumber,
-                Email = model.Email,
-                Phone = model.PhoneNumber
-            };
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            DateOfBirth = model.DateOfBirth,
+            Nationality = model.Nationality,
+            PassportNumber = model.PassportNumber,
+            Email = model.Email,
+            Phone = model.PhoneNumber
+        };
 
-            _context.Passengers.Add(passenger);
-            var bookingReference = Guid.NewGuid()
-                .ToString("N")
-                .Substring(0, 8)
-                .ToUpper();
+        _context.Passengers.Add(passenger);
+        var bookingReference = Guid.NewGuid()
+            .ToString("N")
+            .Substring(0, 8)
+            .ToUpper();
 
-            decimal seatPrice = seat.Class switch
-            {
-                SeatClass.FirstClass => flight.FirstClassPrice > 0 ? flight.FirstClassPrice : (flight.Price > 0 ? flight.Price * 4 : 0),
-                SeatClass.Business => flight.BusinessPrice > 0 ? flight.BusinessPrice : (flight.Price > 0 ? flight.Price * 2.5m : 0),
-                _ => flight.EconomyPrice > 0 ? flight.EconomyPrice : flight.Price
-            };
+        decimal seatPrice = seat.Class switch
+        {
+            SeatClass.FirstClass => flight.FirstClassPrice > 0 ? flight.FirstClassPrice : (flight.Price > 0 ? flight.Price * 4 : 0),
+            SeatClass.Business => flight.BusinessPrice > 0 ? flight.BusinessPrice : (flight.Price > 0 ? flight.Price * 2.5m : 0),
+            _ => flight.EconomyPrice > 0 ? flight.EconomyPrice : flight.Price
+        };
 
-            var booking = new Booking
-            {
-                UserId = userId,
-                Passenger = passenger,
-                FlightId = model.FlightId,
-                SeatId = model.SeatId,
-                BookingDate = DateTime.Now,
-                TotalPrice = seatPrice,
-                BookingReference = bookingReference,
-                Status = BookingStatus.PendingPayment
-            };
-       
+        var booking = new Booking
+        {
+            UserId = userId,
+            Passenger = passenger,
+            FlightId = model.FlightId,
+            SeatId = model.SeatId,
+            BookingDate = DateTime.Now,
+            TotalPrice = seatPrice,
+            BookingReference = bookingReference,
+            Status = BookingStatus.PendingPayment
+        };
+
         _context.Bookings.Add(booking);
-         await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return booking.Id;
-        }
+    }
     #endregion
 
     #region GetUserBookings
@@ -89,9 +89,7 @@ public class BookingService : IBookingService
 
         var groups = bookings.GroupBy(b => new
         {
-            BaseRef = !string.IsNullOrWhiteSpace(ExtractBaseRef(b.BookingReference)) 
-                ? ExtractBaseRef(b.BookingReference) 
-                : b.BookingReference,
+            BaseRef = ExtractBaseRef(b.BookingReference) is { Length: > 0 } baseRef ? baseRef : b.BookingReference,
             b.FlightId
         });
 
@@ -101,9 +99,6 @@ public class BookingService : IBookingService
         {
             var first = g.First();
             var user = first.User;
-            var userName = user?.UserName ?? "";
-            var userFullName = !string.IsNullOrWhiteSpace(user?.FullName) ? user.FullName : (user?.UserName ?? "Valued Customer");
-            var userImageUrl = user?.ImageUrl;
 
             var passengers = g.Select(b => new PassengerBookingVm
             {
@@ -118,7 +113,6 @@ public class BookingService : IBookingService
             }).ToList();
 
             var combinedSeats = string.Join(", ", g.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
-            var status = g.Any(b => b.Status == BookingStatus.Confirmed) ? BookingStatus.Confirmed : first.Status;
 
             result.Add(new MyBookingVM
             {
@@ -130,13 +124,13 @@ public class BookingService : IBookingService
                 DepartureTime = first.Flight?.DepartureTime ?? DateTime.Now,
                 ArrivalTime = first.Flight?.ArrivalTime ?? DateTime.Now,
                 SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : (first.Seat?.SeatNumber ?? ""),
-                Status = status,
+                Status = g.Any(b => b.Status == BookingStatus.Confirmed) ? BookingStatus.Confirmed : first.Status,
                 TotalPrice = g.Sum(b => b.TotalPrice),
                 PassengerName = passengers.FirstOrDefault()?.FullName ?? "",
                 BookingDate = first.BookingDate,
-                UserName = userName,
-                UserFullName = userFullName,
-                UserImageUrl = userImageUrl,
+                UserName = user?.UserName ?? "",
+                UserFullName = !string.IsNullOrWhiteSpace(user?.FullName) ? user.FullName : (user?.UserName ?? "Valued Customer"),
+                UserImageUrl = user?.ImageUrl,
                 Passengers = passengers
             });
         }
@@ -144,7 +138,7 @@ public class BookingService : IBookingService
         return result;
     }
     #endregion
-    
+
     #region GetBookingById
     public async Task<BookingDetailsVm> GetBookingByIdAsync(int bookingId, string userId)
     {
@@ -206,13 +200,13 @@ public class BookingService : IBookingService
         };
     }
     #endregion
-    
+
     #region Cancel
 
-    public async Task CancelAsync( int bookingId, string userId)
+    public async Task CancelAsync(int bookingId, string userId)
     {
         var booking = await _context.Bookings
-            .FirstOrDefaultAsync(b =>b.Id == bookingId &&b.UserId == userId);
+            .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
         if (booking == null)
             throw new Exception("Booking not found.");
         if (booking.Status == BookingStatus.Cancelled)
@@ -220,7 +214,7 @@ public class BookingService : IBookingService
 
         string baseRef = ExtractBaseRef(booking.BookingReference);
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference || 
+            .Where(b => (b.BookingReference == booking.BookingReference ||
                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
                         b.FlightId == booking.FlightId &&
                         b.UserId == userId)
@@ -234,9 +228,9 @@ public class BookingService : IBookingService
         await _context.SaveChangesAsync();
     }
     #endregion
-    
+
     #region IsSeatAvailable
-    public async Task<bool> IsSeatAvailableAsync( int flightId, int seatId)
+    public async Task<bool> IsSeatAvailableAsync(int flightId, int seatId)
     {
         var isBooked = await _context.Bookings
         .AnyAsync(b =>
@@ -246,17 +240,17 @@ public class BookingService : IBookingService
         return !isBooked;
     }
     #endregion
-    
+
     #region GetAvailableSeatsCount
     public async Task<int> GetAvailableSeatsCountAsync(int flightId)
     {
-        
+
         var flight = await _context.Flights
             .Include(f => f.Aircraft)
             .FirstOrDefaultAsync(f => f.Id == flightId);
         if (flight == null)
-            throw new Exception("Flight not found.");        
-        var totalSeats = await _context.Seats.CountAsync(s =>s.AircraftId == flight.AircraftId);
+            throw new Exception("Flight not found.");
+        var totalSeats = await _context.Seats.CountAsync(s => s.AircraftId == flight.AircraftId);
         var bookedSeats = await _context.Bookings.CountAsync(b =>
                     b.FlightId == flightId &&
                     b.Status != BookingStatus.Cancelled);
@@ -279,8 +273,8 @@ public class BookingService : IBookingService
 
         var groups = bookings.GroupBy(b => new
         {
-            BaseRef = !string.IsNullOrWhiteSpace(ExtractBaseRef(b.BookingReference)) 
-                ? ExtractBaseRef(b.BookingReference) 
+            BaseRef = !string.IsNullOrWhiteSpace(ExtractBaseRef(b.BookingReference))
+                ? ExtractBaseRef(b.BookingReference)
                 : b.BookingReference,
             b.UserId,
             b.FlightId
@@ -357,7 +351,7 @@ public class BookingService : IBookingService
         var newStatus = (booking.Status == BookingStatus.Cancelled) ? BookingStatus.Confirmed : BookingStatus.Cancelled;
         string baseRef = ExtractBaseRef(booking.BookingReference);
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference || 
+            .Where(b => (b.BookingReference == booking.BookingReference ||
                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
                         b.FlightId == booking.FlightId &&
                         b.UserId == booking.UserId)
@@ -380,7 +374,7 @@ public class BookingService : IBookingService
 
         string baseRef = ExtractBaseRef(booking.BookingReference);
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference || 
+            .Where(b => (b.BookingReference == booking.BookingReference ||
                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
                         b.FlightId == booking.FlightId &&
                         b.UserId == booking.UserId)
@@ -457,8 +451,8 @@ public class BookingService : IBookingService
         for (int pIdx = 0; pIdx < model.Passengers.Count; pIdx++)
         {
             var pDto = model.Passengers[pIdx];
-            var passportNum = !string.IsNullOrWhiteSpace(pDto.Passport) 
-                ? pDto.Passport.Trim() 
+            var passportNum = !string.IsNullOrWhiteSpace(pDto.Passport)
+                ? pDto.Passport.Trim()
                 : ("PASS-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper());
 
             var passenger = await _context.Passengers.FirstOrDefaultAsync(p => p.PassportNumber == passportNum);
@@ -501,7 +495,7 @@ public class BookingService : IBookingService
                 if (flight == null && !string.IsNullOrWhiteSpace(seg.FlightNumber))
                 {
                     var cleanNum = System.Text.RegularExpressions.Regex.Replace(seg.FlightNumber, @"[^\w\-]", "").Trim();
-                    flight = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync(f => 
+                    flight = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync(f =>
                         f.FlightNumber == cleanNum || f.FlightNumber.Contains(cleanNum) || cleanNum.Contains(f.FlightNumber));
                 }
 
@@ -574,12 +568,12 @@ public class BookingService : IBookingService
 
         await _context.SaveChangesAsync();
 
-        return new 
-        { 
-            success = true, 
-            bookingReference = pnr, 
+        return new
+        {
+            success = true,
+            bookingReference = pnr,
             bookingsCreated = createdBookings.Count,
-            message = "Reservation successfully persisted to SQL Server database." 
+            message = "Reservation successfully persisted to SQL Server database."
         };
     }
     #endregion

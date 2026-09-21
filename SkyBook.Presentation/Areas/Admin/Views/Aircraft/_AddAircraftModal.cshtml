@@ -39,6 +39,7 @@
               id="form-add-aircraft"
               class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
             @Html.AntiForgeryToken()
+            <input type="hidden" id="add-aircraft-return-page" name="returnPage" value="1" />
 
             <!-- Aircraft Model -->
             <div>

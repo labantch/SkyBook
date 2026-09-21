@@ -1,4 +1,4 @@
-﻿namespace SkyBook.Business;
+namespace SkyBook.Business;
 
 public class Class1
 {

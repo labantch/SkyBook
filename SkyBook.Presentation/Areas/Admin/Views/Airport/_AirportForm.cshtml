@@ -35,6 +35,7 @@
               method="post"
               class="p-6 space-y-4 text-xs max-h-[82vh] overflow-y-auto">
             @Html.AntiForgeryToken()
+            <input type="hidden" id="add-return-page" name="returnPage" value="1" />
 
             <div class="grid grid-cols-3 gap-3">
                 <div class="col-span-1">
@@ -190,6 +191,7 @@
               class="p-6 space-y-4 text-xs max-h-[82vh] overflow-y-auto">
             @Html.AntiForgeryToken()
 
+            <input type="hidden" id="edit-return-page" name="returnPage" value="1" />
             <input id="ea-id" name="Id" type="hidden" />
 
             <div class="grid grid-cols-3 gap-3">
@@ -332,6 +334,7 @@
               method="post"
               class="flex items-center gap-2">
             @Html.AntiForgeryToken()
+            <input type="hidden" id="delete-return-page" name="returnPage" value="1" />
             <input type="hidden" id="da-id" name="id" />
 
             <button type="button"
@@ -387,11 +390,13 @@
     function openAddAirportModal() {
         const form = document.getElementById('add-airport-form');
         if (form) form.reset();
+        syncAirportReturnPage('add');
         updateAirportModalPreview('add');
         openModal('modal-add-airport');
     }
 
     function openEditAirportModal(id, code, name, city, country, imageUrl, status) {
+        syncAirportReturnPage('edit');
         const idInput = document.getElementById('ea-id');
         const iataInput = document.getElementById('ea-iata');
         const nameInput = document.getElementById('ea-name');
@@ -415,6 +420,7 @@
     }
 
     function openDeleteAirportModal(id, code, name) {
+        syncAirportReturnPage('delete');
         const idInput = document.getElementById('da-id');
         const nameEl = document.getElementById('da-airport-name');
         if (idInput) idInput.value = id || '';
