@@ -13,6 +13,7 @@ namespace SkyBook.Data.Data
 
             string[] roles =
             {
+                "SuperAdmin",
                 "Admin",
                 "Customer"
             };

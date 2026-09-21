@@ -99,4 +99,28 @@ public class ApplicationUserService : IApplicationUserService
             Role = roles.Contains("Admin") ? "Admin" : "User"
         };
     }
+
+    public async Task<bool> PromoteUserAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return false;
+
+       
+        if (!await _userManager.IsInRoleAsync(user, "Admin"))
+            await _userManager.AddToRoleAsync(user, "Admin");
+
+        return true;
+    }
+
+    public async Task<bool> DemoteUserAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return false;
+
+        
+        if (await _userManager.IsInRoleAsync(user, "Admin"))
+            await _userManager.RemoveFromRoleAsync(user, "Admin");
+
+        return true;
+    }
 }

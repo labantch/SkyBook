@@ -29,9 +29,17 @@ namespace SkyBook.Business.ViewModels
         public string? Dob { get; set; }
         public string? Nationality { get; set; }
         public string? Passport { get; set; }
-        public string? SeatOutbound { get; set; }
-        public string? SeatReturn { get; set; }
+        public List<string?> Seats { get; set; } = new();
         public string? Email { get; set; }
         public string? Phone { get; set; }
+    }
+
+    public class ConfirmBookingResultDto
+    {
+        public bool Success { get; set; }
+        public int BookingId { get; set; }
+        public string? BookingReference { get; set; }
+        public int BookingsCreated { get; set; }
+        public string? Message { get; set; }
     }
 }

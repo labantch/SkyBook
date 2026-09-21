@@ -33,6 +33,7 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             return View(booking);
         }
 
+        #region Toggle Booking Status
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id)
@@ -44,34 +45,18 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
                     ? "Booking canceled successfully."
                     : "Booking restored successfully.";
 
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        status = status.ToString(),
-                        statusInt = (int)status,
-                        message
-                    });
-                }
-
                 TempData["Success"] = message;
             }
             catch (Exception ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return BadRequest(new { success = false, message = ex.Message });
-                }
-
                 TempData["Error"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
+        #endregion
 
+        #region Cancel and Uncancel Booking
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
@@ -79,29 +64,10 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             try
             {
                 await _bookingService.CancelAsync(id);
-
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        status = BookingStatus.Cancelled.ToString(),
-                        statusInt = (int)BookingStatus.Cancelled,
-                        message = "Booking canceled successfully."
-                    });
-                }
-
                 TempData["Success"] = "Booking canceled successfully.";
             }
             catch (Exception ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return BadRequest(new { success = false, message = ex.Message });
-                }
-
                 TempData["Error"] = ex.Message;
             }
 
@@ -115,34 +81,17 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
             try
             {
                 await _bookingService.UncancelAsync(id);
-
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        status = BookingStatus.Confirmed.ToString(),
-                        statusInt = (int)BookingStatus.Confirmed,
-                        message = "Booking restored successfully."
-                    });
-                }
-
                 TempData["Success"] = "Booking restored successfully.";
             }
             catch (Exception ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    Request.Headers.Accept.ToString().Contains("application/json"))
-                {
-                    return BadRequest(new { success = false, message = ex.Message });
-                }
-
                 TempData["Error"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
+
+        #endregion
     }
 }
 

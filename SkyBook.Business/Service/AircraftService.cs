@@ -32,7 +32,7 @@ public class AircraftService : IAircraftService
             .ToListAsync();
     }
 
-    public async Task<AircraftVM> GetAircraftByIdAsync(int id)
+    public async Task<AircraftVM?> GetAircraftByIdAsync(int id)
     {
         return await _context.Aircrafts
             .Where(a => a.Id == id)

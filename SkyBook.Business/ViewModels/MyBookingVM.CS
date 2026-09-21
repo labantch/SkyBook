@@ -1,5 +1,6 @@
-using SkyBook.Data.Models;
 using System;
+using System.Collections.Generic;
+using SkyBook.Data.Models;
 
 namespace SkyBook.Business.ViewModels
 {
@@ -22,5 +23,12 @@ namespace SkyBook.Business.ViewModels
         public string UserFullName { get; set; } = string.Empty;
         public string? UserImageUrl { get; set; }
         public List<PassengerBookingVm> Passengers { get; set; } = new();
+        public List<BookingSegmentVm> Segments { get; set; } = new();
+        public string TripType => Segments.Count switch
+        {
+            1 => "One Way",
+            2 => "Round Trip",
+            _ => "Multi-City"
+        };
     }
 }

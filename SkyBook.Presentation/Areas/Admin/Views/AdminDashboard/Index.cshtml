@@ -154,7 +154,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-medium" id="dashboard-bookings-body">
               @if (Model.RecentBookings != null && Model.RecentBookings.Any())
@@ -187,7 +187,6 @@
                       <span class="text-[10px] text-slate-400 ml-1">(@b.DepartureAirPort → @b.ArrivalAirPort)</span>
                     </td>
                     <td class="py-3 px-4 text-slate-600">@b.BookingDate.ToString("dd MMM yyyy")</td>
-                    <td class="py-3 px-4"><span class="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-mono text-[11px] font-semibold">@(string.IsNullOrEmpty(b.SeatNumber) ? "Unassigned" : b.SeatNumber)</span></td>
                     <td class="py-3 px-4 font-mono font-bold text-slate-900">$@b.TotalPrice.ToString("N2")</td>
                     <td class="py-3 px-4">
                       @if (b.Status == SkyBook.Data.Models.BookingStatus.Confirmed)
@@ -212,7 +211,7 @@
               else
               {
                 <tr>
-                  <td colspan="8" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td>
+                  <td colspan="7" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td>
                 </tr>
               }
             </tbody>
@@ -392,7 +391,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+              <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-medium" id="all-bookings-body"></tbody>
           </table>
@@ -629,7 +628,7 @@
       const container = document.getElementById('dashboard-bookings-body');
       if (!container) return;
       if (!state.bookings || state.bookings.length === 0) {
-        container.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td></tr>';
+        container.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 italic">No bookings recorded yet.</td></tr>';
         return;
       }
       container.innerHTML = state.bookings.slice(0, 6).map(b => `
@@ -643,7 +642,6 @@
           </td>
           <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
           <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-mono text-[11px] font-semibold">${b.seat}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
           <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
           <td class="py-3 px-4 text-right"><a href="/Admin/AdminBooking" class="text-champagne-600 hover:text-champagne-700 font-semibold text-xs">View Details</a></td>
@@ -935,7 +933,6 @@
           </td>
           <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
           <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
           <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
           <td class="py-3 px-4 text-right space-x-2">

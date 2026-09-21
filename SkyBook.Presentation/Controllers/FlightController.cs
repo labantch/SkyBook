@@ -117,7 +117,16 @@ namespace SkyBook.Presentation.Controllers
         [HttpPost]
         public IActionResult Search(FlightSearshVM model)
         {
-            return RedirectToAction(nameof(Results));
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            return RedirectToAction(nameof(Results), new
+            {
+                depDate = model.TravelDate.ToString("yyyy-MM-dd"),
+                passengerCount = model.PassengerCount
+            });
         }
         #endregion
 
@@ -194,8 +203,7 @@ namespace SkyBook.Presentation.Controllers
 
             if (isMultiCity)
             {
-                // Multi-city itineraries span multiple legs. Return all available flights for the requested passenger count
-                // so the client-side FLIGHT_DATABASE can resolve flights for every segment.
+                
                 var mcFlights = allFlights.Where(f => f.AvailableSeats >= paxCount).ToList();
                 return View(mcFlights);
             }

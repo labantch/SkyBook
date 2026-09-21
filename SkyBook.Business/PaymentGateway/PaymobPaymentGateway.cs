@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -60,18 +60,18 @@ namespace SkyBook.Business.PaymentGateway
 
                 billing_data = new
                 {
-                    first_name = request.CustomerName,
-                    last_name = "Customer",
-                    phone_number = request.CustomerPhone,
-                    email = request.CustomerEmail,
+                    first_name = string.IsNullOrWhiteSpace(request.CustomerName) ? "SkyBook" : request.CustomerName.Trim().Split(' ')[0],
+                    last_name = string.IsNullOrWhiteSpace(request.CustomerName) || !request.CustomerName.Trim().Contains(' ') ? "Customer" : request.CustomerName.Trim().Substring(request.CustomerName.Trim().IndexOf(' ') + 1),
+                    phone_number = string.IsNullOrWhiteSpace(request.CustomerPhone) ? "+201000000000" : request.CustomerPhone,
+                    email = string.IsNullOrWhiteSpace(request.CustomerEmail) ? "customer@skybook.com" : request.CustomerEmail,
 
                     apartment = "NA",
                     street = "NA",
                     building = "NA",
-                    city = "NA",
+                    city = "Cairo",
                     country = "EG",
                     floor = "NA",
-                    state = "NA"
+                    state = "Cairo"
                 }
             };
 

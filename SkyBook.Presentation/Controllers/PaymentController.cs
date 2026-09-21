@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SkyBook.Business.Interfaces;
 using SkyBook.Data.Models;
 using System.Security.Cryptography;
@@ -43,7 +43,7 @@ namespace SkyBook.Presentation.Controllers
     string receivedHmac)
         {
             var hmacSecret =
-                _configuration["Paymob:HmacSecret"];
+                _configuration["Paymob:Hmac"] ?? _configuration["Paymob:HmacSecret"];
 
             if (string.IsNullOrEmpty(hmacSecret))
                 return false;

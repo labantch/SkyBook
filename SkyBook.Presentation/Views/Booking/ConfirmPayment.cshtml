@@ -9,33 +9,29 @@
     <link rel="stylesheet" href="~/css/confirm-pay-mobile.css" />
     <style>
         @@layer base {
-            html, body {
-                margin: 0;
-                padding: 0;
-                min-height: 100%;
-            }
-            body {
-                overscroll-behavior-y: auto;
-                overflow-y: auto;
-            }
+            html, body { margin: 0; padding: 0; min-height: 100%; }
+            body { overscroll-behavior-y: auto; overflow-y: auto; }
         }
         @@keyframes softShake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-4px); }
-            40%, 80% { transform: translateX(4px); }
+            20%, 60%  { transform: translateX(-4px); }
+            40%, 80%  { transform: translateX(4px); }
         }
-        .animate-shake {
-            animation: softShake 0.45s ease-in-out;
-        }
+        .animate-shake { animation: softShake 0.45s ease-in-out; }
         .payment-tab-active {
             border-color: #C5A880 !important;
             background-color: #F8F5EE !important;
-            box-shadow: 0 2px 8px rgba(197, 168, 128, 0.15);
+            box-shadow: 0 2px 8px rgba(197,168,128,0.15);
         }
     </style>
 }
 
 <div class="flex flex-col w-full bg-[#f8f9fa] min-h-screen">
+    <!-- Hidden form for standard MVC form submission -->
+    <form id="form-confirm-booking" method="post" asp-action="ConfirmBooking" asp-controller="Booking" class="hidden">
+        @Html.AntiForgeryToken()
+    </form>
+
     <!-- Header Banner -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-6 pb-2 w-full">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
@@ -64,11 +60,11 @@
     <!-- Main Grid -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pb-14 w-full">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- LEFT COLUMN: Compact Review & Payment (8 Cols) -->
+
+            <!-- LEFT COLUMN -->
             <div class="lg:col-span-8 flex flex-col gap-5">
 
-                <!-- 1. COMPACT FLIGHT ITINERARY STRIP -->
+                <!-- 1. FLIGHT ITINERARY — rendered dynamically for N segments -->
                 <section class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80">
                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
@@ -80,90 +76,12 @@
                         </span>
                     </div>
 
-                    <!-- Flight Strips Container -->
-                    <div class="flex flex-col gap-2.5">
-                        <!-- Outbound Strip -->
-                        <div class="p-3.5 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition">
-                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">Outbound</span>
-                                    <span class="text-xs font-semibold text-slate-700" id="cp-ob-date">Fri, 11 Sep 2026</span>
-                                </div>
-                                <span class="text-xs font-bold text-[#725b38] bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono" id="cp-ob-flightnum">SB 918</span>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-3">
-                                <!-- Origin -->
-                                <div class="min-w-[70px]">
-                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-ob-dep-time">20:05</div>
-                                    <div class="text-xs font-semibold text-slate-800" id="cp-ob-from-code">CAI</div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-ob-from-city">Cairo</div>
-                                </div>
-
-                                <!-- Flight Line -->
-                                <div class="flex-1 flex flex-col items-center px-2">
-                                    <span class="text-[11px] text-slate-500 font-semibold mb-0.5" id="cp-ob-duration">3h 40m • Direct</span>
-                                    <div class="w-full flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
-                                        <div class="h-0.5 flex-1 bg-slate-300 relative flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-[15px] text-[#0B192C] rotate-90 absolute">flight</span>
-                                        </div>
-                                        <span class="w-2 h-2 rounded-full bg-[#0B192C]"></span>
-                                    </div>
-                                    <span class="text-[10px] text-slate-400 mt-0.5" id="cp-ob-aircraft">Boeing 787-9</span>
-                                </div>
-
-                                <!-- Destination -->
-                                <div class="min-w-[70px] text-right">
-                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-ob-arr-time">01:45</div>
-                                    <div class="text-xs font-semibold text-slate-800" id="cp-ob-to-code">DXB</div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-ob-to-city">Dubai</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Return Strip (Shown if round-trip) -->
-                        <div class="p-3.5 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition" id="cp-rt-container">
-                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">Return</span>
-                                    <span class="text-xs font-semibold text-slate-700" id="cp-rt-date">Fri, 18 Sep 2026</span>
-                                </div>
-                                <span class="text-xs font-bold text-[#725b38] bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono" id="cp-rt-flightnum">SB 928</span>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-3">
-                                <!-- Origin -->
-                                <div class="min-w-[70px]">
-                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-rt-dep-time">09:15</div>
-                                    <div class="text-xs font-semibold text-slate-800" id="cp-rt-from-code">DXB</div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-rt-from-city">Dubai</div>
-                                </div>
-
-                                <!-- Flight Line -->
-                                <div class="flex-1 flex flex-col items-center px-2">
-                                    <span class="text-[11px] text-slate-500 font-semibold mb-0.5" id="cp-rt-duration">3h 35m • Direct</span>
-                                    <div class="w-full flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
-                                        <div class="h-0.5 flex-1 bg-slate-300 relative flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-[15px] text-[#0B192C] rotate-90 absolute">flight</span>
-                                        </div>
-                                        <span class="w-2 h-2 rounded-full bg-[#0B192C]"></span>
-                                    </div>
-                                    <span class="text-[10px] text-slate-400 mt-0.5" id="cp-rt-aircraft">Airbus A350-1000</span>
-                                </div>
-
-                                <!-- Destination -->
-                                <div class="min-w-[70px] text-right">
-                                    <div class="text-xl font-bold font-mono text-[#0B192C]" id="cp-rt-arr-time">12:05</div>
-                                    <div class="text-xs font-semibold text-slate-800" id="cp-rt-to-code">CAI</div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[110px]" id="cp-rt-to-city">Cairo</div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Flight strips — injected by renderAllConfirmData() -->
+                    <div class="flex flex-col gap-2.5" id="cp-flight-strips-container">
+                        <p class="text-xs text-slate-400 italic">Loading itinerary…</p>
                     </div>
 
-                    <!-- Amenities Quick Pill Row -->
+                    <!-- Amenities -->
                     <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2">
                         <div class="flex items-center gap-3">
                             <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#C5A880]">luggage</span> 2× 23kg Bags</span>
@@ -175,14 +93,12 @@
                     </div>
                 </section>
 
-                <!-- 2. MERGED COMPACT PASSENGER & SEATS CARD -->
+                <!-- 2. PASSENGERS & SEATS -->
                 <section class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80">
                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[20px] text-[#C5A880]">badge</span>
-                            <div>
-                                <h2 class="text-base font-bold text-[#0B192C]">Travelers &amp; Allocated Seats</h2>
-                            </div>
+                            <h2 class="text-base font-bold text-[#0B192C]">Travelers &amp; Allocated Seats</h2>
                         </div>
                         <div class="flex items-center gap-2">
                             <a class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:text-[#0B192C] text-xs font-semibold" href="/Booking/SelectSeats">
@@ -195,14 +111,12 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Compact Traveler Rows (Merged Passenger + Seat info) -->
                     <div class="flex flex-col gap-2" id="cp-passengers-compact-list">
-                        <!-- Populated dynamically via JS -->
+                        <!-- populated by JS -->
                     </div>
                 </section>
 
-                <!-- 3. PAYMENT METHOD (PRIMARY FOCUS & OPEN BY DEFAULT) -->
+                <!-- 3. PAYMENT -->
                 <section class="bg-white rounded-xl p-5 sm:p-6 shadow-xs border border-slate-200/80 transition-all duration-300" id="payment-method-section">
                     <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
@@ -215,114 +129,47 @@
                         </span>
                     </div>
 
-                    <!-- Payment Validation Error Banner -->
+                    <!-- Error banner -->
                     <div class="hidden mb-4 p-3.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 flex items-start gap-2.5 transition-all" id="payment-error-alert">
                         <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
                         <div class="flex-1">
                             <div class="text-xs font-bold text-rose-900" id="payment-error-title">Incomplete Payment Details</div>
-                            <p class="text-xs text-rose-700 mt-0.5" id="payment-error-desc">Please complete all required payment fields to continue.</p>
+                            <p class="text-xs text-rose-700 mt-0.5" id="payment-error-desc">Please complete all required payment fields.</p>
                         </div>
                         <button class="text-rose-500 hover:text-rose-800 p-0.5" onclick="dismissPaymentAlert()" type="button">
                             <span class="material-symbols-outlined text-[16px]">close</span>
                         </button>
                     </div>
 
-                    <!-- Payment Option Tabs (Card & Wallet Only) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="payment-options-group">
-                        <!-- Option 1: Credit / Debit Card (Active by default) -->
-                        <label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border-2 border-[#0B192C] bg-[#f8f9fa] hover:border-[#C5A880]/60 payment-tab-active" data-tab="card" onclick="switchPayment('card')">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-[#0B192C]">Credit / Debit Card</span>
-                                <input class="accent-[#0B192C] w-4 h-4 cursor-pointer" id="payment-radio-card" name="payment_method" type="radio" value="card" checked />
+                    <!-- Card info panel (Paymob) -->
+                    <div class="bg-[#f8f9fa] rounded-lg p-5 border border-slate-200/80 mb-2" id="panel-card">
+                        <div class="flex items-start sm:items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-full bg-[#0B192C] flex items-center justify-center text-white shrink-0 shadow-sm">
+                                <span class="material-symbols-outlined text-[20px]">credit_card</span>
                             </div>
-                            <div class="flex items-center gap-1.5 mt-2.5 text-slate-500">
-                                <span class="material-symbols-outlined text-[18px] text-[#C5A880]">credit_card</span>
-                                <span class="text-[11px] font-semibold text-slate-700">Visa • Mastercard • Amex</span>
-                            </div>
-                        </label>
-
-                        <!-- Option 2: Digital / Mobile Wallet -->
-                        <label class="payment-tab cursor-pointer rounded-lg p-3.5 flex flex-col justify-between transition-all border-2 border-slate-200 bg-[#f8f9fa] hover:border-[#C5A880]/60" data-tab="wallet" onclick="switchPayment('wallet')">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-[#0B192C]">Digital / Mobile Wallet</span>
-                                <input class="accent-[#0B192C] w-4 h-4 cursor-pointer" id="payment-radio-wallet" name="payment_method" type="radio" value="wallet" />
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-2.5 text-slate-500">
-                                <span class="material-symbols-outlined text-[18px] text-[#C5A880]">account_balance_wallet</span>
-                                <span class="text-[11px] font-semibold text-slate-700">Vodafone Cash • Orange • Smart Wallet</span>
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- Panel 1: Card Form (Visible on load) -->
-                    <div class="bg-[#f8f9fa] rounded-lg p-4 border border-slate-200/80" id="panel-card">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Cardholder Name</label>
-                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-holder-input" type="text" placeholder="Cardholder full name" />
-                            </div>
-
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Card Number</label>
-                                <div class="relative">
-                                    <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 font-mono text-xs tracking-widest border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-number-input" placeholder="4532 8921 7382 1920" maxlength="19" inputmode="numeric" type="text" oninput="formatCardNumberInput(this)" />
-                                    <div class="absolute right-3 top-2 flex items-center" id="card-brand-badge">
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">CARD</span>
-                                    </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="text-xs font-bold text-[#0B192C]">Paymob Card Gateway</h4>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Secure &amp; Encrypted</span>
                                 </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Expiration Date</label>
-                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-expiry-input" maxlength="5" inputmode="numeric" placeholder="MM/YY" type="text" autocomplete="cc-exp" oninput="formatExpiryInput(this)" />
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">CVV / Security Code</label>
-                                <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="card-cvv-input" maxlength="4" inputmode="numeric" placeholder="3 digits" type="password" autocomplete="cc-csc" oninput="this.value=this.value.replace(/\D/g, '').slice(0, 4)" />
+                                <p class="text-[11px] text-slate-600 mt-1">
+                                    You will be redirected to Paymob's official secure checkout page to enter your card details (Visa, Mastercard, Meeza). No card data is collected or stored on our servers.
+                                </p>
                             </div>
                         </div>
-
-                        <div class="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-2 text-[11px] text-slate-500">
-                            <span class="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">shield</span>
-                            <span>Tokenized secure payment. Example checkout prototype.</span>
-                        </div>
-                    </div>
-
-                    <!-- Panel 2: Mobile / Digital Wallet Form -->
-                    <div class="bg-[#f8f9fa] rounded-lg p-4 border border-slate-200/80 hidden" id="panel-wallet">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Select Wallet Provider</label>
-                                <select class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 text-xs font-medium border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="wallet-provider-select">
-                                    <option value="vodafone">Vodafone Cash (فودافون كاش)</option>
-                                    <option value="orange">Orange Cash (أورنج كاش)</option>
-                                    <option value="etisalat">Etisalat Cash (اتصالات كاش)</option>
-                                    <option value="we">WE Pay (وي باي)</option>
-                                    <option value="smart">Bank Smart Wallet / CIB / NBE</option>
-                                    <option value="apple">Apple Pay / Digital Wallet</option>
-                                </select>
-                            </div>
-
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Wallet Mobile Number</label>
-                                <div class="relative">
-                                    <input class="w-full bg-white px-3.5 py-2.5 rounded-md text-slate-800 font-mono text-xs tracking-wider border border-slate-300 focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition" id="wallet-number-input" placeholder="e.g. 01012345678" maxlength="15" inputmode="tel" type="tel" oninput="this.value=this.value.replace(/[^\d+]/g, '')" />
-                                    <div class="absolute right-3 top-2 flex items-center">
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">WALLET</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-2 text-[11px] text-slate-500">
-                            <span class="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">sms</span>
-                            <span>A push verification notification or OTP will be sent to your registered wallet number.</span>
+                        <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <span class="flex items-center gap-1.5 font-medium">
+                                <span class="material-symbols-outlined text-[15px] text-emerald-600">verified_user</span>
+                                PCI-DSS Level 1 Certified
+                            </span>
+                            <span class="font-semibold text-slate-700 flex items-center gap-1">
+                                Powered by <span class="text-[#0B192C] font-bold">Paymob</span>
+                            </span>
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. COMPACT TERMS & CONDITIONS -->
+                <!-- 4. TERMS -->
                 <section class="bg-white rounded-xl p-4 shadow-xs border border-slate-200/80" id="terms-section">
                     <label class="flex items-start gap-2.5 cursor-pointer select-none">
                         <input checked class="mt-0.5 w-4 h-4 rounded accent-[#0B192C] cursor-pointer" id="terms-checkbox" onchange="handleTermsToggle(this)" type="checkbox" />
@@ -340,43 +187,23 @@
                 </section>
             </div>
 
-            <!-- RIGHT COLUMN: Sticky Summary Sidebar (4 Cols) -->
+            <!-- RIGHT COLUMN: Sticky Sidebar -->
             <aside class="lg:col-span-4 sticky top-4">
                 <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                         <h2 class="text-base font-bold text-[#0B192C]">Trip Summary</h2>
-                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-[#fedeb2]/60 text-[#725b38] font-bold uppercase tracking-wider font-mono" id="cp-trip-mode">Round Trip</span>
+                        <!-- Bug 3 fixed: trip mode resolved dynamically -->
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-[#fedeb2]/60 text-[#725b38] font-bold uppercase tracking-wider font-mono" id="cp-trip-mode">—</span>
                     </div>
 
-                    <!-- Mini Itinerary Box -->
-                    <div class="p-3 bg-[#f8f9fa] rounded-lg border border-slate-200/60 flex flex-col gap-2 text-xs">
-                        <div class="flex items-center justify-between font-bold text-[#0B192C]">
-                            <span id="cp-side-ob-route">CAI → DXB</span>
-                            <span class="text-[#725b38] font-mono text-[11px]" id="cp-side-ob-flightnum">SB 918</span>
-                        </div>
-                        <div class="text-slate-500 text-[11px]" id="cp-side-ob-datetime">11 Sep 2026 • 20:05 – 01:45</div>
-                        <div class="text-[#0B192C] font-semibold text-[11px] flex items-center gap-1" id="cp-side-ob-seats">
-                            <span class="material-symbols-outlined text-[13px] text-[#C5A880]">airline_seat_recline_normal</span>
-                            <span>Seats 14A, 14B</span>
-                        </div>
+                    <!-- Sidebar segment rows — injected by renderAllConfirmData() -->
+                    <div class="p-3 bg-[#f8f9fa] rounded-lg border border-slate-200/60 flex flex-col gap-2 text-xs" id="cp-side-segments-container">
+                        <p class="text-[11px] text-slate-400 italic">Loading…</p>
+                    </div>
 
-                        <!-- Return Mini Row -->
-                        <div class="pt-2 border-t border-slate-200/60 flex flex-col gap-1" id="cp-side-rt-box">
-                            <div class="flex items-center justify-between font-bold text-[#0B192C]">
-                                <span id="cp-side-rt-route">DXB → CAI</span>
-                                <span class="text-[#725b38] font-mono text-[11px]" id="cp-side-rt-flightnum">SB 928</span>
-                            </div>
-                            <div class="text-slate-500 text-[11px]" id="cp-side-rt-datetime">18 Sep 2026 • 09:15 – 12:05</div>
-                            <div class="text-[#0B192C] font-semibold text-[11px] flex items-center gap-1" id="cp-side-rt-seats">
-                                <span class="material-symbols-outlined text-[13px] text-[#C5A880]">airline_seat_recline_normal</span>
-                                <span>Seats 15A, 15B</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-1 text-slate-600 text-[11px] font-medium">
-                            <span>Travelers:</span>
-                            <span class="font-bold text-[#0B192C]" id="cp-side-pax-fare">2 Guests • Horizon Flex</span>
-                        </div>
+                    <div class="flex items-center justify-between pt-1 text-slate-600 text-[11px] font-medium">
+                        <span>Travelers:</span>
+                        <span class="font-bold text-[#0B192C]" id="cp-side-pax-fare">—</span>
                     </div>
 
                     <!-- Price Breakdown -->
@@ -384,11 +211,11 @@
                         <div class="flex flex-col gap-1.5 text-xs">
                             <div class="flex items-center justify-between text-slate-600">
                                 <span id="cp-base-fare-label">Base Airfare</span>
-                                <span class="font-semibold text-[#0B192C]" id="cp-base-fare">$2,400.00</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-base-fare">$0.00</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Taxes &amp; Carrier Fees</span>
-                                <span class="font-semibold text-[#0B192C]" id="cp-taxes">$160.00</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-taxes">$0.00</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Preferred Seats</span>
@@ -401,34 +228,30 @@
                         </div>
                     </div>
 
-                    <!-- Total Fare Card -->
+                    <!-- Total -->
                     <div class="bg-[#0B192C] text-white rounded-lg p-4 shadow-sm border border-[#1b2b42]">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Total Trip Fare</span>
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/15 text-[#fedeb2]">USD All-inclusive</span>
                         </div>
-                        <div class="text-2xl font-bold tracking-tight text-white mt-1 font-mono" id="cp-total-price">
-                            $2,560.00
-                        </div>
+                        <div class="text-2xl font-bold tracking-tight text-white mt-1 font-mono" id="cp-total-price">$0.00</div>
                         <div class="flex items-center gap-1 mt-1.5 text-[11px] text-[#fedeb2]">
                             <span class="material-symbols-outlined text-[13px]">bolt</span>
                             <span>Instant PNR issued immediately</span>
                         </div>
                     </div>
 
-                    <!-- Big CTA Button -->
+                    <!-- CTA -->
                     <div class="flex flex-col gap-2">
                         <button class="w-full py-3.5 px-5 rounded-lg bg-[#0B192C] hover:bg-[#15253b] active:scale-[0.99] text-white font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer border border-[#C5A880]/40 hover:border-[#C5A880]" id="submit-button" onclick="executePayment()" type="button">
-                            <span id="button-label">Confirm &amp; Pay $2,560.00</span>
+                            <span id="button-label">Confirm &amp; Pay</span>
                             <span class="material-symbols-outlined text-[18px] text-[#C5A880]" id="button-arrow">arrow_forward</span>
                             <span class="hidden animate-spin material-symbols-outlined text-[18px]" id="spinner">progress_activity</span>
                         </button>
-                        <p class="text-[11px] text-slate-500 text-center">
-                            Official e-Ticket will be issued immediately.
-                        </p>
+                        <p class="text-[11px] text-slate-500 text-center">Official e-Ticket will be issued immediately.</p>
                     </div>
 
-                    <!-- Trust Points -->
+                    <!-- Trust points -->
                     <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-[11px] text-slate-600">
                         <div class="flex items-center gap-1.5 text-slate-800">
                             <span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span>
@@ -441,7 +264,6 @@
                     </div>
                 </div>
             </aside>
-
         </div>
     </div>
 
@@ -458,7 +280,7 @@
             </p>
             <div class="w-full bg-[#f8f9fa] p-3.5 rounded-lg flex items-center justify-between mb-5 border border-slate-200">
                 <span class="text-xs font-semibold text-slate-600 uppercase">Booking Reference:</span>
-                <span class="font-mono text-lg font-bold tracking-widest text-[#0B192C] bg-white px-2.5 py-0.5 rounded border border-slate-200" id="cp-modal-pnr">SKY-8F42KQ</span>
+                <span class="font-mono text-lg font-bold tracking-widest text-[#0B192C] bg-white px-2.5 py-0.5 rounded border border-slate-200" id="cp-modal-pnr">SKY-XXXXXX</span>
             </div>
             <button class="w-full py-3 px-5 rounded-lg bg-[#0B192C] text-white font-bold text-xs hover:bg-[#15253b] transition-all cursor-pointer shadow-sm" onclick="window.location.href='/Booking/MyBookings'" type="button">
                 View Boarding Passes &amp; Receipt
@@ -466,7 +288,7 @@
         </div>
     </div>
 
-    <!-- DYNAMIC PASSENGER EDIT MODAL -->
+    <!-- PASSENGER EDIT MODAL -->
     <div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" id="passenger-edit-modal">
         <div class="bg-white max-w-xl w-full rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto border border-slate-200">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -478,19 +300,11 @@
                     <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
             </div>
-            
             <form id="passenger-edit-form" onsubmit="savePassengerEdit(event)" class="flex flex-col gap-3 mt-4">
-                <div class="flex flex-col gap-3" id="dynamic-edit-fields-container">
-                    <!-- Dynamic passenger inputs -->
-                </div>
-
+                <div class="flex flex-col gap-3" id="dynamic-edit-fields-container"></div>
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 mt-2">
-                    <button type="button" onclick="closePassengerEditModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:text-[#0B192C] text-xs font-semibold transition cursor-pointer">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-lg bg-[#0B192C] text-white hover:bg-[#15253b] text-xs font-bold shadow-xs transition cursor-pointer">
-                        Save Changes
-                    </button>
+                    <button type="button" onclick="closePassengerEditModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:text-[#0B192C] text-xs font-semibold transition cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-[#0B192C] text-white hover:bg-[#15253b] text-xs font-bold shadow-xs transition cursor-pointer">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -498,611 +312,553 @@
 </div>
 
 @section Scripts {
-    <script>
-        (function enforcePrerequisites() {
-            try {
-                var rawFlights = sessionStorage.getItem('skybook-selected-flights');
-                if (!rawFlights) {
-                    window.location.replace('/Flight/Results');
-                    return;
+<script>
+(function enforcePrerequisites() {
+    try {
+        if (!sessionStorage.getItem('skybook-selected-flights')) { window.location.replace('/Flight/Results'); return; }
+        if (!sessionStorage.getItem('skybook-seat-assignments'))  { window.location.replace('/Booking/SelectSeats'); return; }
+        var rawPax = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
+        if (!rawPax) { window.location.replace('/Passenger/Details'); return; }
+    } catch(e) { window.location.replace('/Flight/Results'); }
+})();
+
+let activePaymentType = 'card';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug 3 fixed: resolve trip mode label for all supported modes
+// ─────────────────────────────────────────────────────────────────────────────
+function resolveTripModeLabel(modeRaw, segCount) {
+    const m = (modeRaw || '').toLowerCase().replace(/[\s_]/g, '-');
+    if (m === 'round-trip' || m === 'roundtrip') return 'Round Trip';
+    if (m === 'one-way'    || m === 'oneway')    return 'One Way';
+    if (m === 'multi-city' || m === 'multicity') return 'Multi-City';
+    // Derive from actual segment count when mode string is ambiguous / missing
+    if (segCount === 1) return 'One Way';
+    if (segCount === 2) return 'Round Trip';
+    return 'Multi-City';
+}
+
+function normalizeCabinLabel(tierKey) {
+    const k = (tierKey || '').toLowerCase();
+    if (k.includes('first') || k === 'fst') return 'First Class';
+    if (k.includes('bus'))                  return 'Business';
+    return 'Economy';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render a single flight strip (used for every segment)
+// ─────────────────────────────────────────────────────────────────────────────
+function buildFlightStrip(seg, sf, segIndex, totalSegs) {
+    // Label: "Outbound" for 1st, "Return" for 2nd of 2, "Leg N" for multi-city
+    let label;
+    if (totalSegs === 1)       label = 'Outbound';
+    else if (segIndex === 0)   label = 'Outbound';
+    else if (totalSegs === 2 && segIndex === 1) label = 'Return';
+    else                       label = `Leg ${segIndex + 1}`;
+
+    const dateStr    = seg.dateStr || seg.shortDate || '—';
+    const flightNum  = sf ? (sf.flightNum  || '—') : '—';
+    const depTime    = sf ? (sf.depTime    || '—') : '—';
+    const arrTime    = sf ? (sf.arrTime    || '—') : '—';
+    const duration   = sf ? (sf.duration   || '—') : '—';
+    const aircraft   = sf ? (sf.aircraft   || '—') : '—';
+    const fromCode   = seg.fromCode   || '—';
+    const fromCity   = seg.fromCity   || fromCode;
+    const toCode     = seg.toCode     || '—';
+    const toCity     = seg.toCity     || toCode;
+
+    return `
+      <div class="p-3.5 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">${label}</span>
+            <span class="text-xs font-semibold text-slate-700">${dateStr} • Non-stop</span>
+          </div>
+          <span class="text-xs font-bold text-[#725b38] bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono">${flightNum}</span>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-[70px]">
+            <div class="text-xl font-bold font-mono text-[#0B192C]">${depTime}</div>
+            <div class="text-xs font-semibold text-slate-800">${fromCode}</div>
+            <div class="text-[11px] text-slate-500 truncate max-w-[110px]">${fromCity}</div>
+          </div>
+          <div class="flex-1 flex flex-col items-center px-2">
+            <span class="text-[11px] text-slate-500 font-semibold mb-0.5">${duration} • Direct</span>
+            <div class="w-full flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#C5A880]"></span>
+              <div class="h-0.5 flex-1 bg-slate-300 relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-[15px] text-[#0B192C] rotate-90 absolute">flight</span>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-[#0B192C]"></span>
+            </div>
+            <span class="text-[10px] text-slate-400 mt-0.5">${aircraft}</span>
+          </div>
+          <div class="min-w-[70px] text-right">
+            <div class="text-xl font-bold font-mono text-[#0B192C]">${arrTime}</div>
+            <div class="text-xs font-semibold text-slate-800">${toCode}</div>
+            <div class="text-[11px] text-slate-500 truncate max-w-[110px]">${toCity}</div>
+          </div>
+        </div>
+      </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug 2 fixed: render ALL segments dynamically in sidebar
+// ─────────────────────────────────────────────────────────────────────────────
+function buildSidebarSegmentRows(segs, seatsData, paxCount) {
+    return segs.map((seg, idx) => {
+        const sf        = seg.selectedFlight;
+        const fromCode  = seg.fromCode || '—';
+        const toCode    = seg.toCode   || '—';
+        const flightNum = sf ? (sf.flightNum || '—') : '—';
+        const depTime   = sf ? (sf.depTime   || '—') : '—';
+        const dateShort = seg.shortDate || seg.dateStr || '—';
+
+        // Collect all seats for this leg (segment index is idx+1 in seatsData keys)
+        const legKey    = idx + 1;
+        const seatList  = [];
+        for (let p = 1; p <= paxCount; p++) {
+            const s = seatsData?.[legKey]?.passengers?.[p]?.seat;
+            if (s) seatList.push(s);
+        }
+        const seatsStr = seatList.length ? `Seats ${seatList.join(', ')}` : 'Seats TBD';
+
+        const divider = idx > 0
+            ? '<div class="border-t border-slate-200/60 pt-2"></div>'
+            : '';
+
+        return `
+          ${divider}
+          <div class="flex items-center justify-between font-bold text-[#0B192C]">
+            <span>${fromCode} → ${toCode}</span>
+            <span class="text-[#725b38] font-mono text-[11px]">${flightNum}</span>
+          </div>
+          <div class="text-slate-500 text-[11px]">${dateShort} • ${depTime}</div>
+          <div class="text-[#0B192C] font-semibold text-[11px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-[#C5A880]">airline_seat_recline_normal</span>
+            <span>${seatsStr}</span>
+          </div>`;
+    }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main render function — called on load and after passenger edit
+// ─────────────────────────────────────────────────────────────────────────────
+function renderAllConfirmData() {
+    try {
+        const flightsData = JSON.parse(sessionStorage.getItem('skybook-selected-flights') || 'null');
+        const seatsData   = JSON.parse(sessionStorage.getItem('skybook-seat-assignments')  || 'null');
+        const paxData     = JSON.parse(
+            sessionStorage.getItem('skybook-passenger-manifest') ||
+            sessionStorage.getItem('skybook-passenger-details')  || '{}');
+        const authUser    = JSON.parse(localStorage.getItem('skybook-auth-user') || 'null');
+
+        window._cpPaxData = paxData;
+
+        function setText(id, val) {
+            const el = document.getElementById(id);
+            if (el && val != null) el.textContent = val;
+        }
+
+        // ── passenger count ───────────────────────────────────────────────────
+        let paxCount = flightsData?.passengerCount
+            || (paxData ? Object.keys(paxData).length : 0)
+            || parseInt(sessionStorage.getItem('skybook_passenger_count') || '0', 10)
+            || 1;
+        if (paxCount < 1) paxCount = 1;
+        window._cpPaxCount = paxCount;
+
+        if (!flightsData || !flightsData.segments || flightsData.segments.length === 0) return;
+
+        const segs = flightsData.segments.filter(s => s && s.selectedFlight);
+        if (segs.length === 0) return;
+
+        // Bug 3 fixed: proper trip mode label
+        const modeRaw = flightsData.tripMode || '';
+        const modeLbl = resolveTripModeLabel(modeRaw, segs.length);
+        setText('cp-trip-mode', modeLbl);
+
+        // ── flight strips (Bug 2 fixed: loop over ALL segments) ───────────────
+        const stripsContainer = document.getElementById('cp-flight-strips-container');
+        if (stripsContainer) {
+            stripsContainer.innerHTML = segs
+                .map((seg, i) => buildFlightStrip(seg, seg.selectedFlight, i, segs.length))
+                .join('');
+        }
+
+        // Fare badge from first segment cabin
+        const firstCabin = segs[0]?.selectedFlight?.cabin || segs[0]?.selectedFlight?.tierKey || '';
+        setText('cp-fare-badge', normalizeCabinLabel(firstCabin));
+
+        // ── sidebar segments ──────────────────────────────────────────────────
+        const sideSegsContainer = document.getElementById('cp-side-segments-container');
+        if (sideSegsContainer) {
+            sideSegsContainer.innerHTML = buildSidebarSegmentRows(segs, seatsData, paxCount);
+        }
+
+        // ── passengers compact list ───────────────────────────────────────────
+        const paxContainer = document.getElementById('cp-passengers-compact-list');
+        if (paxContainer) {
+            paxContainer.innerHTML = '';
+            for (let p = 1; p <= paxCount; p++) {
+                const pKey   = 'p' + p;
+                const pInfo  = paxData[pKey] || {};
+                const roleLabel = p === 1 ? 'Lead Traveler' : `Guest ${p}`;
+
+                let pName = 'Guest Passenger';
+                if (pInfo.firstName || pInfo.lastName) {
+                    pName = `${pInfo.firstName || ''} ${pInfo.lastName || ''}`.trim();
+                } else if (p === 1 && authUser?.name) {
+                    pName = authUser.name;
                 }
-                var rawSeats = sessionStorage.getItem('skybook-seat-assignments');
-                if (!rawSeats) {
-                    window.location.replace('/Booking/SelectSeats');
-                    return;
-                }
-                var rawPax = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
-                if (!rawPax) {
-                    window.location.replace('/Passenger/Details');
-                    return;
-                }
-            } catch (e) {
-                window.location.replace('/Flight/Results');
-                return;
+
+                const pNat        = pInfo.nationality || 'Egypt';
+                const pPassRaw    = pInfo.passport    || 'N/A';
+                const pPassMasked = pPassRaw.length > 4 ? `••••${pPassRaw.slice(-4)}` : pPassRaw;
+
+                // Build one seat badge per segment
+                const seatBadges = segs.map((seg, sIdx) => {
+                    const legKey = sIdx + 1;
+                    const sf     = seg.selectedFlight;
+                    const tier   = ((sf?.tierKey || sf?.cabin || '')).toLowerCase();
+                    const fallback = tier.includes('first') || tier === 'fst'
+                        ? `${p}A`
+                        : (tier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
+                    const seat = seatsData?.[legKey]?.passengers?.[p]?.seat || fallback;
+                    const lbl  = segs.length === 1 ? 'Seat'
+                               : segs.length === 2 && sIdx === 0 ? 'Outbound'
+                               : segs.length === 2 && sIdx === 1 ? 'Return'
+                               : `Leg ${legKey}`;
+                    return `<span class="px-2 py-0.5 rounded bg-[#fedeb2]/50 text-[#725b38] font-mono text-xs font-bold border border-[#C5A880]/30">${lbl}: ${seat}</span>`;
+                }).join('');
+
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition';
+                row.innerHTML = `
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#0B192C] flex items-center justify-center text-[#C5A880] text-xs font-bold shrink-0">${p}</div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-[#0B192C]">${pName}</span>
+                        <span class="text-[10px] font-semibold text-[#725b38] bg-[#fedeb2]/40 px-1.5 py-0.2 rounded">${roleLabel}</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                        <span>${pNat}</span><span>•</span>
+                        <span class="font-mono">Passport ${pPassMasked}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-1.5 ml-auto">${seatBadges}</div>`;
+                paxContainer.appendChild(row);
             }
-        })();
+        }
 
-        let activePaymentType = 'card';
+        // ── price breakdown ───────────────────────────────────────────────────
+        const cabinName = normalizeCabinLabel(firstCabin);
+        setText('cp-side-pax-fare', `${paxCount} ${paxCount === 1 ? 'Guest' : 'Guests'} • ${cabinName}`);
 
-        function switchPayment(type) {
-            activePaymentType = type;
-            dismissPaymentAlert();
+        const segCount = segs.length;
+        const tripMult = modeLbl;
+        setText('cp-base-fare-label', `Base Airfare (${paxCount} × ${tripMult})`);
 
-            const tabs = document.querySelectorAll('.payment-tab');
-            tabs.forEach(tab => {
-                const radio = tab.querySelector('input[type="radio"]');
-                if (tab.getAttribute('data-tab') === type) {
-                    tab.classList.add('payment-tab-active');
-                    tab.classList.remove('border-slate-200');
-                    if (radio) radio.checked = true;
-                } else {
-                    tab.classList.remove('payment-tab-active');
-                    tab.classList.add('border-slate-200');
-                    if (radio) radio.checked = false;
-                }
+        const rawPrice = flightsData.totalPrice;
+        if (rawPrice && Number(rawPrice) > 0) {
+            const priceNum        = Number(rawPrice);
+            const priceFormatted  = `$${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const baseFareNum     = Math.round(priceNum * 0.9375 * 100) / 100;
+            const taxNum          = Math.round((priceNum - baseFareNum) * 100) / 100;
+
+            setText('cp-total-price', priceFormatted);
+            setText('cp-base-fare',   `$${baseFareNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            setText('cp-taxes',       `$${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+
+            const btnLabel = document.getElementById('button-label');
+            if (btnLabel) {
+                const lbl = `Confirm & Pay ${priceFormatted}`;
+                btnLabel.textContent = lbl;
+                window._cpTotalLabel = lbl;
+            }
+        }
+    } catch (e) {
+        console.warn('renderAllConfirmData error:', e);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug 1 fixed: executePayment uses Seats[] array aligned with segments
+// ─────────────────────────────────────────────────────────────────────────────
+async function executePayment() {
+    const termsBox      = document.getElementById('terms-checkbox');
+    const termsSection  = document.getElementById('terms-section');
+    const termsAlert    = document.getElementById('terms-alert');
+    const paymentSection = document.getElementById('payment-method-section');
+
+    if (!activePaymentType) {
+        paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showPaymentAlert('Please select a payment method', 'Choose Credit / Debit Card or Digital / Mobile Wallet to continue.');
+        return;
+    }
+
+    if (termsBox && !termsBox.checked) {
+        termsSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        termsSection?.classList.add('ring-2', 'ring-rose-500');
+        if (termsAlert) termsAlert.classList.remove('hidden');
+        termsBox.focus(); return;
+    }
+
+    const btn     = document.getElementById('submit-button');
+    const label   = document.getElementById('button-label');
+    const arrow   = document.getElementById('button-arrow');
+    const spinner = document.getElementById('spinner');
+    if (btn)    btn.disabled = true;
+    if (arrow)  arrow.classList.add('hidden');
+    if (spinner) spinner.classList.remove('hidden');
+    if (label)  label.textContent = 'Connecting to Paymob…';
+
+    try {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let pnr = 'SKY-';
+        for (let i = 0; i < 6; i++) pnr += chars.charAt(Math.floor(Math.random() * chars.length));
+
+        const flightsData = JSON.parse(sessionStorage.getItem('skybook-selected-flights') || 'null');
+        const seatsData   = JSON.parse(sessionStorage.getItem('skybook-seat-assignments')  || 'null');
+        const paxData     = JSON.parse(
+            sessionStorage.getItem('skybook-passenger-manifest') ||
+            sessionStorage.getItem('skybook-passenger-details')  || '{}');
+        const authUser    = JSON.parse(localStorage.getItem('skybook-auth-user') || 'null');
+
+        const paxCount = window._cpPaxCount || 1;
+        const activeSegs = (flightsData?.segments || []).filter(s => s && s.selectedFlight);
+
+        // Build passenger list — Bug 1 fixed: collect a seat per segment
+        const passengersList = [];
+        for (let p = 1; p <= paxCount; p++) {
+            const pKey  = 'p' + p;
+            const pInfo = paxData[pKey] || {};
+            const fName = pInfo.firstName || (p === 1 && authUser?.name ? authUser.name.split(' ')[0] : `Passenger ${p}`);
+            const lName = pInfo.lastName  || (p === 1 && authUser?.name ? (authUser.name.split(' ').slice(1).join(' ') || 'Traveler') : 'Traveler');
+
+            // One seat entry per segment, index-aligned
+            const seats = activeSegs.map((seg, sIdx) => {
+                const legKey = sIdx + 1;
+                const sf     = seg.selectedFlight;
+                const tier   = ((sf?.tierKey || sf?.cabin || '')).toLowerCase();
+                const fallback = tier.includes('first') || tier === 'fst'
+                    ? `${p}A`
+                    : (tier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
+                return seatsData?.[legKey]?.passengers?.[p]?.seat || fallback;
             });
 
-            document.getElementById('panel-card')?.classList.toggle('hidden', type !== 'card');
-            document.getElementById('panel-wallet')?.classList.toggle('hidden', type !== 'wallet');
+            passengersList.push({
+                title:       pInfo.title       || 'Mr',
+                firstName:   fName,
+                lastName:    lName,
+                dob:         pInfo.dob         || '2000-01-01',
+                nationality: pInfo.nationality || 'Egypt',
+                passport:    pInfo.passport    || ('PASS-' + Math.random().toString(36).substring(2, 8).toUpperCase()),
+                seats:       seats,   // List<string?> aligns with ConfirmPassengerDto.Seats
+                email:       p === 1 ? (authUser?.email || pInfo.email || 'guest@skybook.com') : (pInfo.email || null),
+                phone:       pInfo.phone || null
+            });
         }
 
-        function dismissPaymentAlert() {
-            const alert = document.getElementById('payment-error-alert');
-            if (alert) alert.classList.add('hidden');
-            const optGroup = document.getElementById('payment-options-group');
-            if (optGroup) {
-                optGroup.classList.remove('ring-2', 'ring-rose-500', 'animate-shake');
+        // Build segment list
+        const segmentsList = activeSegs.map(seg => ({
+            flightId:     seg.selectedFlight.dbId   || null,
+            flightNumber: seg.selectedFlight.flightNum || null,
+            fromCode:     seg.fromCode || null,
+            toCode:       seg.toCode   || null,
+            price:        seg.selectedFlight.price  || 0,
+            aircraft:     seg.selectedFlight.aircraft || null
+        }));
+
+        const form = document.getElementById('form-confirm-booking');
+        if (!form) throw new Error("Payment form not found.");
+
+        // Clear any previous dynamically generated inputs (except antiforgery token)
+        form.querySelectorAll('input:not([name="__RequestVerificationToken"])').forEach(el => el.remove());
+
+        const addField = (name, val) => {
+            if (val !== undefined && val !== null) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = name;
+                inp.value = val;
+                form.appendChild(inp);
             }
-        }
+        };
 
-        function showPaymentAlert(title, message) {
-            const alert = document.getElementById('payment-error-alert');
-            const titleEl = document.getElementById('payment-error-title');
-            const descEl = document.getElementById('payment-error-desc');
-            const optGroup = document.getElementById('payment-options-group');
+        addField('BookingReference', pnr);
+        addField('TotalPrice', flightsData?.totalPrice || 0);
+        addField('PaymentMethod', activePaymentType);
 
-            if (titleEl && title) titleEl.textContent = title;
-            if (descEl && message) descEl.textContent = message;
+        segmentsList.forEach((seg, i) => {
+            addField(`Segments[${i}].FlightId`, seg.flightId);
+            addField(`Segments[${i}].FlightNumber`, seg.flightNumber);
+            addField(`Segments[${i}].FromCode`, seg.fromCode);
+            addField(`Segments[${i}].ToCode`, seg.toCode);
+            addField(`Segments[${i}].Price`, seg.price);
+            addField(`Segments[${i}].Aircraft`, seg.aircraft);
+        });
 
-            if (alert) alert.classList.remove('hidden');
-
-            if (optGroup) {
-                optGroup.classList.remove('animate-shake');
-                void optGroup.offsetWidth;
-                optGroup.classList.add('ring-2', 'ring-rose-500', 'animate-shake');
-            }
-        }
-
-        function handleTermsToggle(checkbox) {
-            const termsAlert = document.getElementById('terms-alert');
-            if (checkbox.checked) {
-                if (termsAlert) termsAlert.classList.add('hidden');
-                document.getElementById('terms-section')?.classList.remove('ring-2', 'ring-rose-500');
-            }
-        }
-
-        function formatCardNumberInput(input) {
-            const raw = input.value.replace(/\D/g, '').slice(0, 16);
-            const chunks = [];
-            for (let i = 0; i < raw.length; i += 4) {
-                chunks.push(raw.slice(i, i + 4));
-            }
-            input.value = chunks.join(' ');
-
-            const badge = document.getElementById('card-brand-badge');
-            if (badge) {
-                if (raw.startsWith('4')) {
-                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">VISA</span>';
-                } else if (/^(5[1-5]|2[2-7])/.test(raw)) {
-                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">MC</span>';
-                } else if (/^3[47]/.test(raw)) {
-                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800 border border-cyan-200">AMEX</span>';
-                } else {
-                    badge.innerHTML = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">CARD</span>';
-                }
-            }
-        }
-
-        function formatExpiryInput(input) {
-            const digits = input.value.replace(/\D/g, '').slice(0, 4);
-            input.value = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
-        }
-
-        function isValidExpiry(value) {
-            const match = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.exec(value);
-            if (!match) return false;
-            const now = new Date();
-            const expiryYear = 2000 + Number(match[2]);
-            const expiryMonth = Number(match[1]);
-            return expiryYear > now.getFullYear() || (expiryYear === now.getFullYear() && expiryMonth >= now.getMonth() + 1);
-        }
-
-        function openPassengerEditModal() {
-            const modal = document.getElementById('passenger-edit-modal');
-            if (!modal) return;
-
-            const paxCount = window._cpPaxCount || 1;
-            const paxData = window._cpPaxData || {};
-            const container = document.getElementById('dynamic-edit-fields-container');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            for (let p = 1; p <= paxCount; p++) {
-                const pKey = 'p' + p;
-                const info = paxData[pKey] || {};
-                const roleLabel = p === 1 ? 'Lead Traveler' : `Traveler ${p}`;
-
-                const block = document.createElement('div');
-                block.className = 'p-3 rounded-lg bg-[#f8f9fa] border border-slate-200 flex flex-col gap-2.5';
-                block.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs uppercase font-bold text-[#725b38]">${roleLabel}</span>
-                        <span class="text-[10px] font-medium text-slate-500">Passenger ${p}</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">First Name *</label>
-                            <input type="text" id="edit-${pKey}-first" required value="${info.firstName || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Last Name *</label>
-                            <input type="text" id="edit-${pKey}-last" required value="${info.lastName || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Nationality *</label>
-                            <input type="text" id="edit-${pKey}-nat" required value="${info.nationality || 'Egypt'}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Passport / ID *</label>
-                            <input type="text" id="edit-${pKey}-passport" required value="${info.passport || ''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880] uppercase" />
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Date of Birth *</label>
-                            <input type="text" id="edit-${pKey}-dob" required value="${info.dob || ''}" placeholder="YYYY-MM-DD" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
-                        </div>
-                    </div>
-                `;
-                container.appendChild(block);
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closePassengerEditModal() {
-            document.getElementById('passenger-edit-modal')?.classList.add('hidden');
-        }
-
-        function savePassengerEdit(e) {
-            e.preventDefault();
-            const paxCount = window._cpPaxCount || 1;
-            const updatedPax = {};
-
-            for (let p = 1; p <= paxCount; p++) {
-                const pKey = 'p' + p;
-                const first = document.getElementById(`edit-${pKey}-first`)?.value.trim() || `Guest ${p}`;
-                const last = document.getElementById(`edit-${pKey}-last`)?.value.trim() || '';
-                const nat = document.getElementById(`edit-${pKey}-nat`)?.value.trim() || 'Egypt';
-                const pass = document.getElementById(`edit-${pKey}-passport`)?.value.trim() || 'A1234567';
-                const dob = document.getElementById(`edit-${pKey}-dob`)?.value.trim() || '2000-01-01';
-
-                updatedPax[pKey] = {
-                    title: p === 1 ? 'Mr' : 'Guest',
-                    firstName: first,
-                    lastName: last,
-                    nationality: nat,
-                    passport: pass,
-                    dob: dob,
-                    expDate: '2030-01-01',
-                    gender: 'unspecified'
-                };
-            }
-
-            sessionStorage.setItem('skybook-passenger-manifest', JSON.stringify(updatedPax));
-            sessionStorage.setItem('skybook-passenger-details', JSON.stringify(updatedPax));
-            window._cpPaxData = updatedPax;
-
-            renderAllConfirmData();
-            closePassengerEditModal();
-        }
-
-        async function executePayment() {
-            const termsBox = document.getElementById('terms-checkbox');
-            const termsSection = document.getElementById('terms-section');
-            const termsAlert = document.getElementById('terms-alert');
-            const paymentSection = document.getElementById('payment-method-section');
-
-            if (!activePaymentType) {
-                paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                showPaymentAlert('Please select a payment method', 'Choose Credit / Debit Card or Digital / Mobile Wallet to continue.');
-                return;
-            }
-
-            if (activePaymentType === 'card') {
-                const cardNum = document.getElementById('card-number-input');
-                const cardExp = document.getElementById('card-expiry-input');
-                const cardCvv = document.getElementById('card-cvv-input');
-
-                if (!cardNum?.value.trim() || !cardExp?.value.trim() || !cardCvv?.value.trim()) {
-                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showPaymentAlert('Incomplete Card Information', 'Please complete the card number, expiration date (MM/YY), and CVV security code.');
-                    if (!cardNum?.value.trim()) cardNum?.focus();
-                    else if (!cardExp?.value.trim()) cardExp?.focus();
-                    else cardCvv?.focus();
-                    return;
-                }
-                const digitsOnly = cardNum.value.replace(/\D/g, '');
-                if (digitsOnly.length < 15) {
-                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showPaymentAlert('Invalid Card Number', 'Please enter a valid 15 or 16-digit card number.');
-                    cardNum.focus();
-                    return;
-                }
-                if (!isValidExpiry(cardExp.value)) {
-                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showPaymentAlert('Invalid Expiration Date', 'Please enter a valid future expiry date in MM/YY format.');
-                    cardExp.focus();
-                    return;
-                }
-                if (cardCvv.value.length < 3) {
-                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showPaymentAlert('Invalid CVV Code', 'Please enter the 3 or 4-digit security code on your card.');
-                    cardCvv.focus();
-                    return;
-                }
-            } else if (activePaymentType === 'wallet') {
-                const walletNum = document.getElementById('wallet-number-input');
-                if (!walletNum?.value.trim() || walletNum.value.replace(/\D/g, '').length < 8) {
-                    paymentSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showPaymentAlert('Wallet Number Required', 'Please enter your registered mobile wallet phone number.');
-                    walletNum?.focus();
-                    return;
-                }
-            }
-
-            if (termsBox && !termsBox.checked) {
-                termsSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                termsSection?.classList.add('ring-2', 'ring-rose-500');
-                if (termsAlert) termsAlert.classList.remove('hidden');
-                termsBox.focus();
-                return;
-            }
-
-            const btn = document.getElementById('submit-button');
-            const label = document.getElementById('button-label');
-            const arrow = document.getElementById('button-arrow');
-            const spinner = document.getElementById('spinner');
-
-            if (btn) btn.disabled = true;
-            if (arrow) arrow.classList.add('hidden');
-            if (spinner) spinner.classList.remove('hidden');
-            if (label) label.textContent = 'Processing Payment...';
-
-            try {
-                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-                let pnr = 'SKY-';
-                for (let i = 0; i < 6; i++) pnr += chars.charAt(Math.floor(Math.random() * chars.length));
-
-                // Construct server payload from session data
-                const flightsRaw = sessionStorage.getItem('skybook-selected-flights');
-                const seatsRaw = sessionStorage.getItem('skybook-seat-assignments');
-                const paxRaw = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
-                const authUserRaw = localStorage.getItem('skybook-auth-user');
-
-                const flightsData = flightsRaw ? JSON.parse(flightsRaw) : null;
-                const seatsData = seatsRaw ? JSON.parse(seatsRaw) : null;
-                const paxData = paxRaw ? JSON.parse(paxRaw) : {};
-                const authUser = authUserRaw ? JSON.parse(authUserRaw) : null;
-
-                const paxCount = window._cpPaxCount || 1;
-                const passengersList = [];
-
-                for (let p = 1; p <= paxCount; p++) {
-                    const pKey = 'p' + p;
-                    const pInfo = paxData[pKey] || {};
-                    let fName = pInfo.firstName || (p === 1 && authUser?.name ? authUser.name.split(' ')[0] : `Passenger ${p}`);
-                    let lName = pInfo.lastName || (p === 1 && authUser?.name ? (authUser.name.split(' ').slice(1).join(' ') || 'Traveler') : 'Traveler');
-                    const sf0 = flightsData?.segments?.[0]?.selectedFlight;
-                    const sf1 = flightsData?.segments?.[1]?.selectedFlight;
-                    const obTier = (sf0?.tierKey || sf0?.cabin || '').toLowerCase();
-                    const rtTier = (sf1?.tierKey || sf1?.cabin || '').toLowerCase();
-                    const defaultObSeat = obTier.includes('first') || obTier === 'fst' ? `${p}A` : (obTier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
-                    const defaultRtSeat = rtTier.includes('first') || rtTier === 'fst' ? `${p}B` : (rtTier.includes('bus') ? `${3 + p}B` : `${14 + p}B`);
-
-                    passengersList.push({
-                        title: pInfo.title || 'Mr',
-                        firstName: fName,
-                        lastName: lName,
-                        dob: pInfo.dob || '2000-01-01',
-                        nationality: pInfo.nationality || 'Egypt',
-                        passport: pInfo.passport || ('PASS-' + Math.random().toString(36).substring(2, 8).toUpperCase()),
-                        seatOutbound: seatsData?.[1]?.passengers?.[p]?.seat || defaultObSeat,
-                        seatReturn: seatsData?.[2]?.passengers?.[p]?.seat || defaultRtSeat,
-                        email: p === 1 ? (authUser?.email || 'guest@skybook.com') : null,
-                        phone: pInfo.phone || null
-                    });
-                }
-
-                const segmentsList = [];
-                if (flightsData?.segments && flightsData.segments.length > 0) {
-                    flightsData.segments.forEach(seg => {
-                        if (seg.selectedFlight) {
-                            segmentsList.push({
-                                flightId: seg.selectedFlight.dbId || null,
-                                flightNumber: seg.selectedFlight.flightNum || null,
-                                fromCode: seg.fromCode || null,
-                                toCode: seg.toCode || null,
-                                price: seg.selectedFlight.price || 1280,
-                                aircraft: seg.selectedFlight.aircraft || null
-                            });
-                        }
-                    });
-                }
-
-                const payload = {
-                    bookingReference: pnr,
-                    totalPrice: flightsData?.totalPrice || 2560,
-                    paymentMethod: activePaymentType,
-                    segments: segmentsList,
-                    passengers: passengersList
-                };
-
-                const response = await fetch('/Booking/ConfirmBooking', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+        passengersList.forEach((p, i) => {
+            addField(`Passengers[${i}].Title`, p.title);
+            addField(`Passengers[${i}].FirstName`, p.firstName);
+            addField(`Passengers[${i}].LastName`, p.lastName);
+            addField(`Passengers[${i}].Dob`, p.dob);
+            addField(`Passengers[${i}].Nationality`, p.nationality);
+            addField(`Passengers[${i}].Passport`, p.passport);
+            addField(`Passengers[${i}].Email`, p.email);
+            addField(`Passengers[${i}].Phone`, p.phone);
+            if (Array.isArray(p.seats)) {
+                p.seats.forEach((seat, si) => {
+                    addField(`Passengers[${i}].Seats[${si}]`, seat);
                 });
-
-                const result = await response.json();
-                if (!response.ok || result.success === false) {
-                    throw new Error(result.message || 'Payment or reservation could not be completed.');
-                }
-
-                if (result.bookingReference) {
-                    pnr = result.bookingReference;
-                }
-
-                const pnrEl = document.getElementById('cp-modal-pnr');
-                if (pnrEl) pnrEl.textContent = pnr;
-
-                const userEmail = authUser?.email || (passengersList[0] && passengersList[0].email) || 'guest@skybook.com';
-                const modalEmailEl = document.getElementById('cp-modal-email');
-                try {
-                    localStorage.removeItem('skybook-recent-bookings');
-                } catch (e) {}
-                document.getElementById('confirmation-modal')?.classList.remove('hidden');
-            } catch (err) {
-                console.error('Error confirming booking:', err);
-                showPaymentAlert('Payment Error', err.message || 'Could not complete reservation.');
-            } finally {
-                if (spinner) spinner.classList.add('hidden');
-                if (arrow) arrow.classList.remove('hidden');
-                if (label) label.textContent = window._cpTotalLabel || 'Confirm & Pay';
-                if (btn) btn.disabled = false;
-            }
-        }
-
-        function renderAllConfirmData() {
-            try {
-                const flightsRaw = sessionStorage.getItem('skybook-selected-flights');
-                const seatsRaw = sessionStorage.getItem('skybook-seat-assignments');
-                const paxRaw = sessionStorage.getItem('skybook-passenger-manifest') || sessionStorage.getItem('skybook-passenger-details');
-                const authUserRaw = localStorage.getItem('skybook-auth-user');
-
-                const flightsData = flightsRaw ? JSON.parse(flightsRaw) : null;
-                const seatsData = seatsRaw ? JSON.parse(seatsRaw) : null;
-                const paxData = paxRaw ? JSON.parse(paxRaw) : {};
-                const authUser = authUserRaw ? JSON.parse(authUserRaw) : null;
-
-                window._cpPaxData = paxData;
-
-                function setText(id, val) {
-                    const el = document.getElementById(id);
-                    if (el && val != null) el.textContent = val;
-                }
-
-                // Determine passenger count
-                let paxCount = flightsData?.passengerCount || (paxData ? Object.keys(paxData).length : 0) || parseInt(sessionStorage.getItem('skybook_passenger_count') || '0', 10) || 1;
-                if (!paxCount || paxCount < 1) paxCount = 1;
-                window._cpPaxCount = paxCount;
-
-                // 1. Hydrate Flight Schedule
-                if (flightsData && flightsData.segments && flightsData.segments.length > 0) {
-                    const segs = flightsData.segments;
-                    const seg0 = segs[0];
-                    const seg1 = segs[1];
-                    const sf0 = seg0?.selectedFlight;
-                    const sf1 = seg1?.selectedFlight;
-                    const isRoundTrip = segs.length >= 2 && !!seg1;
-
-                    // Trip mode
-                    const modeRaw = flightsData.tripMode || (isRoundTrip ? 'roundtrip' : 'oneway');
-                    const modeLbl = (modeRaw === 'roundtrip' || modeRaw === 'round-trip') ? 'Round Trip' : 'One Way';
-                    setText('cp-trip-mode', modeLbl);
-
-                    // Outbound strip
-                    if (seg0) {
-                        setText('cp-ob-date', `${seg0.dateStr || seg0.shortDate || '11 Sep 2026'} • Non-stop`);
-                        if (sf0) {
-                            setText('cp-ob-flightnum', sf0.flightNum);
-                            setText('cp-ob-dep-time', sf0.depTime || '20:05');
-                            setText('cp-ob-arr-time', sf0.arrTime || '01:45');
-                            setText('cp-ob-duration', `${sf0.duration || '3h 40m'} • Direct`);
-                            setText('cp-ob-aircraft', sf0.aircraft || 'Boeing 787-9');
-                        }
-                        setText('cp-ob-from-code', seg0.fromCode);
-                        setText('cp-ob-from-city', seg0.fromCity || 'Cairo');
-                        setText('cp-ob-to-code', seg0.toCode);
-                        setText('cp-ob-to-city', seg0.toCity || 'Dubai');
-
-                        // Sidebar Outbound
-                        setText('cp-side-ob-route', `${seg0.fromCode} → ${seg0.toCode}`);
-                        if (sf0) setText('cp-side-ob-flightnum', sf0.flightNum);
-                        setText('cp-side-ob-datetime', `${seg0.shortDate || '11 Sep 2026'} • ${sf0?.depTime || '20:05'}`);
-                    }
-
-                    // Return strip
-                    const rtContainer = document.getElementById('cp-rt-container');
-                    const sideRtBox = document.getElementById('cp-side-rt-box');
-
-                    if (!isRoundTrip) {
-                        if (rtContainer) rtContainer.style.display = 'none';
-                        if (sideRtBox) sideRtBox.style.display = 'none';
-                    } else if (seg1) {
-                        if (rtContainer) rtContainer.style.display = '';
-                        if (sideRtBox) sideRtBox.style.display = '';
-
-                        setText('cp-rt-date', `${seg1.dateStr || seg1.shortDate || '18 Sep 2026'} • Non-stop`);
-                        if (sf1) {
-                            setText('cp-rt-flightnum', sf1.flightNum);
-                            setText('cp-rt-dep-time', sf1.depTime || '09:15');
-                            setText('cp-rt-arr-time', sf1.arrTime || '12:05');
-                            setText('cp-rt-duration', `${sf1.duration || '3h 35m'} • Direct`);
-                            setText('cp-rt-aircraft', sf1.aircraft || 'Airbus A350-1000');
-                        }
-                        setText('cp-rt-from-code', seg1.fromCode);
-                        setText('cp-rt-from-city', seg1.fromCity || 'Dubai');
-                        setText('cp-rt-to-code', seg1.toCode);
-                        setText('cp-rt-to-city', seg1.toCity || 'Cairo');
-
-                        // Sidebar Return
-                        setText('cp-side-rt-route', `${seg1.fromCode} → ${seg1.toCode}`);
-                        if (sf1) setText('cp-side-rt-flightnum', sf1.flightNum);
-                        setText('cp-side-rt-datetime', `${seg1.shortDate || '18 Sep 2026'} • ${sf1?.depTime || '09:15'}`);
-                    }
-
-                    // 2. Hydrate Compact Traveler Rows (Merged Passenger + Seat info)
-                    const paxContainer = document.getElementById('cp-passengers-compact-list');
-                    if (paxContainer) {
-                        paxContainer.innerHTML = '';
-                        const obSeatList = [];
-                        const rtSeatList = [];
-
-                        for (let p = 1; p <= paxCount; p++) {
-                            const pKey = 'p' + p;
-                            const pInfo = paxData[pKey];
-                            const roleLabel = p === 1 ? 'Lead Traveler' : `Guest ${p}`;
-
-                            let pName = 'Guest Passenger';
-                            if (pInfo && (pInfo.firstName || pInfo.lastName)) {
-                                pName = `${pInfo.firstName || ''} ${pInfo.lastName || ''}`.trim();
-                            } else if (p === 1 && authUser?.name) {
-                                pName = authUser.name;
-                            }
-
-                            const pNat = pInfo?.nationality || 'Egypt';
-                            const pPassRaw = pInfo?.passport || 'A8492019';
-                            const pPassMasked = `••••${pPassRaw.slice(-4)}`;
-
-                            const sf0 = flightsData?.segments?.[0]?.selectedFlight;
-                            const sf1 = flightsData?.segments?.[1]?.selectedFlight;
-                            const obTier = (sf0?.tierKey || sf0?.cabin || '').toLowerCase();
-                            const rtTier = (sf1?.tierKey || sf1?.cabin || '').toLowerCase();
-                            const defaultObSeat = obTier.includes('first') || obTier === 'fst' ? `${p}A` : (obTier.includes('bus') ? `${3 + p}A` : `${13 + p}A`);
-                            const defaultRtSeat = rtTier.includes('first') || rtTier === 'fst' ? `${p}B` : (rtTier.includes('bus') ? `${3 + p}B` : `${14 + p}B`);
-
-                            const obSeat = seatsData?.[1]?.passengers?.[p]?.seat || defaultObSeat;
-                            obSeatList.push(obSeat);
-
-                            let rtSeatBadge = '';
-                            if (isRoundTrip) {
-                                const rtSeat = seatsData?.[2]?.passengers?.[p]?.seat || defaultRtSeat;
-                                rtSeatList.push(rtSeat);
-                                rtSeatBadge = `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs font-semibold border border-slate-200">Return: ${rtSeat}</span>`;
-                            }
-
-                            const row = document.createElement('div');
-                            row.className = 'flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-[#f8f9fa] border border-slate-200/70 hover:border-slate-300 transition';
-                            row.innerHTML = `
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-[#0B192C] flex items-center justify-center text-[#C5A880] text-xs font-bold shrink-0">
-                                        ${p}
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold text-[#0B192C]">${pName}</span>
-                                            <span class="text-[10px] font-semibold text-[#725b38] bg-[#fedeb2]/40 px-1.5 py-0.2 rounded">${roleLabel}</span>
-                                        </div>
-                                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                                            <span>${pNat}</span>
-                                            <span>•</span>
-                                            <span class="font-mono">Passport ${pPassMasked}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1.5 ml-auto">
-                                    <span class="px-2 py-0.5 rounded bg-[#fedeb2]/50 text-[#725b38] font-mono text-xs font-bold border border-[#C5A880]/30">Outbound: ${obSeat}</span>
-                                    ${rtSeatBadge}
-                                </div>
-                            `;
-                            paxContainer.appendChild(row);
-                        }
-
-                        // Update sidebar seat summary strings
-                        if (obSeatList.length > 0) {
-                            setText('cp-side-ob-seats', `Seats ${obSeatList.join(', ')}`);
-                        }
-                        if (isRoundTrip && rtSeatList.length > 0) {
-                            setText('cp-side-rt-seats', `Seats ${rtSeatList.join(', ')}`);
-                        }
-                    }
-
-                    // Prepopulate Cardholder Name if empty
-                    const cardHolderInput = document.getElementById('card-holder-input');
-                    if (cardHolderInput && !cardHolderInput.value.trim()) {
-                        const leadP = paxData?.p1;
-                        if (leadP && (leadP.firstName || leadP.lastName)) {
-                            cardHolderInput.value = `${leadP.firstName || ''} ${leadP.lastName || ''}`.trim();
-                        } else if (authUser?.name) {
-                            cardHolderInput.value = authUser.name;
-                        }
-                    }
-
-                    // 3. Hydrate Price Breakdown & Total
-                    const cabinName = sf0?.cabin || 'Horizon Flex';
-                    setText('cp-side-pax-fare', `${paxCount} ${paxCount === 1 ? 'Guest' : 'Guests'} • ${cabinName}`);
-
-                    const tripMult = isRoundTrip ? 'Round Trip' : 'One Way';
-                    setText('cp-base-fare-label', `Base Airfare (${paxCount} × ${tripMult})`);
-
-                    const rawPrice = flightsData.totalPrice;
-                    if (rawPrice && Number(rawPrice) > 0) {
-                        const priceNum = Number(rawPrice);
-                        const priceFormatted = `$${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                        const baseFareNum = Math.round(priceNum * 0.9375 * 100) / 100;
-                        const taxNum = Math.round((priceNum - baseFareNum) * 100) / 100;
-
-                        setText('cp-total-price', priceFormatted);
-                        setText('cp-base-fare', `$${baseFareNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-                        setText('cp-taxes', `$${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-
-                        const btnLabel = document.getElementById('button-label');
-                        if (btnLabel) {
-                            const confirmLabel = `Confirm & Pay ${priceFormatted}`;
-                            btnLabel.textContent = confirmLabel;
-                            window._cpTotalLabel = confirmLabel;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn('Error during renderAllConfirmData:', e);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderAllConfirmData();
-            switchPayment('card');
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closePassengerEditModal();
             }
         });
-    </script>
+
+        try { localStorage.removeItem('skybook-recent-bookings'); } catch(e) {}
+        form.submit();
+        return;
+
+    } catch (err) {
+        console.error('executePayment error:', err);
+        showPaymentAlert('Payment Error', err.message || 'Could not complete reservation.');
+    } finally {
+        if (spinner) spinner.classList.add('hidden');
+        if (arrow)   arrow.classList.remove('hidden');
+        if (label)   label.textContent = window._cpTotalLabel || 'Confirm & Pay';
+        if (btn)     btn.disabled = false;
+    }
+}
+
+// ─── payment helpers ─────────────────────────────────────────────────────────
+function switchPayment(type) {
+    activePaymentType = type;
+    dismissPaymentAlert();
+    document.querySelectorAll('.payment-tab').forEach(tab => {
+        const radio = tab.querySelector('input[type="radio"]');
+        if (tab.getAttribute('data-tab') === type) {
+            tab.classList.add('payment-tab-active');
+            tab.classList.remove('border-slate-200');
+            if (radio) radio.checked = true;
+        } else {
+            tab.classList.remove('payment-tab-active');
+            tab.classList.add('border-slate-200');
+            if (radio) radio.checked = false;
+        }
+    });
+    document.getElementById('panel-card')?.classList.toggle('hidden', type !== 'card');
+    document.getElementById('panel-wallet')?.classList.toggle('hidden', type !== 'wallet');
+}
+
+function dismissPaymentAlert() {
+    document.getElementById('payment-error-alert')?.classList.add('hidden');
+    document.getElementById('payment-options-group')?.classList.remove('ring-2', 'ring-rose-500', 'animate-shake');
+}
+
+function showPaymentAlert(title, message) {
+    const alert    = document.getElementById('payment-error-alert');
+    const titleEl  = document.getElementById('payment-error-title');
+    const descEl   = document.getElementById('payment-error-desc');
+    const optGroup = document.getElementById('payment-options-group');
+    if (titleEl) titleEl.textContent = title;
+    if (descEl)  descEl.textContent  = message;
+    alert?.classList.remove('hidden');
+    if (optGroup) {
+        optGroup.classList.remove('animate-shake');
+        void optGroup.offsetWidth;
+        optGroup.classList.add('ring-2', 'ring-rose-500', 'animate-shake');
+    }
+}
+
+function handleTermsToggle(checkbox) {
+    const termsAlert = document.getElementById('terms-alert');
+    if (checkbox.checked) {
+        termsAlert?.classList.add('hidden');
+        document.getElementById('terms-section')?.classList.remove('ring-2', 'ring-rose-500');
+    }
+}
+
+// ─── passenger edit modal ─────────────────────────────────────────────────────
+function openPassengerEditModal() {
+    const modal     = document.getElementById('passenger-edit-modal');
+    const container = document.getElementById('dynamic-edit-fields-container');
+    if (!modal || !container) return;
+    const paxCount = window._cpPaxCount || 1;
+    const paxData  = window._cpPaxData  || {};
+    container.innerHTML = '';
+    for (let p = 1; p <= paxCount; p++) {
+        const pKey      = 'p' + p;
+        const info      = paxData[pKey] || {};
+        const roleLabel = p === 1 ? 'Lead Traveler' : `Traveler ${p}`;
+        const block = document.createElement('div');
+        block.className = 'p-3 rounded-lg bg-[#f8f9fa] border border-slate-200 flex flex-col gap-2.5';
+        block.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase font-bold text-[#725b38]">${roleLabel}</span>
+            <span class="text-[10px] font-medium text-slate-500">Passenger ${p}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">First Name *</label>
+              <input type="text" id="edit-${pKey}-first" required value="${info.firstName||''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Last Name *</label>
+              <input type="text" id="edit-${pKey}-last" required value="${info.lastName||''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Nationality *</label>
+              <input type="text" id="edit-${pKey}-nat" required value="${info.nationality||'Egypt'}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Passport / ID *</label>
+              <input type="text" id="edit-${pKey}-passport" required value="${info.passport||''}" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880] uppercase" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Date of Birth *</label>
+              <input type="text" id="edit-${pKey}-dob" required value="${info.dob||''}" placeholder="YYYY-MM-DD" class="w-full bg-white px-2.5 py-1.5 rounded text-xs text-slate-800 border border-slate-300 focus:outline-none focus:border-[#C5A880]" />
+            </div>
+          </div>`;
+        container.appendChild(block);
+    }
+    modal.classList.remove('hidden');
+}
+
+function closePassengerEditModal() {
+    document.getElementById('passenger-edit-modal')?.classList.add('hidden');
+}
+
+function savePassengerEdit(e) {
+    e.preventDefault();
+    const paxCount = window._cpPaxCount || 1;
+    const updated  = {};
+    for (let p = 1; p <= paxCount; p++) {
+        const pKey = 'p' + p;
+        updated[pKey] = {
+            title:       p === 1 ? 'Mr' : 'Guest',
+            firstName:   document.getElementById(`edit-${pKey}-first`)?.value.trim()    || `Guest ${p}`,
+            lastName:    document.getElementById(`edit-${pKey}-last`)?.value.trim()     || '',
+            nationality: document.getElementById(`edit-${pKey}-nat`)?.value.trim()      || 'Egypt',
+            passport:    document.getElementById(`edit-${pKey}-passport`)?.value.trim() || 'A1234567',
+            dob:         document.getElementById(`edit-${pKey}-dob`)?.value.trim()      || '2000-01-01',
+            expDate: '2030-01-01',
+            gender: 'unspecified'
+        };
+    }
+    sessionStorage.setItem('skybook-passenger-manifest', JSON.stringify(updated));
+    sessionStorage.setItem('skybook-passenger-details',  JSON.stringify(updated));
+    window._cpPaxData = updated;
+    renderAllConfirmData();
+    closePassengerEditModal();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderAllConfirmData();
+    switchPayment('card');
+});
+</script>
 }

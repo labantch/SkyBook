@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.PaymentGateway;
 using SkyBook.Data.Data;
@@ -56,9 +56,24 @@ namespace SkyBook.Business.Service
                     Message = "This booking has already been paid."
                 };
             }
+            // Calculate total reservation price for all related booking legs / passengers
+            var baseRef = !string.IsNullOrWhiteSpace(booking.BookingReference) && booking.BookingReference.Contains('-')
+                ? System.Text.RegularExpressions.Regex.Replace(booking.BookingReference.Trim(), @"-\d+$", "")
+                : booking.BookingReference;
+
+            var relatedBookings = await _context.Bookings
+                .Where(b => b.BookingReference == baseRef || b.BookingReference.StartsWith(baseRef + "-"))
+                .ToListAsync();
+
+            decimal totalAmount = relatedBookings.Sum(b => b.TotalPrice);
+            if (totalAmount <= 0)
+            {
+                totalAmount = booking.TotalPrice;
+            }
+
             var request = new PaymentRequest
             {
-                Amount = booking.TotalPrice,
+                Amount = totalAmount,
                 PaymentMethod = paymentMethod,
                 CustomerName =
                     $"{booking.Passenger.FirstName} {booking.Passenger.LastName}",
@@ -77,7 +92,7 @@ namespace SkyBook.Business.Service
                 var payment = new Payment
                 {
                     BookingId = bookingId,
-                    Amount = booking.TotalPrice,
+                    Amount = totalAmount,
                     PaymentMethod = paymentMethod,
                     PaymentStatus = PaymentStatus.Pending,
                     TransactionId = result.TransactionId,
@@ -89,7 +104,7 @@ namespace SkyBook.Business.Service
             else
             {
                 existingPayment.PaymentMethod = paymentMethod;
-                existingPayment.Amount = booking.TotalPrice;
+                existingPayment.Amount = totalAmount;
                 existingPayment.TransactionId = result.TransactionId;
                 existingPayment.PaymentStatus = PaymentStatus.Pending;
             }
@@ -112,14 +127,28 @@ namespace SkyBook.Business.Service
             }
             payment.PaymentStatus = status;
 
+            var baseRef = payment.Booking != null && !string.IsNullOrWhiteSpace(payment.Booking.BookingReference) && payment.Booking.BookingReference.Contains('-')
+                ? System.Text.RegularExpressions.Regex.Replace(payment.Booking.BookingReference.Trim(), @"-\d+$", "")
+                : payment.Booking?.BookingReference;
+
+            var related = await _context.Bookings
+                .Where(b => b.BookingReference == baseRef || b.BookingReference.StartsWith(baseRef + "-"))
+                .ToListAsync();
+
             if (status == PaymentStatus.Paid)
             {
                 payment.PaidAt = DateTime.UtcNow;
-                payment.Booking.Status = BookingStatus.Confirmed;
+                foreach (var b in related)
+                {
+                    b.Status = BookingStatus.Confirmed;
+                }
             }
             if (status == PaymentStatus.Failed)
             {
-                payment.Booking.Status = BookingStatus.Cancelled;
+                foreach (var b in related)
+                {
+                    b.Status = BookingStatus.Cancelled;
+                }
             }
             await _context.SaveChangesAsync();
         }

@@ -5,41 +5,35 @@
     ViewData["Title"] = "My Bookings";
     Layout = "_Layout";
 
-    var bookingsList = Model?.ToList() ?? new List<SkyBook.Business.ViewModels.MyBookingVM>();
-    var totalCount = bookingsList.Count;
-    var now = DateTime.Now;
+    var bookingsList  = Model?.ToList() ?? new List<SkyBook.Business.ViewModels.MyBookingVM>();
+    var totalCount    = bookingsList.Count;
+    var now           = DateTime.Now;
     var upcomingCount = bookingsList.Count(b => b.Status != BookingStatus.Cancelled && b.DepartureTime >= now);
-    var pastCount = bookingsList.Count(b => b.Status != BookingStatus.Cancelled && b.DepartureTime < now);
+    var pastCount     = bookingsList.Count(b => b.Status != BookingStatus.Cancelled && b.DepartureTime < now);
     var cancelledCount = bookingsList.Count(b => b.Status == BookingStatus.Cancelled);
 }
 
 @section Styles {
 <style>
-  #flight-details-drawer {
-    z-index: 99999 !important;
-  }
-  #drawer-backdrop {
-    z-index: 99998 !important;
-  }
-  #drawer-panel {
-    z-index: 99999 !important;
-  }
+  #flight-details-drawer { z-index: 99999 !important; }
+  #drawer-backdrop        { z-index: 99998 !important; }
+  #drawer-panel           { z-index: 99999 !important; }
 </style>
 }
 
 <div class="min-h-[calc(100vh-5rem)] bg-[#F8F9FA] py-10 px-4 sm:px-6 lg:px-8">
   <div class="max-w-4xl mx-auto space-y-6">
 
-    <!-- BREADCRUMB / BACK LINK -->
+    <!-- BACK LINK -->
     <div class="flex items-center justify-between">
-      <a href="@Url.Action("Index", "Profile")" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0B192C] transition">
+      <a href="@Url.Action("Index","Profile")" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0B192C] transition">
         <span class="material-symbols-outlined text-sm">arrow_back</span>
         <span>Back to Profile</span>
       </a>
       <span class="text-xs text-slate-400 font-medium">Passenger Travel Desk</span>
     </div>
 
-    <!-- SUCCESS / ERROR ALERT BANNERS -->
+    <!-- ALERTS -->
     @if (TempData["Success"] != null)
     {
       <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-sm flex items-center justify-between animate-fade-in" role="alert">
@@ -71,9 +65,9 @@
       </div>
     }
 
-    <!-- PAGE HEADER CARD -->
+    <!-- PAGE HEADER -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 flex items-center justify-between">
-      <div class="flex items-center gap-4 text-center sm:text-left">
+      <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-2xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center flex-shrink-0 shadow-md">
           <span class="material-symbols-outlined text-3xl">airplane_ticket</span>
         </div>
@@ -90,9 +84,8 @@
 
     @if (totalCount > 0)
     {
-      <!-- FILTER TABS & SEARCH BAR -->
+      <!-- FILTER TABS & SEARCH -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <!-- Status Filter Tabs -->
         <div id="status-filter-tabs" class="inline-flex p-1 bg-white rounded-xl border border-slate-200/90 shadow-sm flex-wrap sm:flex-nowrap">
           <button type="button" data-tab="all" onclick="setTab('all')" id="tab-all"
                   class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
@@ -116,15 +109,12 @@
           </button>
         </div>
 
-        <!-- Real-time Search Box -->
         <div class="relative w-full md:w-80">
           <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <span class="material-symbols-outlined text-lg">search</span>
           </span>
-          <input type="text"
-                 id="booking-search-input"
-                 oninput="handleSearch(this.value)"
-                 placeholder="Search by ref, flight #, airport..."
+          <input type="text" id="booking-search-input" oninput="handleSearch(this.value)"
+                 placeholder="Search by ref, flight #, airport…"
                  class="w-full pl-10 pr-9 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition shadow-sm" />
           <button type="button" id="clear-search-btn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
             <span class="material-symbols-outlined text-sm">close</span>
@@ -132,15 +122,41 @@
         </div>
       </div>
 
-      <!-- BOOKINGS LIST CONTAINER -->
+      <!-- BOOKINGS LIST -->
       <div id="bookings-list" class="space-y-4">
         @foreach (var item in bookingsList)
         {
           var isCancelled = item.Status == BookingStatus.Cancelled;
-          var isPast = !isCancelled && item.DepartureTime < now;
-          var isUpcoming = !isCancelled && item.DepartureTime >= now;
+          var isPast      = !isCancelled && item.DepartureTime < now;
+          var isUpcoming  = !isCancelled && item.DepartureTime >= now;
+          var category    = isCancelled ? "cancelled" : (isPast ? "past" : "upcoming");
 
-          var category = isCancelled ? "cancelled" : (isPast ? "past" : "upcoming");
+          // Build a search-friendly text blob from all segments
+          var segSearchText = string.Join(" ", item.Segments.Select(s =>
+              $"{s.FlightNumber} {s.DepartureAirport} {s.ArrivalAirport}")).ToLower();
+
+          // Serialise segments for the details drawer
+          var segmentsJson = System.Text.Json.JsonSerializer.Serialize(
+              item.Segments.Select(s => new {
+                  flightNumber     = s.FlightNumber,
+                  departureAirport = s.DepartureAirport,
+                  arrivalAirport   = s.ArrivalAirport,
+                  departureTime    = s.DepartureTime.ToString("HH:mm"),
+                  departureDate    = s.DepartureTime.ToString("ddd, MMM dd, yyyy"),
+                  arrivalTime      = s.ArrivalTime.ToString("HH:mm"),
+                  seatNumbers      = s.SeatNumbers,
+                  price            = s.Price
+              }),
+              new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+          var passengersJson = System.Text.Json.JsonSerializer.Serialize(
+              item.Passengers.Select(p => new {
+                  fullName       = p.FullName,
+                  seatNumber     = p.SeatNumber,
+                  nationality    = p.Nationality,
+                  passportNumber = p.PassportNumber
+              }),
+              new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 
           <div class="booking-card bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 hover:shadow-md transition-all duration-200 space-y-5"
                data-category="@category"
@@ -149,33 +165,44 @@
                data-flight="@item.FlightNumber"
                data-from="@item.DepartureAirPort"
                data-to="@item.ArrivalAirPort"
+               data-seg-search="@segSearchText"
                data-time='@item.DepartureTime.ToString("HH:mm")'
                data-date='@item.DepartureTime.ToString("ddd, MMM dd, yyyy")'
                data-arrival-time='@item.ArrivalTime.ToString("HH:mm")'
                data-arrival-date='@item.ArrivalTime.ToString("ddd, MMM dd, yyyy")'
                data-seat='@(string.IsNullOrEmpty(item.SeatNumber) ? "Not Assigned" : item.SeatNumber)'
-               data-passenger='@(string.IsNullOrWhiteSpace(item.PassengerName) ? "Mohamed Laban" : item.PassengerName)'
-               data-passengers='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Passengers, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))'
+               data-passenger='@item.PassengerName'
+               data-passengers='@Html.Raw(passengersJson)'
+               data-segments='@Html.Raw(segmentsJson)'
+               data-trip-type='@item.TripType'
                data-price='$@item.TotalPrice.ToString("N2")'
                data-booked-date='@item.BookingDate.ToString("MMM dd, yyyy")'
                data-status="@item.Status.ToString()"
                data-is-upcoming='@(isUpcoming ? "true" : "false")'
                data-is-past='@(isPast ? "true" : "false")'
                data-is-cancelled='@(isCancelled ? "true" : "false")'
-               data-cancel-url='@Url.Action("Cancel", "Booking", new { id = item.BookingId })'>
+               data-cancel-url='@Url.Action("Cancel","Booking", new { id = item.BookingId })'>
 
-            <!-- CARD TOP HEADER -->
+            <!-- CARD HEADER -->
             <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
               <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Trip type badge -->
+                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#fedeb2]/60 text-[#725b38] border border-[#C5A880]/30 font-mono">
+                  @item.TripType
+                </span>
+                <!-- Primary flight number -->
                 <span class="px-3 py-1 rounded-lg text-xs font-bold bg-[#0B192C] text-[#C5A880] shadow-xs flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-[14px]">flight</span>
-                  <span>Flight @item.FlightNumber</span>
+                  <span>@(item.Segments.Count > 0 ? item.Segments[0].FlightNumber : item.FlightNumber)</span>
+                  @if (item.Segments.Count > 1)
+                  {
+                    <span class="text-[10px] text-slate-300 font-normal">+@(item.Segments.Count - 1) more</span>
+                  }
                 </span>
-
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-medium">
                   <span>Ref:</span>
                   <span class="font-bold text-[#0B192C]">@item.BookingReference</span>
-                  <button type="button" onclick="copyRef('@item.BookingReference', this)" title="Copy Reference Code" class="text-slate-400 hover:text-[#0B192C] transition ml-0.5">
+                  <button type="button" onclick="copyRef('@item.BookingReference', this)" title="Copy Reference" class="text-slate-400 hover:text-[#0B192C] transition ml-0.5">
                     <span class="material-symbols-outlined text-[14px]">content_copy</span>
                   </button>
                 </div>
@@ -188,104 +215,143 @@
                   @if (isPast)
                   {
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                      <span>Completed</span>
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Completed
                     </span>
                   }
                   else
                   {
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Confirmed</span>
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Confirmed
                     </span>
                   }
                 }
                 else if (item.Status == BookingStatus.PendingPayment)
                 {
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    <span>Pending</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Pending
                   </span>
                 }
                 else
                 {
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    <span>Cancelled</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Cancelled
                   </span>
                 }
               </div>
             </div>
 
-            <!-- CARD ROUTE & FLIGHT TIMELINE -->
-            <div class="grid grid-cols-1 sm:grid-cols-11 gap-4 items-center">
-              
-              <!-- DEPARTURE -->
-              <div class="sm:col-span-4 space-y-1">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Departure</span>
-                <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">
-                  @item.DepartureTime.ToString("HH:mm")
-                </p>
-                <p class="text-xs font-semibold text-[#855D29]">
-                  @item.DepartureTime.ToString("ddd, MMM dd, yyyy")
-                </p>
-                <p class="text-xs font-medium text-slate-600 flex items-center gap-1 mt-1 truncate" title="@item.DepartureAirPort">
-                  <span class="material-symbols-outlined text-[15px] text-slate-400">flight_takeoff</span>
-                  <span>@item.DepartureAirPort</span>
-                </p>
-              </div>
+            <!-- ITINERARY LEGS — one row per segment -->
+            @if (item.Segments.Count > 0)
+            {
+              <div class="flex flex-col gap-3">
+                @foreach (var (seg, segIdx) in item.Segments.Select((s, i) => (s, i)))
+                {
+                  var legLabel = item.Segments.Count == 1 ? "Outbound"
+                               : item.Segments.Count == 2 && segIdx == 0 ? "Outbound"
+                               : item.Segments.Count == 2 && segIdx == 1 ? "Return"
+                               : $"Leg {segIdx + 1}";
 
-              <!-- FLIGHT PATH CONNECTOR -->
-              <div class="sm:col-span-3 flex flex-col items-center justify-center py-2 sm:py-0">
-                <div class="relative w-full flex items-center justify-center">
-                  <div class="w-full border-t-2 border-dashed border-slate-300 absolute"></div>
-                  <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[#D4A017] z-10 shadow-xs">
-                    <span class="material-symbols-outlined text-[17px]">flight</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-11 gap-3 items-center @(segIdx > 0 ? "pt-3 border-t border-slate-100" : "")">
+                    <!-- Leg label pill -->
+                    <div class="sm:col-span-11 flex items-center gap-2 mb-0.5">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">@legLabel</span>
+                      <span class="text-[11px] text-slate-500 font-semibold">@seg.FlightNumber</span>
+                      <span class="text-[11px] text-slate-400">•</span>
+                      <span class="text-[11px] text-slate-500">@seg.DepartureTime.ToString("ddd, MMM dd, yyyy")</span>
+                      @if (!string.IsNullOrEmpty(seg.SeatNumbers))
+                      {
+                        <span class="ml-auto text-[11px] text-[#725b38] font-semibold bg-[#fedeb2]/40 px-2 py-0.5 rounded font-mono">
+                          Seats: @seg.SeatNumbers
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Departure -->
+                    <div class="sm:col-span-4 space-y-0.5">
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Departure</span>
+                      <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">@seg.DepartureTime.ToString("HH:mm")</p>
+                      <p class="text-xs font-semibold text-[#855D29]">@seg.DepartureTime.ToString("ddd, MMM dd, yyyy")</p>
+                      <p class="text-xs font-medium text-slate-600 flex items-center gap-1 mt-0.5 truncate" title="@seg.DepartureAirport">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">flight_takeoff</span>
+                        <span>@seg.DepartureAirport</span>
+                      </p>
+                    </div>
+
+                    <!-- Connector -->
+                    <div class="sm:col-span-3 flex flex-col items-center justify-center py-1 sm:py-0">
+                      <div class="relative w-full flex items-center justify-center">
+                        <div class="w-full border-t-2 border-dashed border-slate-300 absolute"></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[#D4A017] z-10 shadow-xs">
+                          <span class="material-symbols-outlined text-[17px]">flight</span>
+                        </div>
+                      </div>
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1.5 bg-slate-100 px-2 py-0.5 rounded-full">Direct</span>
+                    </div>
+
+                    <!-- Arrival -->
+                    <div class="sm:col-span-4 sm:text-right space-y-0.5">
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Arrival</span>
+                      <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">@seg.ArrivalTime.ToString("HH:mm")</p>
+                      <p class="text-xs font-semibold text-emerald-700">@seg.ArrivalTime.ToString("ddd, MMM dd, yyyy")</p>
+                      <p class="text-xs font-medium text-slate-600 flex items-center sm:justify-end gap-1 mt-0.5 truncate" title="@seg.ArrivalAirport">
+                        <span class="material-symbols-outlined text-[15px] text-emerald-600">location_on</span>
+                        <span>@seg.ArrivalAirport</span>
+                      </p>
+                    </div>
                   </div>
+                }
+              </div>
+            }
+            else
+            {
+              <!-- Fallback: single-leg backwards-compat view -->
+              <div class="grid grid-cols-1 sm:grid-cols-11 gap-4 items-center">
+                <div class="sm:col-span-4 space-y-1">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Departure</span>
+                  <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">@item.DepartureTime.ToString("HH:mm")</p>
+                  <p class="text-xs font-semibold text-[#855D29]">@item.DepartureTime.ToString("ddd, MMM dd, yyyy")</p>
+                  <p class="text-xs font-medium text-slate-600 flex items-center gap-1 mt-1 truncate">
+                    <span class="material-symbols-outlined text-[15px] text-slate-400">flight_takeoff</span>
+                    <span>@item.DepartureAirPort</span>
+                  </p>
                 </div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-2 bg-slate-100 px-2 py-0.5 rounded-full">
-                  Direct Flight
-                </span>
+                <div class="sm:col-span-3 flex flex-col items-center justify-center">
+                  <div class="relative w-full flex items-center justify-center">
+                    <div class="w-full border-t-2 border-dashed border-slate-300 absolute"></div>
+                    <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[#D4A017] z-10 shadow-xs">
+                      <span class="material-symbols-outlined text-[17px]">flight</span>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-2 bg-slate-100 px-2 py-0.5 rounded-full">Direct Flight</span>
+                </div>
+                <div class="sm:col-span-4 sm:text-right space-y-1">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Arrival</span>
+                  <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">@item.ArrivalTime.ToString("HH:mm")</p>
+                  <p class="text-xs font-semibold text-emerald-700">@item.ArrivalTime.ToString("ddd, MMM dd, yyyy")</p>
+                  <p class="text-xs font-medium text-slate-600 flex items-center sm:justify-end gap-1 mt-1 truncate">
+                    <span class="material-symbols-outlined text-[15px] text-emerald-600">location_on</span>
+                    <span>@item.ArrivalAirPort</span>
+                  </p>
+                </div>
               </div>
+            }
 
-              <!-- ARRIVAL -->
-              <div class="sm:col-span-4 sm:text-right space-y-1">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Arrival Destination</span>
-                <p class="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight">
-                  @item.ArrivalTime.ToString("HH:mm")
-                </p>
-                <p class="text-xs font-semibold text-emerald-700">
-                  @item.ArrivalTime.ToString("ddd, MMM dd, yyyy")
-                </p>
-                <p class="text-xs font-medium text-slate-600 flex items-center sm:justify-end gap-1 mt-1 truncate" title="@item.ArrivalAirPort">
-                  <span class="material-symbols-outlined text-[15px] text-emerald-600">location_on</span>
-                  <span>@item.ArrivalAirPort</span>
-                </p>
-              </div>
-            </div>
-
-            <!-- CARD FOOTER / ACTIONS (Passenger/Seat/Fare moved cleanly to Right-Side Drawer) -->
+            <!-- CARD FOOTER -->
             <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
               <div class="text-xs text-slate-500 flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-[#D4A017]">verified</span>
-                <span>SkyBook Confirmed Booking</span>
+                <span>SkyBook Confirmed Booking • $@item.TotalPrice.ToString("N2")</span>
               </div>
-
-              <!-- Action buttons -->
               <div class="flex items-center gap-2.5 ml-auto">
-                <!-- VIEW FLIGHT DETAILS (OPENS SIDE DRAWER) -->
-                <button type="button"
-                        onclick="openFlightDetailsFromCard(this)"
+                <button type="button" onclick="openFlightDetailsFromCard(this)"
                         class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#0B192C] hover:text-[#D4A017] bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                   <span class="material-symbols-outlined text-[16px]">info</span>
                   <span>Flight Details</span>
                 </button>
-
                 @if (isUpcoming)
                 {
-                  <form action="@Url.Action("Cancel", "Booking", new { id = item.BookingId })"
-                        method="post"
-                        onsubmit="return confirmCancel(event, '@item.BookingReference');">
+                  <form action="@Url.Action("Cancel","Booking", new { id = item.BookingId })" method="post"
+                        onsubmit="return confirmCancel(event,'@item.BookingReference');">
                     @Html.AntiForgeryToken()
                     <button type="submit"
                             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 hover:border-rose-600 transition flex items-center gap-1 shadow-xs cursor-pointer">
@@ -310,70 +376,56 @@
                 }
               </div>
             </div>
-
           </div>
         }
       </div>
 
-      <!-- NO RESULTS PLACEHOLDER FOR SEARCH/FILTERS -->
+      <!-- NO RESULTS -->
       <div id="no-filter-results" class="hidden bg-white rounded-2xl border border-slate-200/80 p-12 text-center space-y-4 shadow-sm">
         <div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
           <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
         </div>
         <div class="space-y-1">
           <h2 class="text-base font-bold text-[#0B192C]">No matching flights found</h2>
-          <p class="text-xs text-slate-500 max-w-sm mx-auto">There are no reservations matching your current search query or filter criteria.</p>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">No reservations match your current filter or search criteria.</p>
         </div>
-        <button type="button" onclick="clearFilters()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
-          Reset Filters
-        </button>
+        <button type="button" onclick="clearFilters()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Reset Filters</button>
       </div>
     }
     else
     {
-      <!-- INITIAL EMPTY STATE (NO BOOKINGS EVER) -->
+      <!-- EMPTY STATE -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-12 text-center space-y-5">
         <div class="w-18 h-18 rounded-full bg-[#FBF7F0] text-[#855D29] border border-[#C5A880]/30 mx-auto flex items-center justify-center shadow-inner">
           <span class="material-symbols-outlined text-4xl">flight_takeoff</span>
         </div>
         <div class="space-y-1.5 max-w-md mx-auto">
           <h2 class="text-xl font-bold text-[#0B192C]">No Flight Reservations Found</h2>
-          <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-            You haven't booked any flights with SkyBook yet. Browse our premier destinations, select your luxury cabin class, and begin your journey.
-          </p>
+          <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">You haven't booked any flights with SkyBook yet.</p>
         </div>
-        <div class="pt-2">
-          <a href="@Url.Action("Index", "Home")"
-             class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#0B192C] hover:bg-[#162840] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition">
-            <span class="material-symbols-outlined text-base text-[#D4A017]">search</span>
-            <span>Search &amp; Book Flights</span>
-          </a>
-        </div>
+        <a href="@Url.Action("Index","Home")"
+           class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#0B192C] hover:bg-[#162840] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition">
+          <span class="material-symbols-outlined text-base text-[#D4A017]">search</span>
+          <span>Search &amp; Book Flights</span>
+        </a>
       </div>
     }
 
   </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- RIGHT-SIDE SLIDE-OVER FLIGHT DETAILS DRAWER                               -->
-<!-- ========================================================================= -->
-<div id="flight-details-drawer" class="fixed inset-0 z-[99999] overflow-hidden pointer-events-none transition-all duration-300" style="z-index: 99999 !important;" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
-  <!-- Backdrop Blur Overlay -->
-  <div id="drawer-backdrop" onclick="closeFlightDetails()"
-       style="z-index: 99998 !important;"
+<!-- ─── FLIGHT DETAILS SLIDE-OVER DRAWER ─── -->
+<div id="flight-details-drawer" class="fixed inset-0 z-[99999] overflow-hidden pointer-events-none transition-all duration-300" style="z-index:99999!important;" role="dialog" aria-modal="true">
+  <div id="drawer-backdrop" onclick="closeFlightDetails()" style="z-index:99998!important;"
        class="absolute inset-0 bg-[#0B192C]/60 backdrop-blur-xs opacity-0 transition-opacity duration-300 pointer-events-none"></div>
 
-  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10" style="z-index: 99999 !important;">
-    <div id="drawer-panel"
-         style="z-index: 99999 !important;"
+  <div class="fixed inset-y-0 right-0 max-w-full flex pl-10" style="z-index:99999!important;">
+    <div id="drawer-panel" style="z-index:99999!important;"
          class="w-screen max-w-md bg-white shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out pointer-events-auto">
-      
-      <!-- DRAWER HEADER (Luxury Navy) -->
-      <div class="bg-[#0B192C] text-white p-6 relative overflow-hidden flex-shrink-0">
-        <!-- Ambient decorative glow -->
-        <div class="absolute -right-10 -top-10 w-44 h-44 bg-gradient-to-br from-[#D4A017]/30 to-transparent rounded-full blur-xl pointer-events-none"></div>
 
+      <!-- Drawer header -->
+      <div class="bg-[#0B192C] text-white p-6 relative overflow-hidden flex-shrink-0">
+        <div class="absolute -right-10 -top-10 w-44 h-44 bg-gradient-to-br from-[#D4A017]/30 to-transparent rounded-full blur-xl pointer-events-none"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#D4A017]"></span>
@@ -384,22 +436,19 @@
             <span class="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
-
         <div class="mt-4 flex items-center justify-between">
           <div>
-            <h2 id="drawer-flight-number" class="text-2xl font-black tracking-tight text-white">SKB-101</h2>
-            <p id="drawer-flight-date" class="text-xs text-slate-300 mt-0.5">Thu, Sep 17, 2026</p>
+            <h2 id="drawer-pnr" class="text-2xl font-black tracking-tight text-white">—</h2>
+            <p id="drawer-trip-type" class="text-xs text-slate-300 mt-0.5">—</p>
           </div>
-          <div id="drawer-status-badge">
-            <!-- Injected status badge -->
-          </div>
+          <div id="drawer-status-badge"></div>
         </div>
       </div>
 
-      <!-- DRAWER BODY (Scrollable) -->
+      <!-- Drawer body -->
       <div class="flex-1 overflow-y-auto p-6 space-y-5">
 
-        <!-- REAL PASSENGER & TOTAL FARE SUMMARY CARD -->
+        <!-- Fare summary -->
         <div class="rounded-2xl bg-[#0B192C] text-white p-4 border border-[#C5A880]/30 shadow-md relative overflow-hidden">
           <div class="absolute -right-8 -bottom-8 w-28 h-28 bg-[#D4A017]/10 rounded-full blur-lg pointer-events-none"></div>
           <div class="flex items-center justify-between gap-3 relative z-10">
@@ -408,13 +457,13 @@
                 <span class="material-symbols-outlined text-2xl">person</span>
               </div>
               <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[#C5A880] block">Passenger Name</span>
-                <p id="drawer-passenger" class="text-sm font-extrabold text-white">Mohamed Laban</p>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#C5A880] block">Lead Passenger</span>
+                <p id="drawer-passenger" class="text-sm font-extrabold text-white">—</p>
               </div>
             </div>
             <div class="text-right flex-shrink-0">
               <span class="text-[10px] font-bold uppercase tracking-wider text-[#C5A880] block">Total Fare</span>
-              <p id="drawer-price" class="text-lg font-black text-emerald-400 font-mono">$6,000.00</p>
+              <p id="drawer-price" class="text-lg font-black text-emerald-400 font-mono">—</p>
               <span class="inline-flex items-center gap-1 text-[10px] text-emerald-300 font-bold">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Confirmed Paid
               </span>
@@ -422,216 +471,119 @@
           </div>
         </div>
 
-        <!-- DIGITAL BOARDING PASS CARD -->
-        <div class="rounded-2xl bg-gradient-to-br from-[#FDFBF7] to-[#F5EFE6] border border-[#E8DFC8] p-5 shadow-xs relative overflow-hidden space-y-4">
-          
-          <!-- Route Overview (Unclipped & Clean) -->
-          <div class="flex items-start justify-between pb-4 border-b border-dashed border-[#D4C3A3] gap-3">
-            <div class="flex-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Departure</span>
-              <p id="drawer-from" class="text-sm font-black text-[#0B192C] leading-snug break-words">Cairo International Airport</p>
-              <p id="drawer-time" class="text-xs font-bold text-[#855D29] mt-1 flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span>
-                <span>00:00</span>
-              </p>
-            </div>
-
-            <div class="flex flex-col items-center px-2 flex-shrink-0 pt-1">
-              <span class="material-symbols-outlined text-[#D4A017] text-2xl transform rotate-90">flight</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Non-Stop</span>
-            </div>
-
-            <div class="flex-1 text-right">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Arrival Destination</span>
-              <p id="drawer-to" class="text-sm font-black text-[#0B192C] leading-snug break-words">Dubai International Airport</p>
-              <p class="text-xs font-bold text-emerald-700 mt-1 flex items-center justify-end gap-1">
-                <span class="material-symbols-outlined text-[14px]">schedule</span>
-                <span id="drawer-arrival-time">00:00</span>
-              </p>
-            </div>
-          </div>
-
-          <!-- Boarding Details Grid -->
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="p-2.5 rounded-xl bg-white/85 border border-[#E8DFC8]/60">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Assigned Seat</span>
-              <span id="drawer-seat" class="font-extrabold text-[#0B192C] text-sm">10A</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-white/85 border border-[#E8DFC8]/60">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Cabin Class</span>
-              <span id="drawer-cabin" class="font-extrabold text-[#0B192C] text-sm">Executive Class</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-white/85 border border-[#E8DFC8]/60">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Terminal / Gate</span>
-              <span class="font-bold text-[#0B192C]">T1 &bull; Gate 04</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-white/85 border border-[#E8DFC8]/60">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Date Booked</span>
-              <span id="drawer-booked-date" class="font-bold text-[#0B192C]">Sep 17, 2026</span>
-            </div>
-          </div>
+        <!-- Flight legs list — populated dynamically -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-[#0B192C]">route</span>
+            <span>Itinerary</span>
+          </h3>
+          <div id="drawer-legs-list" class="space-y-2.5"></div>
         </div>
 
-        <!-- LIST OF PASSENGERS IN DETAILS (PASSENGER MANIFEST) -->
+        <!-- Passenger manifest -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[16px] text-[#0B192C]">group</span>
               <span>Passenger Details</span>
             </h3>
-            <span id="drawer-manifest-count" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70">1 Confirmed Traveler</span>
+            <span id="drawer-manifest-count" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70">—</span>
           </div>
+          <div id="drawer-passengers-manifest-list" class="space-y-2.5"></div>
 
-          <!-- Dynamic Multi-Passenger Manifest List -->
-          <div id="drawer-passengers-manifest-list" class="space-y-2.5">
-            <div class="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
-                  <span class="material-symbols-outlined text-xl">person</span>
-                </div>
-                <div>
-                  <p id="drawer-manifest-name" class="text-sm font-extrabold text-[#0B192C]">Mohamed Laban</p>
-                  <p class="text-[11px] text-slate-400 font-medium">Primary Passenger &bull; Adult</p>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <span class="text-[10px] font-bold uppercase text-slate-400 block">Assigned Seat</span>
-                <span id="drawer-manifest-seat" class="text-sm font-black text-[#855D29] px-2.5 py-0.5 rounded-lg bg-[#FBF7F0] border border-[#C5A880]/40">10A</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Detailed Grid: Booking Reference, Total Price, Booking Date, Ticket Status -->
+          <!-- Booking meta grid -->
           <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Booking Reference</span>
-                <span id="drawer-manifest-ref" class="font-mono font-bold text-[#0B192C]">SB-XXXXXXXX</span>
+                <span id="drawer-manifest-ref" class="font-mono font-bold text-[#0B192C]">—</span>
               </div>
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Total Fare</span>
-                <span id="drawer-manifest-price" class="font-mono font-bold text-emerald-600">$0.00</span>
+                <span id="drawer-manifest-price" class="font-mono font-bold text-emerald-600">—</span>
               </div>
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Booking Date</span>
-                <span id="drawer-manifest-date" class="font-bold text-[#0B192C]">Sep 18, 2026</span>
+                <span id="drawer-manifest-date" class="font-bold text-[#0B192C]">—</span>
               </div>
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Ticket Status</span>
                 <span id="drawer-manifest-status" class="font-bold text-emerald-700 flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span>Confirmed</span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Confirmed</span>
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- FLIGHT AMENITIES & SPECS -->
+        <!-- Amenities -->
         <div class="space-y-3">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Included Passenger Amenities</h3>
           <div class="grid grid-cols-2 gap-2.5">
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5 text-xs text-slate-700">
-              <span class="material-symbols-outlined text-[#D4A017] text-lg">luggage</span>
-              <span>2x 32kg Baggage</span>
+              <span class="material-symbols-outlined text-[#D4A017] text-lg">luggage</span><span>2x 32kg Baggage</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5 text-xs text-slate-700">
-              <span class="material-symbols-outlined text-[#D4A017] text-lg">wifi</span>
-              <span>High-speed Wi-Fi</span>
+              <span class="material-symbols-outlined text-[#D4A017] text-lg">wifi</span><span>High-speed Wi-Fi</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5 text-xs text-slate-700">
-              <span class="material-symbols-outlined text-[#D4A017] text-lg">restaurant</span>
-              <span>Gourmet In-flight Dining</span>
+              <span class="material-symbols-outlined text-[#D4A017] text-lg">restaurant</span><span>Gourmet Dining</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5 text-xs text-slate-700">
-              <span class="material-symbols-outlined text-[#D4A017] text-lg">airline_seat_flat</span>
-              <span>Spacious Cabin Seating</span>
+              <span class="material-symbols-outlined text-[#D4A017] text-lg">airline_seat_flat</span><span>Spacious Seating</span>
             </div>
           </div>
         </div>
-
-        <!-- JOURNEY MILESTONES -->
-        <div class="space-y-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Journey Progress</h3>
-          <div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-            <div class="relative">
-              <span class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs"></span>
-              <p class="text-xs font-bold text-[#0B192C]">Online Reservation Confirmed</p>
-              <p class="text-[11px] text-slate-400">E-Ticket issued &amp; passenger details registered</p>
-            </div>
-            <div class="relative">
-              <span class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow-xs"></span>
-              <p class="text-xs font-bold text-[#0B192C]">Airport Fast-Track Security</p>
-              <p class="text-[11px] text-slate-400">Priority security clearance access</p>
-            </div>
-            <div class="relative">
-              <span class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow-xs"></span>
-              <p class="text-xs font-bold text-[#0B192C]">Boarding Gate Closes</p>
-              <p class="text-[11px] text-slate-400">30 minutes prior to scheduled departure time</p>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- DRAWER FOOTER (Action Bar) -->
+      <!-- Drawer footer -->
       <div class="p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
         <button type="button" onclick="window.print()"
                 class="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-          <span class="material-symbols-outlined text-[16px]">print</span>
-          <span>Print E-Ticket</span>
+          <span class="material-symbols-outlined text-[16px]">print</span><span>Print E-Ticket</span>
         </button>
-
         <div class="flex items-center gap-2">
           <form id="drawer-cancel-form" method="post" action="" onsubmit="return confirmCancel(event, currentDrawerRef);" class="hidden">
             @Html.AntiForgeryToken()
             <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 hover:border-rose-600 transition flex items-center gap-1 shadow-2xs cursor-pointer">
-              <span class="material-symbols-outlined text-[16px]">cancel</span>
-              <span>Cancel Flight</span>
+              <span class="material-symbols-outlined text-[16px]">cancel</span><span>Cancel All Flights</span>
             </button>
           </form>
-          <button type="button" id="drawer-close-btn" onclick="closeFlightDetails()" class="px-4 py-2.5 rounded-xl bg-[#0B192C] hover:bg-[#162840] text-white text-xs font-bold transition cursor-pointer">
+          <button type="button" id="drawer-close-btn" onclick="closeFlightDetails()"
+                  class="px-4 py-2.5 rounded-xl bg-[#0B192C] hover:bg-[#162840] text-white text-xs font-bold transition cursor-pointer">
             Close Details
           </button>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
 @section Scripts {
 <script>
-  let currentTab = 'all';
-  let searchQuery = '';
+  let currentTab      = 'all';
+  let searchQuery     = '';
   let currentDrawerRef = '';
 
   function setTab(tab) {
     currentTab = (tab || 'all').toLowerCase();
-    
-    // Update tab button visual states
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      const btnTab = (btn.getAttribute('data-tab') || btn.id.replace('tab-', '')).toLowerCase();
+      const btnTab   = (btn.getAttribute('data-tab') || btn.id.replace('tab-','')).toLowerCase();
       const countSpan = btn.querySelector('.tab-count');
       if (btnTab === currentTab) {
-        btn.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm flex items-center gap-1.5 cursor-pointer';
+        btn.className   = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#0B192C] text-white shadow-sm flex items-center gap-1.5 cursor-pointer';
         if (countSpan) countSpan.className = 'tab-count px-1.5 py-0.5 text-[10px] rounded-full bg-white/20 text-white font-semibold';
       } else {
-        btn.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-[#0B192C] flex items-center gap-1.5 cursor-pointer';
+        btn.className   = 'tab-btn px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-[#0B192C] flex items-center gap-1.5 cursor-pointer';
         if (countSpan) countSpan.className = 'tab-count px-1.5 py-0.5 text-[10px] rounded-full bg-slate-100 text-slate-600 font-semibold';
       }
     });
-
     applyFilters();
   }
 
   function handleSearch(val) {
     searchQuery = (val || '').trim().toLowerCase();
-    const clearBtn = document.getElementById('clear-search-btn');
-    if (clearBtn) {
-      if (searchQuery.length > 0) clearBtn.classList.remove('hidden');
-      else clearBtn.classList.add('hidden');
-    }
+    document.getElementById('clear-search-btn')?.classList.toggle('hidden', !searchQuery);
     applyFilters();
   }
 
@@ -641,139 +593,122 @@
     handleSearch('');
   }
 
-  function clearFilters() {
-    clearSearch();
-    setTab('all');
-  }
+  function clearFilters() { clearSearch(); setTab('all'); }
 
   function applyFilters() {
     const cards = document.querySelectorAll('.booking-card');
-    let visibleCount = 0;
-
+    let visible = 0;
     cards.forEach(card => {
-      const category = (card.getAttribute('data-category') || '').trim().toLowerCase();
-      const ref = (card.getAttribute('data-ref') || '').toLowerCase();
-      const flight = (card.getAttribute('data-flight') || '').toLowerCase();
-      const from = (card.getAttribute('data-from') || '').toLowerCase();
-      const to = (card.getAttribute('data-to') || '').toLowerCase();
-      const seat = (card.getAttribute('data-seat') || '').toLowerCase();
+      const category  = (card.getAttribute('data-category') || '').toLowerCase();
+      const ref       = (card.getAttribute('data-ref')       || '').toLowerCase();
+      const flight    = (card.getAttribute('data-flight')    || '').toLowerCase();
+      const from      = (card.getAttribute('data-from')      || '').toLowerCase();
+      const to        = (card.getAttribute('data-to')        || '').toLowerCase();
+      const segSearch = (card.getAttribute('data-seg-search')|| '').toLowerCase();
 
-      const matchesTab = (currentTab === 'all') || (category === currentTab);
-      const matchesSearch = !searchQuery || 
-        ref.includes(searchQuery) ||
-        flight.includes(searchQuery) ||
-        from.includes(searchQuery) ||
-        to.includes(searchQuery) ||
-        seat.includes(searchQuery);
+      const matchesTab    = currentTab === 'all' || category === currentTab;
+      const matchesSearch = !searchQuery ||
+        ref.includes(searchQuery) || flight.includes(searchQuery) ||
+        from.includes(searchQuery) || to.includes(searchQuery) ||
+        segSearch.includes(searchQuery);
 
-      const isVisible = matchesTab && matchesSearch;
-      if (isVisible) {
-        card.classList.remove('hidden');
-        card.removeAttribute('hidden');
-        card.style.display = '';
-        visibleCount++;
-      } else {
-        card.classList.add('hidden');
-        card.setAttribute('hidden', '');
-        card.style.display = 'none';
-      }
+      if (matchesTab && matchesSearch) { card.style.display = ''; visible++; }
+      else                              { card.style.display = 'none'; }
     });
 
     const noResults = document.getElementById('no-filter-results');
-    if (noResults) {
-      if (visibleCount === 0 && cards.length > 0) {
-        noResults.classList.remove('hidden');
-        noResults.removeAttribute('hidden');
-        noResults.style.display = '';
-      } else {
-        noResults.classList.add('hidden');
-        noResults.setAttribute('hidden', '');
-        noResults.style.display = 'none';
-      }
-    }
+    if (noResults) noResults.style.display = (visible === 0 && cards.length > 0) ? '' : 'none';
   }
 
   function openFlightDetailsFromCard(btn) {
     const card = btn.closest('.booking-card');
     if (!card) return;
 
-    let parsedPassengers = [];
-    try {
-      const rawPax = card.getAttribute('data-passengers');
-      if (rawPax) parsedPassengers = JSON.parse(rawPax);
-    } catch(e) { }
+    let segments   = [], passengers = [];
+    try { segments   = JSON.parse(card.getAttribute('data-segments')   || '[]'); } catch(e) {}
+    try { passengers = JSON.parse(card.getAttribute('data-passengers') || '[]'); } catch(e) {}
 
     openFlightDetails({
-      ref: card.getAttribute('data-display-ref') || card.getAttribute('data-ref') || '',
-      flight: card.getAttribute('data-flight') || '',
-      from: card.getAttribute('data-from') || '',
-      to: card.getAttribute('data-to') || '',
-      time: card.getAttribute('data-time') || '',
-      date: card.getAttribute('data-date') || '',
-      arrivalTime: card.getAttribute('data-arrival-time') || '',
-      arrivalDate: card.getAttribute('data-arrival-date') || '',
-      seat: card.getAttribute('data-seat') || 'Not Assigned',
-      passenger: card.getAttribute('data-passenger') || 'Mohamed Laban',
-      passengers: parsedPassengers,
-      price: card.getAttribute('data-price') || '$0.00',
+      ref:        card.getAttribute('data-display-ref') || '',
+      tripType:   card.getAttribute('data-trip-type')   || '',
+      passenger:  card.getAttribute('data-passenger')   || '',
+      passengers: passengers,
+      segments:   segments,
+      price:      card.getAttribute('data-price')       || '',
       bookingDate: card.getAttribute('data-booked-date') || '',
-      status: card.getAttribute('data-status') || '',
+      status:     card.getAttribute('data-status')      || '',
       isUpcoming: card.getAttribute('data-is-upcoming') === 'true',
-      isPast: card.getAttribute('data-is-past') === 'true',
+      isPast:     card.getAttribute('data-is-past')     === 'true',
       isCancelled: card.getAttribute('data-is-cancelled') === 'true',
-      cancelUrl: card.getAttribute('data-cancel-url') || ''
+      cancelUrl:  card.getAttribute('data-cancel-url')  || ''
     });
   }
 
   function openFlightDetails(data) {
     currentDrawerRef = data.ref;
 
-    // Ensure drawer is appended to document.body so it is never trapped by any parent stacking context
     const drawer = document.getElementById('flight-details-drawer');
-    if (drawer && drawer.parentElement !== document.body) {
-      document.body.appendChild(drawer);
+    if (drawer && drawer.parentElement !== document.body) document.body.appendChild(drawer);
+
+    function setText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || '—';
     }
 
-    const flightNumberEl = document.getElementById('drawer-flight-number');
-    const flightDateEl = document.getElementById('drawer-flight-date');
-    const fromEl = document.getElementById('drawer-from');
-    const toEl = document.getElementById('drawer-to');
-    const timeEl = document.getElementById('drawer-time');
-    const arrivalTimeEl = document.getElementById('drawer-arrival-time');
-    const seatEl = document.getElementById('drawer-seat');
-    const passengerEl = document.getElementById('drawer-passenger');
-    const priceEl = document.getElementById('drawer-price');
-    const bookedDateEl = document.getElementById('drawer-booked-date');
+    setText('drawer-pnr',       data.ref);
+    setText('drawer-trip-type', data.tripType);
+    setText('drawer-passenger', data.passenger || 'Unknown');
+    setText('drawer-price',     data.price);
 
-    const manifestRefEl = document.getElementById('drawer-manifest-ref');
-    const manifestPriceEl = document.getElementById('drawer-manifest-price');
-    const manifestDateEl = document.getElementById('drawer-manifest-date');
-    const manifestStatusEl = document.getElementById('drawer-manifest-status');
-    const manifestCountEl = document.getElementById('drawer-manifest-count');
-    const manifestListEl = document.getElementById('drawer-passengers-manifest-list');
+    // ── Flight legs ───────────────────────────────────────────────────────────
+    const legsList = document.getElementById('drawer-legs-list');
+    if (legsList) {
+      const segs = data.segments || [];
+      if (segs.length === 0) {
+        legsList.innerHTML = '<p class="text-xs text-slate-400 italic">No itinerary data.</p>';
+      } else {
+        legsList.innerHTML = segs.map((seg, i) => {
+          const label = segs.length === 1 ? 'Outbound'
+                      : segs.length === 2 && i === 0 ? 'Outbound'
+                      : segs.length === 2 && i === 1 ? 'Return'
+                      : `Leg ${i + 1}`;
+          const seats = seg.seatNumbers ? `<span class="text-[10px] font-mono text-[#725b38]">Seats: ${seg.seatNumbers}</span>` : '';
+          return `
+            <div class="p-3.5 rounded-xl bg-gradient-to-br from-[#FDFBF7] to-[#F5EFE6] border border-[#E8DFC8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0B192C] text-white uppercase tracking-wider font-mono">${label}</span>
+                <span class="text-xs font-semibold text-slate-700">${seg.flightNumber || ''}</span>
+                <span class="text-[11px] text-slate-400">${seg.departureDate || ''}</span>
+                ${seats}
+              </div>
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="text-[10px] font-bold uppercase text-slate-400 block">From</span>
+                  <p class="text-sm font-black text-[#0B192C]">${seg.departureAirport || ''}</p>
+                  <p class="text-xs font-bold text-[#855D29]">${seg.departureTime || ''}</p>
+                </div>
+                <span class="material-symbols-outlined text-[#D4A017] text-2xl mt-2 rotate-90">flight</span>
+                <div class="text-right">
+                  <span class="text-[10px] font-bold uppercase text-slate-400 block">To</span>
+                  <p class="text-sm font-black text-[#0B192C]">${seg.arrivalAirport || ''}</p>
+                  <p class="text-xs font-bold text-emerald-700">${seg.arrivalTime || ''}</p>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+    }
 
-    if (flightNumberEl) flightNumberEl.textContent = 'Flight ' + (data.flight || '');
-    if (flightDateEl) flightDateEl.textContent = data.date || '';
-    if (fromEl) fromEl.textContent = data.from || '';
-    if (toEl) toEl.textContent = data.to || '';
-    if (timeEl) timeEl.textContent = data.time || '';
-    if (arrivalTimeEl) arrivalTimeEl.textContent = data.arrivalTime || '';
-    if (seatEl) seatEl.textContent = data.seat || 'Not Assigned';
-    if (passengerEl) passengerEl.textContent = data.passenger || 'Mohamed Laban';
-    if (priceEl) priceEl.textContent = data.price || '$0.00';
-    if (bookedDateEl) bookedDateEl.textContent = data.bookingDate || data.date || '';
-
-    // Render All Passengers dynamically
+    // ── Passenger manifest ────────────────────────────────────────────────────
     const paxList = (data.passengers && data.passengers.length > 0)
-      ? data.passengers
-      : [{ fullName: data.passenger || 'Mohamed Laban', seatNumber: data.seat || '10A', nationality: 'Confirmed', passportNumber: '' }];
+        ? data.passengers
+        : [{ fullName: data.passenger || '—', seatNumber: '', nationality: '' }];
 
-    if (manifestCountEl) {
-      manifestCountEl.textContent = `${paxList.length} Confirmed ${paxList.length === 1 ? 'Traveler' : 'Travelers'}`;
-    }
+    setText('drawer-manifest-count', `${paxList.length} Confirmed ${paxList.length === 1 ? 'Traveler' : 'Travelers'}`);
 
-    if (manifestListEl) {
-      manifestListEl.innerHTML = paxList.map((p, idx) => `
+    const manifestList = document.getElementById('drawer-passengers-manifest-list');
+    if (manifestList) {
+      manifestList.innerHTML = paxList.map((p, idx) => `
         <div class="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-[#0B192C] text-[#C5A880] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
@@ -782,159 +717,105 @@
             <div>
               <p class="text-sm font-extrabold text-[#0B192C]">${p.fullName || p.name || 'Passenger'}</p>
               <p class="text-[11px] text-slate-400 font-medium">
-                ${idx === 0 ? 'Primary Passenger' : 'Passenger ' + (idx + 1)} • ${p.nationality || 'Adult'}
-                ${p.passportNumber && p.passportNumber !== '-' ? ` • <span class="font-mono text-slate-500 font-semibold">${p.passportNumber}</span>` : ''}
+                ${idx === 0 ? 'Primary Passenger' : 'Passenger '+(idx+1)} • ${p.nationality || 'Adult'}
+                ${p.passportNumber ? ` • <span class="font-mono">${p.passportNumber}</span>` : ''}
               </p>
             </div>
           </div>
+          ${p.seatNumber ? `
           <div class="text-right flex-shrink-0">
-            <span class="text-[10px] font-bold uppercase text-slate-400 block">Assigned Seat</span>
-            <span class="text-sm font-black text-[#855D29] px-2.5 py-0.5 rounded-lg bg-[#FBF7F0] border border-[#C5A880]/40">${p.seatNumber || 'Not Assigned'}</span>
-          </div>
-        </div>
-      `).join('');
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Seat</span>
+            <span class="text-sm font-black text-[#855D29] px-2.5 py-0.5 rounded-lg bg-[#FBF7F0] border border-[#C5A880]/40">${p.seatNumber}</span>
+          </div>` : ''}
+        </div>`).join('');
     }
 
-    if (manifestRefEl) manifestRefEl.textContent = data.ref || '';
-    if (manifestPriceEl) manifestPriceEl.textContent = data.price || '$0.00';
-    if (manifestDateEl) manifestDateEl.textContent = data.bookingDate || data.date || '';
+    setText('drawer-manifest-ref',   data.ref);
+    setText('drawer-manifest-price', data.price);
+    setText('drawer-manifest-date',  data.bookingDate);
 
-    if (manifestStatusEl) {
+    const statusEl = document.getElementById('drawer-manifest-status');
+    if (statusEl) {
       if (data.isCancelled) {
-        manifestStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span>Cancelled</span>';
-        manifestStatusEl.className = 'font-bold text-rose-700 flex items-center gap-1';
+        statusEl.innerHTML   = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span>Cancelled</span>';
+        statusEl.className   = 'font-bold text-rose-700 flex items-center gap-1';
       } else if (data.isPast) {
-        manifestStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Completed</span>';
-        manifestStatusEl.className = 'font-bold text-slate-600 flex items-center gap-1';
+        statusEl.innerHTML   = '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Completed</span>';
+        statusEl.className   = 'font-bold text-slate-600 flex items-center gap-1';
       } else {
-        manifestStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Confirmed</span>';
-        manifestStatusEl.className = 'font-bold text-emerald-700 flex items-center gap-1';
+        statusEl.innerHTML   = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Confirmed</span>';
+        statusEl.className   = 'font-bold text-emerald-700 flex items-center gap-1';
       }
     }
 
-    // Status badge
     const badgeContainer = document.getElementById('drawer-status-badge');
     if (badgeContainer) {
-      if (data.isCancelled) {
+      if (data.isCancelled)
         badgeContainer.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Cancelled</span>';
-      } else if (data.isPast) {
+      else if (data.isPast)
         badgeContainer.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Completed</span>';
-      } else {
+      else
         badgeContainer.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Confirmed</span>';
-      }
     }
 
-    // Cancel action in footer
     const cancelForm = document.getElementById('drawer-cancel-form');
-    const closeBtn = document.getElementById('drawer-close-btn');
-    if (cancelForm && closeBtn) {
+    if (cancelForm) {
       if (data.isUpcoming && data.cancelUrl) {
         cancelForm.action = data.cancelUrl;
         cancelForm.classList.remove('hidden');
-        closeBtn.classList.remove('hidden');
       } else {
         cancelForm.classList.add('hidden');
-        closeBtn.classList.remove('hidden');
       }
     }
 
-    // Open animations
+    // Open drawer
     const backdrop = document.getElementById('drawer-backdrop');
-    const panel = document.getElementById('drawer-panel');
-
-    if (drawer) drawer.classList.remove('pointer-events-none');
-    if (backdrop) {
-      backdrop.classList.remove('opacity-0', 'pointer-events-none');
-      backdrop.classList.add('opacity-100', 'pointer-events-auto');
-    }
-    if (panel) {
-      panel.classList.remove('translate-x-full');
-      panel.classList.add('translate-x-0');
-    }
+    const panel    = document.getElementById('drawer-panel');
+    if (drawer)   drawer.classList.remove('pointer-events-none');
+    if (backdrop) { backdrop.classList.remove('opacity-0','pointer-events-none'); backdrop.classList.add('opacity-100','pointer-events-auto'); }
+    if (panel)    { panel.classList.remove('translate-x-full'); panel.classList.add('translate-x-0'); }
     document.body.style.overflow = 'hidden';
   }
 
   function closeFlightDetails() {
-    const drawer = document.getElementById('flight-details-drawer');
     const backdrop = document.getElementById('drawer-backdrop');
-    const panel = document.getElementById('drawer-panel');
-
-    if (panel) {
-      panel.classList.remove('translate-x-0');
-      panel.classList.add('translate-x-full');
-    }
-    if (backdrop) {
-      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-      backdrop.classList.add('opacity-0', 'pointer-events-none');
-    }
-
+    const panel    = document.getElementById('drawer-panel');
+    const drawer   = document.getElementById('flight-details-drawer');
+    if (panel)    { panel.classList.remove('translate-x-0'); panel.classList.add('translate-x-full'); }
+    if (backdrop) { backdrop.classList.remove('opacity-100','pointer-events-auto'); backdrop.classList.add('opacity-0','pointer-events-none'); }
     setTimeout(() => {
       if (drawer) drawer.classList.add('pointer-events-none');
       document.body.style.overflow = '';
     }, 300);
   }
 
-  function copyDrawerRef() {
-    if (navigator.clipboard && currentDrawerRef) {
-      navigator.clipboard.writeText(currentDrawerRef).then(() => {
-        const icon = document.getElementById('drawer-copy-icon');
-        if (icon) {
-          icon.textContent = 'check';
-          setTimeout(() => { icon.textContent = 'content_copy'; }, 1800);
-        }
-      });
-    }
-  }
-
   function copyRef(text, btn) {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (icon) {
-          icon.textContent = 'check';
-          setTimeout(() => { icon.textContent = 'content_copy'; }, 1800);
-        }
+        if (icon) { icon.textContent = 'check'; setTimeout(() => { icon.textContent = 'content_copy'; }, 1800); }
       });
     }
   }
 
   function confirmCancel(event, reference) {
-    return confirm('Are you sure you want to cancel reservation ' + (reference || '') + '? This action cannot be undone.');
+    return confirm('Cancel ALL flights in reservation ' + (reference || '') + '? This cannot be undone.');
   }
 
-  // Bind to window explicitly for inline onclick safety
-  window.setTab = setTab;
-  window.handleSearch = handleSearch;
-  window.clearSearch = clearSearch;
-  window.clearFilters = clearFilters;
-  window.applyFilters = applyFilters;
-  window.openFlightDetails = openFlightDetails;
-  window.openFlightDetailsFromCard = openFlightDetailsFromCard;
-  window.closeFlightDetails = closeFlightDetails;
-  window.copyDrawerRef = copyDrawerRef;
-  window.copyRef = copyRef;
-  window.confirmCancel = confirmCancel;
+  window.setTab = setTab; window.handleSearch = handleSearch; window.clearSearch = clearSearch;
+  window.clearFilters = clearFilters; window.applyFilters = applyFilters;
+  window.openFlightDetails = openFlightDetails; window.openFlightDetailsFromCard = openFlightDetailsFromCard;
+  window.closeFlightDetails = closeFlightDetails; window.copyRef = copyRef; window.confirmCancel = confirmCancel;
 
-  document.addEventListener('DOMContentLoaded', function () {
-    // Purge any legacy browser mock bookings to guarantee only real database bookings are shown
-    try {
-      localStorage.removeItem('skybook-recent-bookings');
-    } catch (e) {}
-
-    // Add click listeners to all tab buttons as redundant safety
+  document.addEventListener('DOMContentLoaded', () => {
+    try { localStorage.removeItem('skybook-recent-bookings'); } catch(e) {}
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
+      btn.addEventListener('click', function(e) {
         e.preventDefault();
-        const tab = this.getAttribute('data-tab') || this.id.replace('tab-', '');
-        setTab(tab);
+        setTab(this.getAttribute('data-tab') || this.id.replace('tab-',''));
       });
     });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        closeFlightDetails();
-      }
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFlightDetails(); });
   });
 </script>
 }

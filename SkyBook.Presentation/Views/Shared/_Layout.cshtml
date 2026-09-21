@@ -14,7 +14,7 @@
     if (isAuthenticated)
     {
         var appUser = await UserManager.GetUserAsync(User);
-        displayName = appUser?.FullName;
+        displayName = appUser?.FullName ?? "";
         if (string.IsNullOrWhiteSpace(displayName))
         {
             displayName = appUser?.UserName ?? User.Identity?.Name ?? "User";

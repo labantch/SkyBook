@@ -182,11 +182,15 @@
           <span>Delete User</span>
         </button>
 
-        <!-- Promote as Admin / Demote Button -->
-        <button type="button" id="drawer-btn-promote" onclick="handleDrawerPromoteToggle()" class="flex-1 px-4 py-2.5 rounded-lg bg-midnight-900 hover:bg-midnight-800 text-champagne-300 border border-champagne-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-          <svg class="w-4 h-4 text-champagne-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-          <span id="drawer-promote-text">Promote as Admin</span>
-        </button>
+        @* Only the SuperAdmin can promote / demote *@
+        @if (ViewBag.IsSuperAdmin == true)
+        {
+          <!-- Promote as Admin / Demote Button -->
+          <button type="button" id="drawer-btn-promote" onclick="handleDrawerPromoteToggle()" class="flex-1 px-4 py-2.5 rounded-lg bg-midnight-900 hover:bg-midnight-800 text-champagne-300 border border-champagne-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+            <svg class="w-4 h-4 text-champagne-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <span id="drawer-promote-text">Promote as Admin</span>
+          </button>
+        }
       </div>
 
 
@@ -197,6 +201,9 @@
 
 @* Toast Notification Container *@
 <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+@* Hidden form just to hold the anti-forgery token for AJAX calls *@
+<form id="csrf-form" style="display:none">@Html.AntiForgeryToken()</form>
 
 @section Scripts {
 <script data-purpose="user-management-logic">
@@ -514,18 +521,38 @@
     openDrawer('drawer-user-details');
   }
 
-  // UI-only: Promote/Demote toggle (visual only, no backend call)
-  function handleDrawerPromoteToggle() {
+  // Real Promote/Demote: calls server, then reloads page to reflect DB state
+  async function handleDrawerPromoteToggle() {
     if (!userState.selectedUser) return;
     const user = userState.selectedUser;
     const isCurrentlyAdmin = (user.role || 'User') === 'Admin';
-    const newRole = isCurrentlyAdmin ? 'User' : 'Admin';
-    const action = isCurrentlyAdmin ? 'demoted to Regular User' : 'promoted to Admin';
+    const action = isCurrentlyAdmin ? 'DemoteUser' : 'PromoteUser';
+    const label  = isCurrentlyAdmin ? 'demoted to Regular User' : 'promoted to Admin';
 
-    user.role = newRole;
-    renderUsers();
-    openUserDetailsDrawer(user.id); // refresh drawer
-    showToast(`"${user.fullName}" has been ${action} (UI only).`, 'success');
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+               || document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '';
+
+    const btn = document.getElementById('drawer-btn-promote');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+    try {
+      const resp = await fetch(`/Admin/UserManagement/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `userId=${encodeURIComponent(user.id)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+      });
+      const data = await resp.json();
+      if (data.success) {
+        showToast(`"${user.fullName}" has been ${label}.`, 'success');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast(data.message || 'Action failed.', 'error');
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+      }
+    } catch (e) {
+      showToast('Server error. Please try again.', 'error');
+      if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+    }
   }
 
   // UI-only: Delete user (visual only, no backend call)

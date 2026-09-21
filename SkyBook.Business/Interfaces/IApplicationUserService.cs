@@ -11,4 +11,6 @@ public interface IApplicationUserService
     public Task LogoutAsync();
     public Task<List<UserVM>> GetAllUsersAsync();
     public Task<UserVM?> GetUserByIdAsync(string userId);
+    public Task<bool> PromoteUserAsync(string userId);
+    public Task<bool> DemoteUserAsync(string userId);
 }

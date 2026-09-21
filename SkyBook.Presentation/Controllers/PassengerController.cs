@@ -29,7 +29,7 @@ namespace SkyBook.Presentation.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
-            if (id.HasValue && id.Value > 0)
+            if (id.HasValue && id.Value > 0 && _passengerService != null)
             {
                 try
                 {

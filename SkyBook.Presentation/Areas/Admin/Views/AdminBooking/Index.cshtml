@@ -5,6 +5,12 @@
 }
 @Html.AntiForgeryToken()
 
+<!-- Standard MVC Form for Toggle Booking Status -->
+<form id="form-toggle-booking-status" method="post" asp-area="Admin" asp-controller="AdminBooking" asp-action="ToggleStatus" class="hidden">
+  @Html.AntiForgeryToken()
+  <input type="hidden" name="id" id="toggle-booking-status-id" value="" />
+</form>
+
 <!-- Top header strip -->
 <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 flex-shrink-0">
   <div>
@@ -42,7 +48,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50/80 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
-            <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Seat / Cabin</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
+            <tr><th class="py-3 px-4">Booking Ref</th><th class="py-3 px-4">Customer</th><th class="py-3 px-4">Flight</th><th class="py-3 px-4">Travel Date</th><th class="py-3 px-4">Total Price</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Actions</th></tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-medium" id="all-bookings-body"></tbody>
         </table>
@@ -310,7 +316,7 @@
       if (pageSlice.length === 0) {
         container.innerHTML = `
           <tr>
-            <td colspan="8" class="py-12 text-center text-slate-400">
+            <td colspan="7" class="py-12 text-center text-slate-400">
               <p class="font-semibold text-slate-600 text-xs">No bookings found</p>
             </td>
           </tr>`;
@@ -330,7 +336,6 @@
           </td>
           <td class="py-3 px-4 font-mono text-slate-700"><span class="font-semibold text-midnight-900">${b.flightCode}</span><span class="text-[10px] text-slate-400 ml-1">(${b.routeSummary})</span></td>
           <td class="py-3 px-4 text-slate-600">${b.travelDate}</td>
-          <td class="py-3 px-4"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">${b.seat}</span></td>
           <td class="py-3 px-4 font-mono font-bold text-slate-900">${b.price}</td>
           <td class="py-3 px-4">${getStatusBadge(b.status)}</td>
           <td class="py-3 px-4 text-right">
@@ -562,95 +567,21 @@
       openDrawer('drawer-booking-details');
     }
 
-    // Direct Toggle Status Function with instant AJAX & feedback
-    async function toggleBookingStatus(id, pnr, btnElement) {
+    // Direct Toggle Status Function with standard MVC form submission
+    function toggleBookingStatus(id, pnr, btnElement) {
       if (!id) return;
-      const booking = state.bookings.find(b => b.id === id);
-      const isCurrentlyCancelled = booking ? (booking.status === 'Cancelled') : false;
-      const targetPnr = pnr || booking?.pnr || ('#' + id);
 
-      // Disable button during network call to prevent duplicate rapid clicks
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.style.opacity = '0.6';
         btnElement.style.pointerEvents = 'none';
       }
 
-      const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-      const token = tokenInput ? tokenInput.value : '';
-
-      try {
-        const formData = new FormData();
-        formData.append('id', id);
-        if (token) formData.append('__RequestVerificationToken', token);
-
-        const response = await fetch(`@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-          },
-          body: formData
-        });
-
-        if (response.ok) {
-          const contentType = response.headers.get('content-type') || '';
-          let result = {};
-          if (contentType.includes('application/json')) {
-            result = await response.json();
-          }
-
-          const newStatus = result.status != null ? getStatusText(result.status) : (isCurrentlyCancelled ? 'Confirmed' : 'Cancelled');
-          if (booking) {
-            booking.status = newStatus;
-          }
-          renderBookingsTable();
-
-          const message = result.message || (isCurrentlyCancelled 
-            ? `Booking ${targetPnr} restored to Active.` 
-            : `Booking ${targetPnr} cancelled.`);
-          showToast(message, 'success');
-
-          // If drawer is open with this booking, refresh drawer
-          const drawerPnr = document.getElementById('bd-pnr')?.innerText;
-          if (drawerPnr === targetPnr) {
-            openBookingDetailsDrawer(id);
-          }
-          return;
-        } else {
-          let errorMsg = 'Failed to update booking status.';
-          try {
-            const err = await response.json();
-            if (err && err.message) errorMsg = err.message;
-          } catch (_) {}
-          showToast(errorMsg, 'error');
-        }
-      } catch (err) {
-        console.error('AJAX toggle failed, falling back to form submit:', err);
-        // Fallback form submit if fetch fails completely
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = `@Url.Action("ToggleStatus", "AdminBooking", new { area = "Admin" })/${id}`;
-        if (token) {
-          const tokenField = document.createElement('input');
-          tokenField.type = 'hidden';
-          tokenField.name = '__RequestVerificationToken';
-          tokenField.value = token;
-          form.appendChild(tokenField);
-        }
-        const idField = document.createElement('input');
-        idField.type = 'hidden';
-        idField.name = 'id';
-        idField.value = id;
-        form.appendChild(idField);
-        document.body.appendChild(form);
+      const form = document.getElementById('form-toggle-booking-status');
+      const idInput = document.getElementById('toggle-booking-status-id');
+      if (form && idInput) {
+        idInput.value = id;
         form.submit();
-      } finally {
-        if (btnElement) {
-          btnElement.disabled = false;
-          btnElement.style.opacity = '';
-          btnElement.style.pointerEvents = '';
-        }
       }
     }
 
@@ -694,11 +625,11 @@
       openModal('modal-confirm-cancel');
     }
 
-    async function executeServerToggle() {
+    function executeServerToggle() {
       if (!state.cancellationTarget) return;
       const { id, pnr } = state.cancellationTarget;
       closeModal('modal-confirm-cancel');
-      await toggleBookingStatus(id, pnr);
+      toggleBookingStatus(id, pnr);
     }
 
     function exportBookingsCsv() {

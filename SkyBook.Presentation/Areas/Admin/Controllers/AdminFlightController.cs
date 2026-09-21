@@ -44,19 +44,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(FlightVM flight, int returnPage = 1)
         {
-            if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
+            if (flight.Stops != null && flight.Stops.Any())
             {
-                var stopsJson = Request.Form["StopsJson"].ToString();
-                if (!string.IsNullOrWhiteSpace(stopsJson))
+                flight.Stops = flight.Stops.Where(s => s.AirportId > 0).ToList();
+                for (int i = 0; i < flight.Stops.Count; i++)
                 {
-                    try
-                    {
-                        flight.Stops = System.Text.Json.JsonSerializer.Deserialize<List<FlightStopVM>>(
-                            stopsJson,
-                            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                        ) ?? new List<FlightStopVM>();
-                    }
-                    catch { }
+                    flight.Stops[i].StopOrder = i + 1;
                 }
             }
 
@@ -83,19 +76,12 @@ namespace SkyBook.Presentation.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(FlightVM flight, int returnPage = 1)
         {
-            if ((flight.Stops == null || !flight.Stops.Any()) && Request.Form.ContainsKey("StopsJson"))
+            if (flight.Stops != null && flight.Stops.Any())
             {
-                var stopsJson = Request.Form["StopsJson"].ToString();
-                if (!string.IsNullOrWhiteSpace(stopsJson))
+                flight.Stops = flight.Stops.Where(s => s.AirportId > 0).ToList();
+                for (int i = 0; i < flight.Stops.Count; i++)
                 {
-                    try
-                    {
-                        flight.Stops = System.Text.Json.JsonSerializer.Deserialize<List<FlightStopVM>>(
-                            stopsJson,
-                            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                        ) ?? new List<FlightStopVM>();
-                    }
-                    catch { }
+                    flight.Stops[i].StopOrder = i + 1;
                 }
             }
 

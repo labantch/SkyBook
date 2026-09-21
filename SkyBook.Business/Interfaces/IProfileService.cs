@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +11,7 @@ namespace SkyBook.Business.Interfaces;
 
 public interface IProfileService
 {
-    Task<ProfileVM> GetProfileAsync(string userId);
+    Task<ProfileVM?> GetProfileAsync(string userId);
     Task<IdentityResult> UpdateProfileAsync(string userId, ProfileVM model);
     Task<IdentityResult> ChangePasswordAsync(string userId, ChangePasswordVM model);
     

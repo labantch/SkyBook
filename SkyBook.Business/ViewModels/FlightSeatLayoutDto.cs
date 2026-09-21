@@ -5,7 +5,7 @@ namespace SkyBook.Business.ViewModels
     public class SeatDetailDto
     {
         public string SeatNumber { get; set; } = string.Empty;
-        public string CabinClass { get; set; } = string.Empty; // "first", "business", "economy"
+        public string CabinClass { get; set; } = string.Empty; 
         public int Row { get; set; }
         public string Letter { get; set; } = string.Empty;
     }

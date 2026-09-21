@@ -135,8 +135,8 @@
                       else
                       {
                         <span class="inline-flex items-center text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60" 
-                              title="@string.Join(" → ", flight.Stops.OrderBy(x => x.StopOrder).Select(x => $"{x.AirportCode} ({x.AirportCity})"))">
-                          @(flight.Stops.Count == 1 ? $"1 Transit Stop ({flight.Stops.First().AirportCode})" : $"{flight.Stops.Count} Transit Stops")
+                              title="@(flight.Stops != null ? string.Join(" → ", flight.Stops.OrderBy(x => x.StopOrder).Select(x => $"{x.AirportCode} ({x.AirportCity})")) : "")">
+                          @(flight.Stops?.Count == 1 ? $"1 Transit Stop ({flight.Stops.First().AirportCode})" : $"{flight.Stops?.Count ?? 0} Transit Stops")
                         </span>
                       }
                     </div>
@@ -490,9 +490,10 @@
         rowDiv.setAttribute('data-stop-order', order);
         rowDiv.innerHTML = `
           <span class="w-5 h-5 rounded-full bg-champagne-100 text-champagne-800 flex items-center justify-center text-[10px] font-bold stop-order-badge shrink-0">${order}</span>
-          <select class="stop-airport flex-1 text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required onchange="syncStopsJson('${mode}')">
+          <select class="stop-airport flex-1 text-xs rounded-lg border-slate-200 bg-slate-50 focus:border-champagne-500 focus:ring-1 focus:ring-champagne-500" required onchange="syncStops('${mode}')">
             ${optionsHtml}
           </select>
+          <input type="hidden" class="stop-order-input" value="${order}" />
           <button type="button" onclick="removeStopRow(this, '${mode}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer" title="Remove stop">
             ✕
           </button>
@@ -500,7 +501,7 @@
 
         container.appendChild(rowDiv);
         reindexStops(mode);
-        syncStopsJson(mode);
+        syncStops(mode);
     }
 
     function removeStopRow(btn, mode) {
@@ -508,7 +509,7 @@
         if (row) {
             row.remove();
             reindexStops(mode);
-            syncStopsJson(mode);
+            syncStops(mode);
         }
     }
 
@@ -527,40 +528,45 @@
             row.setAttribute('data-stop-order', order);
             const badge = row.querySelector('.stop-order-badge');
             if (badge) badge.textContent = order;
+
+            const airportSelect = row.querySelector('.stop-airport');
+            if (airportSelect) {
+                airportSelect.name = `Stops[${index}].AirportId`;
+            }
+
+            let orderInput = row.querySelector('.stop-order-input');
+            if (!orderInput) {
+                orderInput = document.createElement('input');
+                orderInput.type = 'hidden';
+                orderInput.className = 'stop-order-input';
+                row.appendChild(orderInput);
+            }
+            orderInput.name = `Stops[${index}].StopOrder`;
+            orderInput.value = order;
         });
     }
 
-    function syncStopsJson(mode) {
+    function syncStops(mode) {
         const container = document.getElementById(mode === 'add' ? 'add-stops-container' : 'edit-stops-container');
-        const jsonInput = document.getElementById(mode === 'add' ? 'add-stops-json' : 'edit-stops-json');
         const badge = document.getElementById(mode === 'add' ? 'add-stops-count-badge' : 'edit-stops-count-badge');
-        if (!container || !jsonInput) return;
+        if (!container) return;
 
-        const rows = container.querySelectorAll('.stop-row');
-        const stops = [];
+        reindexStops(mode);
 
-        rows.forEach((row, index) => {
-            const airportSelect = row.querySelector('.stop-airport');
-            const airportId = parseInt(airportSelect?.value || '0', 10);
-            if (airportId > 0) {
-                stops.push({
-                    StopOrder: index + 1,
-                    AirportId: airportId
-                });
-            }
-        });
+        const stopCount = container.querySelectorAll('.stop-row .stop-airport').length;
 
-        jsonInput.value = JSON.stringify(stops);
         if (badge) {
-            if (stops.length === 0) {
+            if (stopCount === 0) {
                 badge.textContent = 'Direct (0 Stops)';
                 badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700';
             } else {
-                badge.textContent = stops.length === 1 ? '1 Transit Stop' : `${stops.length} Transit Stops`;
+                badge.textContent = stopCount === 1 ? '1 Transit Stop' : `${stopCount} Transit Stops`;
                 badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
             }
         }
     }
+
+    const syncStopsJson = syncStops; // kept as alias for backward compatibility
 
     function openAddFlightModal() {
         const form = document.getElementById('form-add-flight');

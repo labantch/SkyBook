@@ -41,6 +41,9 @@ namespace SkyBook.Presentation.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
             var booking = await _bookingService.GetBookingByIdAsync(id, userId);
             return View(booking);
         }
@@ -61,14 +64,15 @@ namespace SkyBook.Presentation.Controllers
 
         #region CreatePost
         [HttpPost]
-            [ValidateAntiForgeryToken]
-    
-        public async Task<IActionResult> Create(  CreateBookingVM model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateBookingVM model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
             var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
 
             try
             {
@@ -92,6 +96,9 @@ namespace SkyBook.Presentation.Controllers
         public async Task<IActionResult> Cancel(int id)
         {
             var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
             try
             {
                 await _bookingService.CancelAsync(id, userId);
@@ -125,17 +132,47 @@ namespace SkyBook.Presentation.Controllers
 
         #region ConfirmBooking 
         [HttpPost]
-        public async Task<IActionResult> ConfirmBooking([FromBody] ConfirmBookingDto model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmBooking(ConfirmBookingDto model)
         {
             if (model == null)
-                return BadRequest(new { success = false, message = "Invalid booking payload." });
+            {
+                TempData["Error"] = "Invalid booking details provided.";
+                return RedirectToAction(nameof(MyBookings));
+            }
 
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { success = false, message = "You must be signed in to confirm a booking." });
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action(nameof(ConfirmPayment)) });
+            }
 
-            var result = await _bookingService.ConfirmBookingAsync(userId, model);
-            return Json(result);
+            try
+            {
+                var result = await _bookingService.ConfirmBookingAsync(userId, model);
+
+                if (!result.Success)
+                {
+                    TempData["Error"] = result.Message ?? "Booking failed.";
+                    return RedirectToAction(nameof(MyBookings));
+                }
+
+                int bookingId = result.BookingId;
+
+                var paymentMethod = PaymentMethod.Card;
+
+                // Redirect to Paymob payment gateway
+                return RedirectToAction("Pay", "Payment", new
+                {
+                    bookingId,
+                    paymentMethod
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(MyBookings));
+            }
         }
         #endregion
 

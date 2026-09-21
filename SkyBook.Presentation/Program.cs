@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.PaymentGateway;
 using SkyBook.Business.Service;
-using SkyBook.Business.Service;
 using SkyBook.Data.Data;
 using SkyBook.Data.Models;
 
@@ -21,8 +20,8 @@ builder.Services.AddDbContext<SkyBook.Data.Data.ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// Paymob payment gateway — registered with AddHttpClient so it gets a typed HttpClient
 builder.Services.AddHttpClient<IPaymentGateway, PaymobPaymentGateway>();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -42,9 +41,6 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.IDashboardService, SkyBoo
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, SkyBook.Business.Service.ApplicationUserService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IProfileService, SkyBook.Business.Service.ProfileService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IPaymentService, SkyBook.Business.Service.PaymentService>();
-builder.Services.AddScoped<IPaymentGateway, SkyBook.Business.PaymentGateway.PaymobPaymentGateway>();
-
-
 
 
 var app = builder.Build();

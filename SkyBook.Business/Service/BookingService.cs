@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkyBook.Business.Interfaces;
 using SkyBook.Business.ViewModels;
@@ -15,21 +14,24 @@ public class BookingService : IBookingService
     {
         _context = context;
     }
+
     #region CreateBooking
     public async Task<int> CreateBookingAsync(string userId, CreateBookingVM model)
     {
-
         var flight = await _context.Flights
             .FirstOrDefaultAsync(f => f.Id == model.FlightId);
         if (flight == null)
             throw new Exception("Flight not found.");
+
         var seat = await _context.Seats
             .FirstOrDefaultAsync(s => s.Id == model.SeatId && s.AircraftId == flight.AircraftId);
         if (seat == null)
             throw new Exception("Seat not found for this aircraft.");
+
         var isBooked = await IsSeatAvailableAsync(model.FlightId, model.SeatId);
         if (!isBooked)
             throw new Exception("This seat is already booked.");
+
         var passenger = new Passenger
         {
             FirstName = model.FirstName,
@@ -42,10 +44,8 @@ public class BookingService : IBookingService
         };
 
         _context.Passengers.Add(passenger);
-        var bookingReference = Guid.NewGuid()
-            .ToString("N")
-            .Substring(0, 8)
-            .ToUpper();
+
+        var bookingReference = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
 
         decimal seatPrice = seat.Class switch
         {
@@ -87,11 +87,8 @@ public class BookingService : IBookingService
             .OrderByDescending(b => b.BookingDate)
             .ToListAsync();
 
-        var groups = bookings.GroupBy(b => new
-        {
-            BaseRef = ExtractBaseRef(b.BookingReference) is { Length: > 0 } baseRef ? baseRef : b.BookingReference,
-            b.FlightId
-        });
+        var groups = bookings.GroupBy(b =>
+            ExtractBaseRef(b.BookingReference) is { Length: > 0 } br ? br : b.BookingReference);
 
         var result = new List<MyBookingVM>();
 
@@ -99,6 +96,31 @@ public class BookingService : IBookingService
         {
             var first = g.First();
             var user = first.User;
+
+            var segments = g
+                .GroupBy(b => b.FlightId)
+                .OrderBy(fg => fg.First().Flight?.DepartureTime ?? DateTime.MinValue)
+                .Select(fg =>
+                {
+                    var fb = fg.First();
+                    var fl = fb.Flight;
+                    var seats = string.Join(", ",
+                        fg.Select(b => b.Seat?.SeatNumber)
+                          .Where(s => !string.IsNullOrEmpty(s))
+                          .Distinct());
+                    return new BookingSegmentVm
+                    {
+                        FlightId = fl?.Id ?? 0,
+                        FlightNumber = fl?.FlightNumber ?? "",
+                        DepartureAirport = fl?.DepartureAirport?.Name ?? "",
+                        ArrivalAirport = fl?.ArrivalAirport?.Name ?? "",
+                        DepartureTime = fl?.DepartureTime ?? DateTime.MinValue,
+                        ArrivalTime = fl?.ArrivalTime ?? DateTime.MinValue,
+                        Price = fg.Sum(b => b.TotalPrice),
+                        SeatNumbers = seats
+                    };
+                })
+                .ToList();
 
             var passengers = g.Select(b => new PassengerBookingVm
             {
@@ -112,26 +134,31 @@ public class BookingService : IBookingService
                 Price = b.TotalPrice
             }).ToList();
 
-            var combinedSeats = string.Join(", ", g.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
+            var firstSeg = segments.FirstOrDefault();
+            var combinedSeats = string.Join(", ",
+                g.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
 
             result.Add(new MyBookingVM
             {
                 BookingId = first.Id,
-                BookingReference = g.Key.BaseRef,
-                FlightNumber = first.Flight?.FlightNumber ?? "",
-                DepartureAirPort = first.Flight?.DepartureAirport?.Name ?? "",
-                ArrivalAirPort = first.Flight?.ArrivalAirport?.Name ?? "",
-                DepartureTime = first.Flight?.DepartureTime ?? DateTime.Now,
-                ArrivalTime = first.Flight?.ArrivalTime ?? DateTime.Now,
-                SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : (first.Seat?.SeatNumber ?? ""),
-                Status = g.Any(b => b.Status == BookingStatus.Confirmed) ? BookingStatus.Confirmed : first.Status,
+                BookingReference = g.Key,
+                FlightNumber = firstSeg?.FlightNumber ?? "",
+                DepartureAirPort = firstSeg?.DepartureAirport ?? "",
+                ArrivalAirPort = firstSeg?.ArrivalAirport ?? "",
+                DepartureTime = firstSeg?.DepartureTime ?? DateTime.Now,
+                ArrivalTime = firstSeg?.ArrivalTime ?? DateTime.Now,
+                SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : "",
+                Status = g.Any(b => b.Status == BookingStatus.Confirmed)
+                                     ? BookingStatus.Confirmed : first.Status,
                 TotalPrice = g.Sum(b => b.TotalPrice),
                 PassengerName = passengers.FirstOrDefault()?.FullName ?? "",
                 BookingDate = first.BookingDate,
                 UserName = user?.UserName ?? "",
-                UserFullName = !string.IsNullOrWhiteSpace(user?.FullName) ? user.FullName : (user?.UserName ?? "Valued Customer"),
+                UserFullName = !string.IsNullOrWhiteSpace(user?.FullName)
+                                     ? user.FullName : (user?.UserName ?? "Valued Customer"),
                 UserImageUrl = user?.ImageUrl,
-                Passengers = passengers
+                Passengers = passengers,
+                Segments = segments
             });
         }
 
@@ -150,7 +177,8 @@ public class BookingService : IBookingService
                 .ThenInclude(f => f.DepartureAirport)
             .Include(b => b.Flight)
                 .ThenInclude(f => f.ArrivalAirport)
-            .FirstOrDefaultAsync(b => b.Id == bookingId && (string.IsNullOrEmpty(userId) || b.UserId == userId));
+            .FirstOrDefaultAsync(b => b.Id == bookingId &&
+                                      (string.IsNullOrEmpty(userId) || b.UserId == userId));
 
         if (booking == null)
             throw new Exception("Booking not found.");
@@ -160,11 +188,42 @@ public class BookingService : IBookingService
         var sisterBookings = await _context.Bookings
             .Include(b => b.Passenger)
             .Include(b => b.Seat)
-            .Where(b => (b.BookingReference == booking.BookingReference ||
-                        (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
-                        b.FlightId == booking.FlightId &&
-                        b.UserId == booking.UserId)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.DepartureAirport)
+            .Include(b => b.Flight)
+                .ThenInclude(f => f.ArrivalAirport)
+            .Where(b => b.UserId == booking.UserId &&
+                        (b.BookingReference == booking.BookingReference ||
+                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef + "-"))))
             .ToListAsync();
+
+        if (sisterBookings.Count == 0)
+            sisterBookings = new List<Booking> { booking };
+
+        var segments = sisterBookings
+            .GroupBy(b => b.FlightId)
+            .OrderBy(fg => fg.First().Flight?.DepartureTime ?? DateTime.MinValue)
+            .Select(fg =>
+            {
+                var fb = fg.First();
+                var fl = fb.Flight;
+                var seats = string.Join(", ",
+                    fg.Select(b => b.Seat?.SeatNumber)
+                      .Where(s => !string.IsNullOrEmpty(s))
+                      .Distinct());
+                return new BookingSegmentVm
+                {
+                    FlightId = fl?.Id ?? 0,
+                    FlightNumber = fl?.FlightNumber ?? "",
+                    DepartureAirport = fl?.DepartureAirport?.Name ?? "",
+                    ArrivalAirport = fl?.ArrivalAirport?.Name ?? "",
+                    DepartureTime = fl?.DepartureTime ?? DateTime.MinValue,
+                    ArrivalTime = fl?.ArrivalTime ?? DateTime.MinValue,
+                    Price = fg.Sum(b => b.TotalPrice),
+                    SeatNumbers = seats
+                };
+            })
+            .ToList();
 
         var passengers = sisterBookings.Select(b => new PassengerBookingVm
         {
@@ -178,7 +237,11 @@ public class BookingService : IBookingService
             Price = b.TotalPrice
         }).ToList();
 
-        var combinedSeats = string.Join(", ", sisterBookings.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
+        var combinedSeats = string.Join(", ",
+            sisterBookings.Select(b => b.Seat?.SeatNumber)
+                          .Where(s => !string.IsNullOrEmpty(s)).Distinct());
+
+        var firstSeg = segments.FirstOrDefault();
 
         return new BookingDetailsVm
         {
@@ -187,22 +250,24 @@ public class BookingService : IBookingService
             TotalPrice = sisterBookings.Sum(b => b.TotalPrice),
             Status = booking.Status,
             BookingReference = !string.IsNullOrEmpty(baseRef) ? baseRef : booking.BookingReference,
-            DepartureAirPort = booking.Flight?.DepartureAirport?.Name ?? "",
-            ArrivalAirPort = booking.Flight?.ArrivalAirport?.Name ?? "",
-            PassengerName = passengers.FirstOrDefault()?.FullName ?? $"{booking.Passenger?.FirstName} {booking.Passenger?.LastName}",
-            FlightNumber = booking.Flight?.FlightNumber ?? "",
-            SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : (booking.Seat?.SeatNumber ?? ""),
+            DepartureAirPort = firstSeg?.DepartureAirport ?? "",
+            ArrivalAirPort = firstSeg?.ArrivalAirport ?? "",
+            PassengerName = passengers.FirstOrDefault()?.FullName
+                               ?? $"{booking.Passenger?.FirstName} {booking.Passenger?.LastName}",
+            FlightNumber = firstSeg?.FlightNumber ?? "",
+            SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : "",
             UserImageUrl = booking.User?.ImageUrl,
             UserName = booking.User?.UserName ?? "",
-            UserFullName = !string.IsNullOrWhiteSpace(booking.User?.FullName) ? booking.User.FullName : (booking.User?.UserName ?? "Valued Customer"),
+            UserFullName = !string.IsNullOrWhiteSpace(booking.User?.FullName)
+                                 ? booking.User.FullName : (booking.User?.UserName ?? "Valued Customer"),
             UserEmail = booking.User?.Email ?? "",
-            Passengers = passengers
+            Passengers = passengers,
+            Segments = segments
         };
     }
     #endregion
 
     #region Cancel
-
     public async Task CancelAsync(int bookingId, string userId)
     {
         var booking = await _context.Bookings
@@ -213,17 +278,15 @@ public class BookingService : IBookingService
             throw new Exception("Booking is already cancelled.");
 
         string baseRef = ExtractBaseRef(booking.BookingReference);
+
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference ||
-                        (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
-                        b.FlightId == booking.FlightId &&
-                        b.UserId == userId)
+            .Where(b => b.UserId == userId &&
+                        (b.BookingReference == booking.BookingReference ||
+                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef + "-"))))
             .ToListAsync();
 
         foreach (var b in related)
-        {
             b.Status = BookingStatus.Cancelled;
-        }
 
         await _context.SaveChangesAsync();
     }
@@ -232,11 +295,10 @@ public class BookingService : IBookingService
     #region IsSeatAvailable
     public async Task<bool> IsSeatAvailableAsync(int flightId, int seatId)
     {
-        var isBooked = await _context.Bookings
-        .AnyAsync(b =>
-                b.FlightId == flightId &&
-                b.SeatId == seatId &&
-                b.Status != BookingStatus.Cancelled);
+        var isBooked = await _context.Bookings.AnyAsync(b =>
+            b.FlightId == flightId &&
+            b.SeatId == seatId &&
+            b.Status != BookingStatus.Cancelled);
         return !isBooked;
     }
     #endregion
@@ -244,20 +306,20 @@ public class BookingService : IBookingService
     #region GetAvailableSeatsCount
     public async Task<int> GetAvailableSeatsCountAsync(int flightId)
     {
-
         var flight = await _context.Flights
             .Include(f => f.Aircraft)
             .FirstOrDefaultAsync(f => f.Id == flightId);
         if (flight == null)
             throw new Exception("Flight not found.");
+
         var totalSeats = await _context.Seats.CountAsync(s => s.AircraftId == flight.AircraftId);
         var bookedSeats = await _context.Bookings.CountAsync(b =>
-                    b.FlightId == flightId &&
-                    b.Status != BookingStatus.Cancelled);
+            b.FlightId == flightId && b.Status != BookingStatus.Cancelled);
         return totalSeats - bookedSeats;
     }
     #endregion
 
+    #region GetAllBookings
     public async Task<List<BookingDetailsVm>> GetAllBookingsAsync()
     {
         var bookings = await _context.Bookings
@@ -273,11 +335,8 @@ public class BookingService : IBookingService
 
         var groups = bookings.GroupBy(b => new
         {
-            BaseRef = !string.IsNullOrWhiteSpace(ExtractBaseRef(b.BookingReference))
-                ? ExtractBaseRef(b.BookingReference)
-                : b.BookingReference,
-            b.UserId,
-            b.FlightId
+            BaseRef = ExtractBaseRef(b.BookingReference) is { Length: > 0 } br ? br : b.BookingReference,
+            b.UserId
         });
 
         var result = new List<BookingDetailsVm>();
@@ -286,10 +345,33 @@ public class BookingService : IBookingService
         {
             var first = g.First();
             var user = first.User;
-            var userName = user?.UserName ?? "";
-            var userFullName = !string.IsNullOrWhiteSpace(user?.FullName) ? user.FullName : (user?.UserName ?? "Valued Customer");
-            var userEmail = user?.Email ?? "";
-            var userImageUrl = user?.ImageUrl;
+            var userFullName = !string.IsNullOrWhiteSpace(user?.FullName)
+                                 ? user.FullName : (user?.UserName ?? "Valued Customer");
+
+            var segments = g
+                .GroupBy(b => b.FlightId)
+                .OrderBy(fg => fg.First().Flight?.DepartureTime ?? DateTime.MinValue)
+                .Select(fg =>
+                {
+                    var fb = fg.First();
+                    var fl = fb.Flight;
+                    var seats = string.Join(", ",
+                        fg.Select(b => b.Seat?.SeatNumber)
+                          .Where(s => !string.IsNullOrEmpty(s))
+                          .Distinct());
+                    return new BookingSegmentVm
+                    {
+                        FlightId = fl?.Id ?? 0,
+                        FlightNumber = fl?.FlightNumber ?? "",
+                        DepartureAirport = fl?.DepartureAirport?.Name ?? "",
+                        ArrivalAirport = fl?.ArrivalAirport?.Name ?? "",
+                        DepartureTime = fl?.DepartureTime ?? DateTime.MinValue,
+                        ArrivalTime = fl?.ArrivalTime ?? DateTime.MinValue,
+                        Price = fg.Sum(b => b.TotalPrice),
+                        SeatNumbers = seats
+                    };
+                })
+                .ToList();
 
             var passengers = g.Select(b => new PassengerBookingVm
             {
@@ -303,8 +385,11 @@ public class BookingService : IBookingService
                 Price = b.TotalPrice
             }).ToList();
 
-            var combinedSeats = string.Join(", ", g.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
-            var status = g.Any(b => b.Status == BookingStatus.Confirmed) ? BookingStatus.Confirmed : first.Status;
+            var combinedSeats = string.Join(", ",
+                g.Select(b => b.Seat?.SeatNumber).Where(s => !string.IsNullOrEmpty(s)).Distinct());
+            var status = g.Any(b => b.Status == BookingStatus.Confirmed)
+                           ? BookingStatus.Confirmed : first.Status;
+            var firstSeg = segments.FirstOrDefault();
 
             result.Add(new BookingDetailsVm
             {
@@ -313,26 +398,27 @@ public class BookingService : IBookingService
                 TotalPrice = g.Sum(b => b.TotalPrice),
                 Status = status,
                 BookingReference = g.Key.BaseRef,
-                DepartureAirPort = first.Flight?.DepartureAirport?.Name ?? "",
-                ArrivalAirPort = first.Flight?.ArrivalAirport?.Name ?? "",
+                DepartureAirPort = firstSeg?.DepartureAirport ?? "",
+                ArrivalAirPort = firstSeg?.ArrivalAirport ?? "",
                 PassengerName = passengers.FirstOrDefault()?.FullName ?? "Unknown Passenger",
-                FlightNumber = first.Flight?.FlightNumber ?? "",
-                SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : (first.Seat?.SeatNumber ?? ""),
-                UserImageUrl = userImageUrl,
-                UserName = userName,
+                FlightNumber = firstSeg?.FlightNumber ?? "",
+                SeatNumber = !string.IsNullOrEmpty(combinedSeats) ? combinedSeats : "",
+                UserImageUrl = user?.ImageUrl,
+                UserName = user?.UserName ?? "",
                 UserFullName = userFullName,
-                UserEmail = userEmail,
-                Passengers = passengers
+                UserEmail = user?.Email ?? "",
+                Passengers = passengers,
+                Segments = segments
             });
         }
 
         return result;
     }
+    #endregion
 
+    #region Convenience overloads
     public async Task<BookingDetailsVm> GetBookingByIdAsync(int bookingId)
-    {
-        return await GetBookingByIdAsync(bookingId, "");
-    }
+        => await GetBookingByIdAsync(bookingId, "");
 
     public async Task CancelAsync(int bookingId)
     {
@@ -341,31 +427,36 @@ public class BookingService : IBookingService
             throw new Exception("Booking not found.");
         await CancelAsync(bookingId, booking.UserId);
     }
+    #endregion
 
+    #region ToggleStatus
     public async Task<BookingStatus> ToggleStatusAsync(int bookingId)
     {
         var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
         if (booking == null)
             throw new Exception("Booking not found.");
 
-        var newStatus = (booking.Status == BookingStatus.Cancelled) ? BookingStatus.Confirmed : BookingStatus.Cancelled;
+        var newStatus = (booking.Status == BookingStatus.Cancelled)
+            ? BookingStatus.Confirmed
+            : BookingStatus.Cancelled;
+
         string baseRef = ExtractBaseRef(booking.BookingReference);
+
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference ||
-                        (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
-                        b.FlightId == booking.FlightId &&
-                        b.UserId == booking.UserId)
+            .Where(b => b.UserId == booking.UserId &&
+                        (b.BookingReference == booking.BookingReference ||
+                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef + "-"))))
             .ToListAsync();
 
         foreach (var b in related)
-        {
             b.Status = newStatus;
-        }
 
         await _context.SaveChangesAsync();
         return newStatus;
     }
+    #endregion
 
+    #region UncancelAsync
     public async Task UncancelAsync(int bookingId)
     {
         var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
@@ -373,40 +464,33 @@ public class BookingService : IBookingService
             throw new Exception("Booking not found.");
 
         string baseRef = ExtractBaseRef(booking.BookingReference);
+
         var related = await _context.Bookings
-            .Where(b => (b.BookingReference == booking.BookingReference ||
-                        (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef))) &&
-                        b.FlightId == booking.FlightId &&
-                        b.UserId == booking.UserId)
+            .Where(b => b.UserId == booking.UserId &&
+                        (b.BookingReference == booking.BookingReference ||
+                         (!string.IsNullOrEmpty(baseRef) && b.BookingReference.StartsWith(baseRef + "-"))))
             .ToListAsync();
 
         foreach (var b in related)
-        {
             b.Status = BookingStatus.Confirmed;
-        }
 
         await _context.SaveChangesAsync();
     }
-
-    private static string ExtractBaseRef(string? refStr)
-    {
-        if (string.IsNullOrWhiteSpace(refStr)) return "";
-        return System.Text.RegularExpressions.Regex.Replace(refStr.Trim(), @"-\d+$", "");
-    }
+    #endregion
 
     #region ConfirmBookingAsync
-    public async Task<object> ConfirmBookingAsync(string? userId, ConfirmBookingDto model)
+    public async Task<ConfirmBookingResultDto> ConfirmBookingAsync(string? userId, ConfirmBookingDto model)
     {
         if (model == null)
             throw new ArgumentNullException(nameof(model), "Invalid booking payload.");
 
-        // Resolve user if not provided
         if (string.IsNullOrEmpty(userId))
         {
             var guestEmail = model.Passengers.FirstOrDefault()?.Email;
             if (!string.IsNullOrEmpty(guestEmail))
             {
-                var userByEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email == guestEmail);
+                var userByEmail = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == guestEmail);
                 if (userByEmail != null) userId = userByEmail.Id;
             }
 
@@ -417,48 +501,87 @@ public class BookingService : IBookingService
             }
         }
 
+        if (model.Segments == null || model.Segments.Count == 0)
+            return new ConfirmBookingResultDto { Success = false, Message = "At least one flight segment is required." };
+
+        if (model.Passengers == null || model.Passengers.Count == 0)
+            return new ConfirmBookingResultDto { Success = false, Message = "At least one passenger is required." };
+
+        var resolvedFlights = new List<Flight>();
+        for (int sIdx = 0; sIdx < model.Segments.Count; sIdx++)
+        {
+            var seg = model.Segments[sIdx];
+            Flight? flight = null;
+
+            if (seg.FlightId.HasValue && seg.FlightId.Value > 0)
+                flight = await _context.Flights
+                    .Include(f => f.Aircraft)
+                    .FirstOrDefaultAsync(f => f.Id == seg.FlightId.Value);
+
+            if (flight == null && !string.IsNullOrWhiteSpace(seg.FlightNumber))
+            {
+                var clean = System.Text.RegularExpressions.Regex
+                    .Replace(seg.FlightNumber, @"[^\w\-]", "").Trim();
+                flight = await _context.Flights
+                    .Include(f => f.Aircraft)
+                    .FirstOrDefaultAsync(f =>
+                        f.FlightNumber == clean ||
+                        f.FlightNumber.Contains(clean) ||
+                        clean.Contains(f.FlightNumber));
+            }
+
+            if (flight == null)
+            {
+                var identifier = seg.FlightId.HasValue
+                    ? $"FlightId={seg.FlightId}"
+                    : (!string.IsNullOrWhiteSpace(seg.FlightNumber)
+                        ? $"FlightNumber={seg.FlightNumber}"
+                        : $"segment index {sIdx}");
+                return new ConfirmBookingResultDto
+                {
+                    Success = false,
+                    Message = $"Flight for segment {sIdx + 1} ({identifier}) could not be found. Please restart your booking."
+                };
+            }
+
+            resolvedFlights.Add(flight);
+        }
+
         var pnr = !string.IsNullOrWhiteSpace(model.BookingReference)
             ? model.BookingReference.Trim()
             : "SKY-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
 
         if (await _context.Bookings.AnyAsync(b => b.BookingReference == pnr))
-        {
             pnr = $"{pnr}-{Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper()}";
-        }
 
-        if (model.Passengers == null || model.Passengers.Count == 0)
+        var claimedSeatIdsByFlight = new Dictionary<int, HashSet<int>>();
+        foreach (var flight in resolvedFlights)
         {
-            model.Passengers = new List<ConfirmPassengerDto>
+            if (!claimedSeatIdsByFlight.ContainsKey(flight.Id))
             {
-                new ConfirmPassengerDto { FirstName = "Guest", LastName = "Traveler", Nationality = "Egypt", Passport = "PASS-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper() }
-            };
-        }
-
-        if (model.Segments == null || model.Segments.Count == 0)
-        {
-            var fallback = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync();
-            model.Segments = new List<ConfirmFlightSegmentDto>
-            {
-                new ConfirmFlightSegmentDto { FlightId = fallback?.Id ?? 3, FlightNumber = fallback?.FlightNumber ?? "SKB-101", Price = model.TotalPrice > 0 ? model.TotalPrice : 2560 }
-            };
+                var takenIds = await _context.Bookings
+                    .Where(b => b.FlightId == flight.Id && b.Status != BookingStatus.Cancelled)
+                    .Select(b => b.SeatId)
+                    .ToListAsync();
+                claimedSeatIdsByFlight[flight.Id] = new HashSet<int>(takenIds);
+            }
         }
 
         var createdBookings = new List<Booking>();
-        var totalTickets = model.Segments.Count * model.Passengers.Count;
-        decimal perTicketPrice = model.TotalPrice > 0 ? Math.Round(model.TotalPrice / totalTickets, 2) : 1200.00m;
-        var claimedSeatIdsByFlight = new Dictionary<int, HashSet<int>>();
 
         for (int pIdx = 0; pIdx < model.Passengers.Count; pIdx++)
         {
             var pDto = model.Passengers[pIdx];
             var passportNum = !string.IsNullOrWhiteSpace(pDto.Passport)
                 ? pDto.Passport.Trim()
-                : ("PASS-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper());
+                : "PASS-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
 
-            var passenger = await _context.Passengers.FirstOrDefaultAsync(p => p.PassportNumber == passportNum);
+            var passenger = await _context.Passengers
+                .FirstOrDefaultAsync(p => p.PassportNumber == passportNum);
+
             if (passenger == null)
             {
-                DateTime dob = DateTime.TryParse(pDto.Dob, out var parsedDob) ? parsedDob : new DateTime(2000, 1, 1);
+                DateTime dob = DateTime.TryParse(pDto.Dob, out var parsed) ? parsed : new DateTime(2000, 1, 1);
                 passenger = new Passenger
                 {
                     FirstName = !string.IsNullOrWhiteSpace(pDto.FirstName) ? pDto.FirstName.Trim() : $"Passenger {pIdx + 1}",
@@ -479,86 +602,76 @@ public class BookingService : IBookingService
                 if (!string.IsNullOrWhiteSpace(pDto.Nationality)) passenger.Nationality = pDto.Nationality.Trim();
                 if (!string.IsNullOrWhiteSpace(pDto.Email)) passenger.Email = pDto.Email.Trim();
                 if (!string.IsNullOrWhiteSpace(pDto.Phone)) passenger.Phone = pDto.Phone.Trim();
-                if (DateTime.TryParse(pDto.Dob, out var updatedDob)) passenger.DateOfBirth = updatedDob;
+                if (DateTime.TryParse(pDto.Dob, out var updDob)) passenger.DateOfBirth = updDob;
                 await _context.SaveChangesAsync();
             }
 
             for (int sIdx = 0; sIdx < model.Segments.Count; sIdx++)
             {
                 var seg = model.Segments[sIdx];
-                var isReturn = sIdx > 0;
+                var flight = resolvedFlights[sIdx];
+                var claimedSet = claimedSeatIdsByFlight[flight.Id];
 
-                Flight? flight = null;
-                if (seg.FlightId.HasValue && seg.FlightId.Value > 0)
-                    flight = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync(f => f.Id == seg.FlightId.Value);
+                decimal segmentPrice = seg.Price > 0 ? seg.Price : DeriveFlightPrice(flight);
 
-                if (flight == null && !string.IsNullOrWhiteSpace(seg.FlightNumber))
-                {
-                    var cleanNum = System.Text.RegularExpressions.Regex.Replace(seg.FlightNumber, @"[^\w\-]", "").Trim();
-                    flight = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync(f =>
-                        f.FlightNumber == cleanNum || f.FlightNumber.Contains(cleanNum) || cleanNum.Contains(f.FlightNumber));
-                }
+                string? seatString = (pDto.Seats != null && sIdx < pDto.Seats.Count)
+                    ? pDto.Seats[sIdx]
+                    : null;
 
-                if (flight == null)
-                    flight = await _context.Flights.Include(f => f.Aircraft).FirstOrDefaultAsync();
-
-                if (flight == null) continue;
-
-                if (!claimedSeatIdsByFlight.TryGetValue(flight.Id, out var claimedSet))
-                {
-                    var takenFromDb = await _context.Bookings
-                        .Where(b => b.FlightId == flight.Id && b.Status != BookingStatus.Cancelled)
-                        .Select(b => b.SeatId)
-                        .ToListAsync();
-                    claimedSet = new HashSet<int>(takenFromDb);
-                    claimedSeatIdsByFlight[flight.Id] = claimedSet;
-                }
-
-                var seatString = isReturn ? pDto.SeatReturn : pDto.SeatOutbound;
-                var seatMatch = !string.IsNullOrEmpty(seatString) ? System.Text.RegularExpressions.Regex.Match(seatString, @"\d+[A-Z]").Value : "";
+                var seatMatch = !string.IsNullOrEmpty(seatString)
+                    ? System.Text.RegularExpressions.Regex.Match(seatString, @"\d+[A-Z]").Value
+                    : "";
 
                 Seat? seat = null;
                 if (!string.IsNullOrEmpty(seatMatch))
-                {
-                    seat = await _context.Seats.FirstOrDefaultAsync(s => s.AircraftId == flight.AircraftId && s.SeatNumber == seatMatch);
-                }
+                    seat = await _context.Seats
+                        .FirstOrDefaultAsync(s => s.AircraftId == flight.AircraftId && s.SeatNumber == seatMatch);
 
-                // If seat not found, or already occupied by an active booking or another passenger in this batch:
                 if (seat == null || claimedSet.Contains(seat.Id))
                 {
-                    SeatClass desiredClass = seat != null ? seat.Class : (seg.Price > 1500 ? SeatClass.FirstClass : (seg.Price > 600 ? SeatClass.Business : SeatClass.Economy));
+                    SeatClass desiredClass = seat != null
+                        ? seat.Class
+                        : DeriveDesiredClass(flight, seg.Price);
 
                     seat = await _context.Seats
-                        .Where(s => s.AircraftId == flight.AircraftId && s.Class == desiredClass && !claimedSet.Contains(s.Id))
+                        .Where(s => s.AircraftId == flight.AircraftId
+                                 && s.Class == desiredClass
+                                 && !claimedSet.Contains(s.Id))
                         .OrderBy(s => s.Id)
                         .FirstOrDefaultAsync();
 
-                    if (seat == null)
-                    {
-                        seat = await _context.Seats
-                            .Where(s => s.AircraftId == flight.AircraftId && !claimedSet.Contains(s.Id))
-                            .OrderBy(s => s.Id)
-                            .FirstOrDefaultAsync();
-                    }
+                    seat ??= await _context.Seats
+                        .Where(s => s.AircraftId == flight.AircraftId && !claimedSet.Contains(s.Id))
+                        .OrderBy(s => s.Id)
+                        .FirstOrDefaultAsync();
                 }
 
-                if (seat != null)
+                if (seat == null)
                 {
-                    claimedSet.Add(seat.Id);
+                    _context.ChangeTracker.Clear();
+                    return new ConfirmBookingResultDto
+                    {
+                        Success = false,
+                        Message = $"No available seats on flight {flight.FlightNumber} for passenger {pIdx + 1}. The flight may be full."
+                    };
                 }
 
-                var ticketRef = createdBookings.Count == 0 ? pnr : $"{pnr}-{(createdBookings.Count + 1)}";
+                claimedSet.Add(seat.Id);
+
+                var ticketRef = createdBookings.Count == 0
+                    ? pnr
+                    : $"{pnr}-{createdBookings.Count + 1}";
 
                 var booking = new Booking
                 {
                     UserId = userId,
                     PassengerId = passenger.Id,
                     FlightId = flight.Id,
-                    SeatId = seat?.Id ?? 1051,
+                    SeatId = seat.Id,
                     BookingDate = DateTime.Now,
-                    TotalPrice = perTicketPrice,
+                    TotalPrice = segmentPrice,
                     BookingReference = ticketRef,
-                    Status = BookingStatus.Confirmed
+                    Status = BookingStatus.PendingPayment
                 };
 
                 _context.Bookings.Add(booking);
@@ -566,19 +679,58 @@ public class BookingService : IBookingService
             }
         }
 
+        if (model.TotalPrice > 0 && createdBookings.Count > 0)
+        {
+            var currentSum = createdBookings.Sum(b => b.TotalPrice);
+            if (currentSum != model.TotalPrice)
+            {
+                decimal perBooking = Math.Round(model.TotalPrice / createdBookings.Count, 2);
+                decimal remainder = model.TotalPrice - (perBooking * createdBookings.Count);
+                for (int i = 0; i < createdBookings.Count; i++)
+                {
+                    createdBookings[i].TotalPrice = perBooking + (i == 0 ? remainder : 0);
+                }
+            }
+        }
+
         await _context.SaveChangesAsync();
 
-        return new
+        return new ConfirmBookingResultDto
         {
-            success = true,
-            bookingReference = pnr,
-            bookingsCreated = createdBookings.Count,
-            message = "Reservation successfully persisted to SQL Server database."
+            Success = true,
+            BookingId = createdBookings.FirstOrDefault()?.Id ?? 0,
+            BookingReference = pnr,
+            BookingsCreated = createdBookings.Count,
+            Message = "Reservation successfully persisted."
         };
     }
     #endregion
 
-    #region GetOccupiedSeatNumbersAsync
+    #region Helpers
+    private static decimal DeriveFlightPrice(Flight flight)
+    {
+        if (flight.EconomyPrice > 0) return flight.EconomyPrice;
+        if (flight.Price > 0) return flight.Price;
+        return 0;
+    }
+
+    private static SeatClass DeriveDesiredClass(Flight flight, decimal segmentPrice)
+    {
+        if (flight.FirstClassPrice > 0 && segmentPrice >= flight.FirstClassPrice)
+            return SeatClass.FirstClass;
+        if (flight.BusinessPrice > 0 && segmentPrice >= flight.BusinessPrice)
+            return SeatClass.Business;
+        return SeatClass.Economy;
+    }
+
+    private static string ExtractBaseRef(string? refStr)
+    {
+        if (string.IsNullOrWhiteSpace(refStr)) return "";
+        return System.Text.RegularExpressions.Regex.Replace(refStr.Trim(), @"-\d+$", "");
+    }
+    #endregion
+
+    #region GetOccupiedSeatNumbers
     public async Task<List<string>> GetOccupiedSeatNumbersAsync(int? flightId, string? flightNumber)
     {
         var query = _context.Bookings.Where(b => b.Status != BookingStatus.Cancelled);
@@ -589,8 +741,12 @@ public class BookingService : IBookingService
         }
         else if (!string.IsNullOrWhiteSpace(flightNumber))
         {
-            var cleanNum = System.Text.RegularExpressions.Regex.Replace(flightNumber, @"[^\w\-]", "").Trim();
-            query = query.Where(b => b.Flight.FlightNumber == cleanNum || b.Flight.FlightNumber.Contains(cleanNum) || cleanNum.Contains(b.Flight.FlightNumber));
+            var clean = System.Text.RegularExpressions.Regex
+                .Replace(flightNumber, @"[^\w\-]", "").Trim();
+            query = query.Where(b =>
+                b.Flight.FlightNumber == clean ||
+                b.Flight.FlightNumber.Contains(clean) ||
+                clean.Contains(b.Flight.FlightNumber));
         }
         else
         {
@@ -606,31 +762,29 @@ public class BookingService : IBookingService
     }
     #endregion
 
-    #region GetFlightSeatLayoutAsync
+    #region GetFlightSeatLayout
     public async Task<FlightSeatLayoutDto?> GetFlightSeatLayoutAsync(int? flightId, string? flightNumber)
     {
         Flight? flight = null;
+
         if (flightId.HasValue && flightId.Value > 0)
-        {
             flight = await _context.Flights
-                .Include(f => f.Aircraft)
-                    .ThenInclude(a => a.Seats)
+                .Include(f => f.Aircraft).ThenInclude(a => a.Seats)
                 .FirstOrDefaultAsync(f => f.Id == flightId.Value);
-        }
 
         if (flight == null && !string.IsNullOrWhiteSpace(flightNumber))
         {
-            var cleanNum = System.Text.RegularExpressions.Regex.Replace(flightNumber, @"[^\w\-]", "").Trim();
+            var clean = System.Text.RegularExpressions.Regex
+                .Replace(flightNumber, @"[^\w\-]", "").Trim();
             flight = await _context.Flights
-                .Include(f => f.Aircraft)
-                    .ThenInclude(a => a.Seats)
-                .FirstOrDefaultAsync(f => f.FlightNumber == cleanNum || f.FlightNumber.Contains(cleanNum) || cleanNum.Contains(f.FlightNumber));
+                .Include(f => f.Aircraft).ThenInclude(a => a.Seats)
+                .FirstOrDefaultAsync(f =>
+                    f.FlightNumber == clean ||
+                    f.FlightNumber.Contains(clean) ||
+                    clean.Contains(f.FlightNumber));
         }
 
-        if (flight == null)
-        {
-            return null;
-        }
+        if (flight == null) return null;
 
         var occupiedSeats = await _context.Bookings
             .Where(b => b.FlightId == flight.Id && b.Status != BookingStatus.Cancelled && b.Seat != null)
@@ -642,33 +796,24 @@ public class BookingService : IBookingService
         var aircraft = flight.Aircraft;
         var seats = aircraft?.Seats?.OrderBy(s => s.Id).ToList() ?? new List<Seat>();
 
-        var seatDetails = new List<SeatDetailDto>();
-        foreach (var s in seats)
+        var seatDetails = seats.Select(s =>
         {
-            var match = System.Text.RegularExpressions.Regex.Match(s.SeatNumber ?? "", @"^(\d+)([A-Z])$");
-            int row = 0;
-            string letter = "";
-            if (match.Success)
-            {
-                int.TryParse(match.Groups[1].Value, out row);
-                letter = match.Groups[2].Value;
-            }
-
+            var m = System.Text.RegularExpressions.Regex.Match(s.SeatNumber ?? "", @"^(\d+)([A-Z])$");
+            int.TryParse(m.Groups[1].Value, out int row);
             string cabin = s.Class switch
             {
                 SeatClass.FirstClass => "first",
                 SeatClass.Business => "business",
                 _ => "economy"
             };
-
-            seatDetails.Add(new SeatDetailDto
+            return new SeatDetailDto
             {
                 SeatNumber = s.SeatNumber ?? "",
                 CabinClass = cabin,
                 Row = row,
-                Letter = letter
-            });
-        }
+                Letter = m.Groups[2].Value
+            };
+        }).ToList();
 
         int firstCount = seats.Count(s => s.Class == SeatClass.FirstClass);
         int busCount = seats.Count(s => s.Class == SeatClass.Business);
@@ -689,5 +834,3 @@ public class BookingService : IBookingService
     }
     #endregion
 }
-
-
