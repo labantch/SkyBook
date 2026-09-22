@@ -122,28 +122,7 @@
             <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
                 <span class="text-[10px] uppercase text-slate-400 font-semibold">Itinerary Details</span>
             </div>
-            <div class="p-4 space-y-4">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Flight</span>
-                        <span class="font-bold text-midnight-900 text-sm" id="bd-flight">--</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Route</span>
-                        <span class="font-bold text-midnight-900 text-sm" id="bd-route">--</span>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
-                    <div>
-                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Travel Date</span>
-                        <span class="font-semibold text-slate-800" id="bd-date">--</span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase text-slate-400 font-semibold block">Seat / Cabin</span>
-                        <span class="font-mono text-slate-800 font-semibold" id="bd-seat">--</span>
-                    </div>
-                </div>
-            </div>
+            <div class="p-4 space-y-4" id="bd-itinerary-container"></div>
         </div>
 
         <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -213,10 +192,11 @@
           routeSummary: (b.departureAirPort && b.arrivalAirPort) ? `${b.departureAirPort} → ${b.arrivalAirPort}` : '-',
           travelDate: b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
           seat: b.seatNumber || '-',
-          price: b.totalPrice != null ? `$${parseFloat(b.totalPrice).toFixed(2)}` : '-',
+          price: b.totalPrice != null ? `£${parseFloat(b.totalPrice).toFixed(2)}` : '-',
           status: b.status != null ? getStatusText(b.status) : 'Confirmed',
           id: b.bookingId,
-          passengers: b.passengers || []
+          passengers: b.passengers || [],
+          segments: b.segments || []
         };
       })
     };
@@ -506,10 +486,53 @@
       const emailEl = document.getElementById('bd-email');
       if (emailEl) emailEl.innerText = booking.userEmail || 'Registered Customer';
       
-      document.getElementById('bd-flight').innerText = booking.flightCode;
-      document.getElementById('bd-route').innerText = booking.routeSummary;
-      document.getElementById('bd-date').innerText = booking.travelDate;
-      document.getElementById('bd-seat').innerText = booking.seat;
+      const itineraryContainer = document.getElementById('bd-itinerary-container');
+      const itinerarySegments = booking.segments.length > 0
+        ? booking.segments
+        : [{
+            flightNumber: booking.flightCode,
+            departureAirport: booking.departureAirPort,
+            arrivalAirport: booking.arrivalAirPort,
+            departureTime: booking.bookingDate,
+            seatNumbers: booking.seat
+          }];
+
+      if (itineraryContainer) {
+        itineraryContainer.innerHTML = itinerarySegments.map((segment, index) => {
+          const travelDate = segment.departureTime
+            ? new Date(segment.departureTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '-';
+          const route = (segment.departureAirport && segment.arrivalAirport)
+            ? `${segment.departureAirport} to ${segment.arrivalAirport}`
+            : '-';
+          const divider = index > 0 ? 'border-t border-slate-200 pt-4' : '';
+
+          return `
+            <div class="space-y-3 ${divider}">
+              ${itinerarySegments.length > 1 ? `<span class="text-[10px] uppercase tracking-wider text-champagne-700 font-bold">Flight ${index + 1} of ${itinerarySegments.length}</span>` : ''}
+              <div class="flex justify-between items-center gap-4">
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 font-semibold block">Flight</span>
+                  <span class="font-bold text-midnight-900 text-sm">${segment.flightNumber || '-'}</span>
+                </div>
+                <div class="text-right min-w-0">
+                  <span class="text-[10px] uppercase text-slate-400 font-semibold block">Route</span>
+                  <span class="font-bold text-midnight-900 text-sm block">${route}</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 font-semibold block">Travel Date</span>
+                  <span class="font-semibold text-slate-800">${travelDate}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 font-semibold block">Seat / Cabin</span>
+                  <span class="font-mono text-slate-800 font-semibold">${segment.seatNumbers || '-'}</span>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+      }
       document.getElementById('bd-price').innerText = booking.price;
 
       // Populate Passengers Manifest (All passengers in this reservation)

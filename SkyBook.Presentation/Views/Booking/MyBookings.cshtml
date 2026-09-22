@@ -175,7 +175,7 @@
                data-passengers='@Html.Raw(passengersJson)'
                data-segments='@Html.Raw(segmentsJson)'
                data-trip-type='@item.TripType'
-               data-price='$@item.TotalPrice.ToString("N2")'
+               data-price='£@item.TotalPrice.ToString("N2")'
                data-booked-date='@item.BookingDate.ToString("MMM dd, yyyy")'
                data-status="@item.Status.ToString()"
                data-is-upcoming='@(isUpcoming ? "true" : "false")'

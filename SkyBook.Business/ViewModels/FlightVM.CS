@@ -53,6 +53,9 @@ namespace SkyBook.Business.ViewModels
         public string? AircraftName { get; set; }
 
         public int AvailableSeats { get; set; }
+        public int AvailableEconomySeats { get; set; }
+        public int AvailableBusinessSeats { get; set; }
+        public int AvailableFirstClassSeats { get; set; }
 
         public List<FlightStopVM> Stops { get; set; } = new();
         public bool IsDirect => Stops == null || Stops.Count == 0;

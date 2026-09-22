@@ -622,26 +622,21 @@ public class BookingService : IBookingService
                     ? System.Text.RegularExpressions.Regex.Match(seatString, @"\d+[A-Z]").Value
                     : "";
 
+                SeatClass desiredClass = DeriveDesiredClass(flight, seg.Price);
+
                 Seat? seat = null;
                 if (!string.IsNullOrEmpty(seatMatch))
                     seat = await _context.Seats
-                        .FirstOrDefaultAsync(s => s.AircraftId == flight.AircraftId && s.SeatNumber == seatMatch);
+                        .FirstOrDefaultAsync(s => s.AircraftId == flight.AircraftId &&
+                                                  s.SeatNumber == seatMatch &&
+                                                  s.Class == desiredClass);
 
                 if (seat == null || claimedSet.Contains(seat.Id))
                 {
-                    SeatClass desiredClass = seat != null
-                        ? seat.Class
-                        : DeriveDesiredClass(flight, seg.Price);
-
                     seat = await _context.Seats
                         .Where(s => s.AircraftId == flight.AircraftId
                                  && s.Class == desiredClass
                                  && !claimedSet.Contains(s.Id))
-                        .OrderBy(s => s.Id)
-                        .FirstOrDefaultAsync();
-
-                    seat ??= await _context.Seats
-                        .Where(s => s.AircraftId == flight.AircraftId && !claimedSet.Contains(s.Id))
                         .OrderBy(s => s.Id)
                         .FirstOrDefaultAsync();
                 }
@@ -652,7 +647,7 @@ public class BookingService : IBookingService
                     return new ConfirmBookingResultDto
                     {
                         Success = false,
-                        Message = $"No available seats on flight {flight.FlightNumber} for passenger {pIdx + 1}. The flight may be full."
+                        Message = $"No available {desiredClass} seats remain on flight {flight.FlightNumber} for passenger {pIdx + 1}."
                     };
                 }
 

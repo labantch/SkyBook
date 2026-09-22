@@ -44,6 +44,14 @@ namespace SkyBook.Business.Service
                     Message = "This booking is already confirmed."
                 };
             }
+            if (booking.Status == BookingStatus.Cancelled)
+            {
+                return new PaymentResult
+                {
+                    IsSuccess = false,
+                    Message = "A cancelled booking cannot be paid. Please create a new reservation."
+                };
+            }
             var existingPayment = await _context.payments
                 .FirstOrDefaultAsync(x => x.BookingId == bookingId);
 
@@ -147,7 +155,8 @@ namespace SkyBook.Business.Service
                 payment.PaidAt = DateTime.UtcNow;
                 foreach (var b in related)
                 {
-                    b.Status = BookingStatus.Confirmed;
+                    if (b.Status != BookingStatus.Cancelled)
+                        b.Status = BookingStatus.Confirmed;
                 }
             }
             if (status == PaymentStatus.Failed)

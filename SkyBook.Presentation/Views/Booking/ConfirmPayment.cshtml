@@ -211,19 +211,19 @@
                         <div class="flex flex-col gap-1.5 text-xs">
                             <div class="flex items-center justify-between text-slate-600">
                                 <span id="cp-base-fare-label">Base Airfare</span>
-                                <span class="font-semibold text-[#0B192C]" id="cp-base-fare">$0.00</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-base-fare">£0.00</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Taxes &amp; Carrier Fees</span>
-                                <span class="font-semibold text-[#0B192C]" id="cp-taxes">$0.00</span>
+                                <span class="font-semibold text-[#0B192C]" id="cp-taxes">£0.00</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Preferred Seats</span>
-                                <span class="text-[#725b38] font-bold">Included ($0.00)</span>
+                                <span class="text-[#725b38] font-bold">Included (£0.00)</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Checked Luggage (2× 23kg)</span>
-                                <span class="text-[#725b38] font-bold">Included ($0.00)</span>
+                                <span class="text-[#725b38] font-bold">Included (£0.00)</span>
                             </div>
                         </div>
                     </div>
@@ -232,9 +232,9 @@
                     <div class="bg-[#0B192C] text-white rounded-lg p-4 shadow-sm border border-[#1b2b42]">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Total Trip Fare</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/15 text-[#fedeb2]">USD All-inclusive</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/15 text-[#fedeb2]">EGP All-inclusive</span>
                         </div>
-                        <div class="text-2xl font-bold tracking-tight text-white mt-1 font-mono" id="cp-total-price">$0.00</div>
+                        <div class="text-2xl font-bold tracking-tight text-white mt-1 font-mono" id="cp-total-price">£0.00</div>
                         <div class="flex items-center gap-1 mt-1.5 text-[11px] text-[#fedeb2]">
                             <span class="material-symbols-outlined text-[13px]">bolt</span>
                             <span>Instant PNR issued immediately</span>
@@ -564,13 +564,13 @@ function renderAllConfirmData() {
         const rawPrice = flightsData.totalPrice;
         if (rawPrice && Number(rawPrice) > 0) {
             const priceNum        = Number(rawPrice);
-            const priceFormatted  = `$${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const priceFormatted  = `£${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             const baseFareNum     = Math.round(priceNum * 0.9375 * 100) / 100;
             const taxNum          = Math.round((priceNum - baseFareNum) * 100) / 100;
 
             setText('cp-total-price', priceFormatted);
-            setText('cp-base-fare',   `$${baseFareNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-            setText('cp-taxes',       `$${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            setText('cp-base-fare',   `£${baseFareNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            setText('cp-taxes',       `£${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 
             const btnLabel = document.getElementById('button-label');
             if (btnLabel) {

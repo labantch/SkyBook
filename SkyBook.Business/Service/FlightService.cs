@@ -44,6 +44,9 @@ public class FlightService : IFlightService
                 ArrivalAirportCity = f.ArrivalAirport.City,
                 AircraftName = f.Aircraft.Name,
                 AvailableSeats = f.Aircraft.Seats.Count - f.Bookings.Count(b => b.Status != BookingStatus.Cancelled),
+                AvailableEconomySeats = f.Aircraft.Seats.Count(s => s.Class == SeatClass.Economy) - f.Bookings.Count(b => b.Status != BookingStatus.Cancelled && b.Seat.Class == SeatClass.Economy),
+                AvailableBusinessSeats = f.Aircraft.Seats.Count(s => s.Class == SeatClass.Business) - f.Bookings.Count(b => b.Status != BookingStatus.Cancelled && b.Seat.Class == SeatClass.Business),
+                AvailableFirstClassSeats = f.Aircraft.Seats.Count(s => s.Class == SeatClass.FirstClass) - f.Bookings.Count(b => b.Status != BookingStatus.Cancelled && b.Seat.Class == SeatClass.FirstClass),
                 Stops = f.Stops
                     .OrderBy(s => s.StopOrder)
                     .Select(s => new FlightStopVM

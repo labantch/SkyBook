@@ -141,7 +141,7 @@
                data-seat='@(string.IsNullOrEmpty(item.SeatNumber) ? "Not Assigned" : item.SeatNumber)'
                data-passenger='@(string.IsNullOrWhiteSpace(item.PassengerName) ? "Mohamed Laban" : item.PassengerName)'
                data-passengers='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Passengers, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))'
-               data-price='$@item.TotalPrice.ToString("N2")'
+               data-price='£@item.TotalPrice.ToString("N2")'
                data-booked-date='@item.BookingDate.ToString("MMM dd, yyyy")'
                data-status="@item.Status.ToString()"
                data-is-upcoming='@(isUpcoming ? "true" : "false")'
@@ -399,7 +399,7 @@
             </div>
             <div class="text-right flex-shrink-0">
               <span class="text-[10px] font-bold uppercase tracking-wider text-[#C5A880] block">Total Fare</span>
-              <p id="drawer-price" class="text-lg font-black text-emerald-400 font-mono">$6,000.00</p>
+              <p id="drawer-price" class="text-lg font-black text-emerald-400 font-mono">£6,000.00</p>
               <span class="inline-flex items-center gap-1 text-[10px] text-emerald-300 font-bold">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Confirmed Paid
               </span>
@@ -495,7 +495,7 @@
               </div>
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Total Fare</span>
-                <span id="drawer-manifest-price" class="font-mono font-bold text-emerald-600">$0.00</span>
+                <span id="drawer-manifest-price" class="font-mono font-bold text-emerald-600">£0.00</span>
               </div>
               <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span class="text-[10px] font-bold uppercase text-slate-400 block">Booking Date</span>
@@ -700,7 +700,7 @@
       seat: card.getAttribute('data-seat') || 'Not Assigned',
       passenger: card.getAttribute('data-passenger') || 'Mohamed Laban',
       passengers: parsedPassengers,
-      price: card.getAttribute('data-price') || '$0.00',
+      price: card.getAttribute('data-price') || '£0.00',
       bookingDate: card.getAttribute('data-booked-date') || '',
       status: card.getAttribute('data-status') || '',
       isUpcoming: card.getAttribute('data-is-upcoming') === 'true',
@@ -745,7 +745,7 @@
     if (arrivalTimeEl) arrivalTimeEl.textContent = data.arrivalTime || '';
     if (seatEl) seatEl.textContent = data.seat || 'Not Assigned';
     if (passengerEl) passengerEl.textContent = data.passenger || 'Mohamed Laban';
-    if (priceEl) priceEl.textContent = data.price || '$0.00';
+    if (priceEl) priceEl.textContent = data.price || '£0.00';
     if (bookedDateEl) bookedDateEl.textContent = data.bookingDate || data.date || '';
 
     // Render All Passengers dynamically
@@ -781,7 +781,7 @@
     }
 
     if (manifestRefEl) manifestRefEl.textContent = data.ref || '';
-    if (manifestPriceEl) manifestPriceEl.textContent = data.price || '$0.00';
+    if (manifestPriceEl) manifestPriceEl.textContent = data.price || '£0.00';
     if (manifestDateEl) manifestDateEl.textContent = data.bookingDate || data.date || '';
 
     if (manifestStatusEl) {

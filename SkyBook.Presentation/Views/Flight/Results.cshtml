@@ -149,7 +149,7 @@
       <div class="flex items-center space-x-2.5 shrink-0">
         <span class="text-xs font-medium text-slate-600 whitespace-nowrap">Budget:</span>
         <input class="w-32 accent-[#0B192C] h-1.5 bg-slate-200 rounded appearance-none cursor-pointer" id="budget-slider" max="30000" min="500" oninput="handleBudgetChange(this.value)" step="100" type="range" value="30000">
-        <span class="font-mono font-bold text-xs text-[#0B192C] bg-slate-100 px-2.5 py-1 rounded border border-slate-200 whitespace-nowrap" id="budget-val-badge">$30,000</span>
+        <span class="font-mono font-bold text-xs text-[#0B192C] bg-slate-100 px-2.5 py-1 rounded border border-slate-200 whitespace-nowrap" id="budget-val-badge">£30,000</span>
       </div>
 
       <!-- Reset CTA -->
@@ -193,8 +193,8 @@
           <div class="flex items-baseline justify-between">
             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="sidebar-total-pax-label">Total Trip Fare</span>
             <div class="flex items-baseline space-x-1">
-              <span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="sidebar-total-price-val">$0</span>
-              <span class="text-xs font-semibold text-slate-500 font-sans">USD</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="sidebar-total-price-val">£0</span>
+              <span class="text-xs font-semibold text-slate-500 font-sans">EGP</span>
             </div>
           </div>
           <button class="w-full bg-[#0B192C] hover:bg-[#162840] text-white py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold shadow transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2" id="sidebar-main-cta" onclick="handlePrimaryAction()" type="button">
@@ -373,6 +373,11 @@
           status: f.status === 0 ? 'On Schedule' : 'Scheduled',
           availableSeats: (typeof f.availableSeats === 'number') ? `${f.availableSeats} Seats Available` : 'Live Inventory',
           seatsCount: (typeof f.availableSeats === 'number') ? f.availableSeats : 340,
+          cabinSeats: {
+            eco: Number.isFinite(Number(f.availableEconomySeats)) ? Number(f.availableEconomySeats) : 0,
+            bus: Number.isFinite(Number(f.availableBusinessSeats)) ? Number(f.availableBusinessSeats) : 0,
+            fst: Number.isFinite(Number(f.availableFirstClassSeats)) ? Number(f.availableFirstClassSeats) : 0
+          },
           depTime: depTime,
           depDate: depDate,
           depCode: depCode,
@@ -477,7 +482,7 @@
         slider.min = sliderFloor;
         slider.max = sliderCeiling;
         slider.value = sliderCeiling;
-        badge.textContent = '$' + sliderCeiling.toLocaleString();
+        badge.textContent = '£' + sliderCeiling.toLocaleString();
         appState.filters.maxBudget = sliderCeiling;
       }
     }
@@ -1036,21 +1041,21 @@
               <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-xs text-[#0B192C]">Economy Horizon</span>
-                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.eco.price.toLocaleString()}</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">£${flight.tiers.eco.price.toLocaleString()}</span>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-1">2x 23kg Checked Bags • Complimentary Dining • USB-C In-seat Power</p>
               </div>
               <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-xs text-[#0B192C]">Business Lie-flat Pod</span>
-                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.bus.price.toLocaleString()}</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">£${flight.tiers.bus.price.toLocaleString()}</span>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-1">2x 32kg Checked Bags • Fully Lie-Flat Bed • Flagship Lounge Access • Priority Boarding</p>
               </div>
               <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-xs text-[#0B192C]">First Sovereign Suite</span>
-                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">$${flight.tiers.fst.price.toLocaleString()}</span>
+                  <span class="font-mono font-extrabold text-sm text-[#0B192C]">£${flight.tiers.fst.price.toLocaleString()}</span>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-1">3x 32kg Checked Bags • Private Enclosed Suite Door • Michelin-curated Caviar • Chauffeur Drive</p>
               </div>
@@ -1074,6 +1079,8 @@
       if (!seg) return;
 
       const flightObj = findFlightById(flightId);
+      const requiredSeats = appState.passengerCount || 1;
+      if (!flightObj || (flightObj.cabinSeats && (flightObj.cabinSeats[tierKey] || 0) < requiredSeats)) return;
       const dbId = flightObj ? flightObj.dbId : 0;
 
       if (seg.selectedFlight && seg.selectedFlight.cardId === flightId && seg.selectedFlight.tierKey === tierKey) {
@@ -1189,7 +1196,7 @@
 
     window.handleBudgetChange = function(val) {
       appState.filters.maxBudget = Number(val);
-      document.getElementById('budget-val-badge').textContent = '$' + Number(val).toLocaleString();
+      document.getElementById('budget-val-badge').textContent = '£' + Number(val).toLocaleString();
       renderFlightCards();
     };
 
@@ -1228,7 +1235,7 @@
       if (chkFst) chkFst.checked = true;
       if (slider) slider.value = maxVal;
       const budgetBadge = document.getElementById('budget-val-badge');
-      if (budgetBadge) budgetBadge.textContent = '$' + maxVal.toLocaleString();
+      if (budgetBadge) budgetBadge.textContent = '£' + maxVal.toLocaleString();
       if (sortSel) sortSel.value = 'recommended';
       setDepartureWindow('all');
     };
@@ -1259,8 +1266,8 @@
         let descText = '';
         if (isSelected) {
           const fareNote = paxCount > 1 
-            ? `$${seg.selectedFlight.price.toLocaleString()} × ${paxCount} = $${(seg.selectedFlight.price * paxCount).toLocaleString()}` 
-            : `$${seg.selectedFlight.price.toLocaleString()}`;
+            ? `£${seg.selectedFlight.price.toLocaleString()} × ${paxCount} = £${(seg.selectedFlight.price * paxCount).toLocaleString()}`
+            : `£${seg.selectedFlight.price.toLocaleString()}`;
           descText = `${seg.shortDate} • ${seg.selectedFlight.flightNum} • ${seg.selectedFlight.cabin} (${fareNote})`;
         } else if (isCurrent) {
           descText = `${seg.shortDate} • Select flight now`;
@@ -1291,7 +1298,7 @@
       container.innerHTML = html;
 
       const totalEl = document.getElementById('sidebar-total-price-val');
-      if (totalEl) totalEl.textContent = '$' + totalFare.toLocaleString();
+      if (totalEl) totalEl.textContent = '£' + totalFare.toLocaleString();
 
       const paxBadge = document.getElementById('sidebar-pax-badge');
       if (paxBadge) paxBadge.textContent = appState.passengerSummary || '1 Passenger, Business Class';
@@ -1494,24 +1501,31 @@
 
         // TIER 1: Economy
         const eco = flight.tiers.eco;
+        const ecoAvailable = (flight.cabinSeats?.eco || 0) >= (appState.passengerCount || 1);
         const isEcoSelected = isFlightSelected && selectedTier === 'eco';
         const isEcoSearched = appState.searchedCabin === 'eco';
-        const ecoCardBorderClass = isEcoSelected
+        const ecoCardBorderClass = !ecoAvailable
+          ? 'border border-slate-200 rounded-xl bg-slate-50 opacity-60'
+          : isEcoSelected
           ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
           : (isEcoSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
-        const ecoBtn = isEcoSelected
+        const ecoBtn = !ecoAvailable
+          ? `<button class="w-full py-2 px-3 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed" type="button" disabled>Sold Out</button>`
+          : isEcoSelected
           ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco'); event.stopPropagation();">Selected ✓</button>`
           : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco'); event.stopPropagation();">Select Fare</button>`;
-        const ecoBadge = isEcoSelected
+        const ecoBadge = !ecoAvailable
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-slate-500 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SOLD OUT</span>`
+          : isEcoSelected
           ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
           : (isEcoSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
 
         const ecoHtml = `
-          <div class="bundle-col fare-card ${ecoCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco')">
+          <div class="bundle-col fare-card ${ecoCardBorderClass} p-4 flex flex-col justify-between ${ecoAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}" ${ecoAvailable ? `onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${eco.name}', ${eco.price}, 'eco')"` : ''}>
             ${ecoBadge}
             <div>
               <span class="text-[10px] font-extrabold text-[#0B192C] uppercase tracking-wider block">ECONOMY</span>
-              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${eco.price.toLocaleString()}</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">£${eco.price.toLocaleString()}</span>
               <span class="text-[10px] text-emerald-700 font-bold mt-0.5 block">${eco.note}</span>
               <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
                 ${eco.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}
@@ -1525,24 +1539,31 @@
 
         // TIER 2: Business
         const bus = flight.tiers.bus;
+        const busAvailable = (flight.cabinSeats?.bus || 0) >= (appState.passengerCount || 1);
         const isBusSelected = isFlightSelected && selectedTier === 'bus';
         const isBusSearched = appState.searchedCabin === 'bus';
-        const busCardBorderClass = isBusSelected
+        const busCardBorderClass = !busAvailable
+          ? 'border border-slate-200 rounded-xl bg-slate-50 opacity-60'
+          : isBusSelected
           ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
           : (isBusSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
-        const busBtn = isBusSelected
+        const busBtn = !busAvailable
+          ? `<button class="w-full py-2 px-3 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed" type="button" disabled>Sold Out</button>`
+          : isBusSelected
           ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus'); event.stopPropagation();">Selected ✓</button>`
           : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus'); event.stopPropagation();">Select Fare</button>`;
-        const busBadge = isBusSelected
+        const busBadge = !busAvailable
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-slate-500 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SOLD OUT</span>`
+          : isBusSelected
           ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
           : (isBusSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
 
         const busHtml = `
-          <div class="bundle-col fare-card ${busCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus')">
+          <div class="bundle-col fare-card ${busCardBorderClass} p-4 flex flex-col justify-between ${busAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}" ${busAvailable ? `onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${bus.name}', ${bus.price}, 'bus')"` : ''}>
             ${busBadge}
             <div>
               <span class="text-[10px] font-extrabold text-[#0B192C] uppercase tracking-wider block">BUSINESS</span>
-              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${bus.price.toLocaleString()}</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">£${bus.price.toLocaleString()}</span>
               <span class="text-[10px] text-slate-500 mt-0.5 block">${bus.note}</span>
               <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
                 ${bus.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}
@@ -1556,24 +1577,31 @@
 
         // TIER 3: First Suite
         const fst = flight.tiers.fst;
+        const fstAvailable = (flight.cabinSeats?.fst || 0) >= (appState.passengerCount || 1);
         const isFstSelected = isFlightSelected && selectedTier === 'fst';
         const isFstSearched = appState.searchedCabin === 'fst';
-        const fstCardBorderClass = isFstSelected
+        const fstCardBorderClass = !fstAvailable
+          ? 'border border-slate-200 rounded-xl bg-slate-50 opacity-60'
+          : isFstSelected
           ? 'border-2 border-[#0B192C] shadow-md relative rounded-xl bg-white ring-1 ring-[#0B192C]/10'
           : (isFstSearched ? 'border-2 border-[#C5A880] shadow-sm relative rounded-xl bg-white ring-1 ring-[#C5A880]/30' : 'border border-slate-200 hover:border-slate-300 rounded-xl bg-white');
-        const fstBtn = isFstSelected
+        const fstBtn = !fstAvailable
+          ? `<button class="w-full py-2 px-3 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed" type="button" disabled>Sold Out</button>`
+          : isFstSelected
           ? `<button class="select-fare-btn w-full py-2 px-3 bg-[#0B192C] text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors flex items-center justify-center gap-1 cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst'); event.stopPropagation();">Selected ✓</button>`
           : `<button class="select-fare-btn w-full py-2 px-3 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:border-slate-900 hover:text-[#0B192C] transition-colors cursor-pointer" type="button" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst'); event.stopPropagation();">Select Fare</button>`;
-        const fstBadge = isFstSelected
+        const fstBadge = !fstAvailable
+          ? `<span class="selected-badge absolute -top-2.5 right-4 bg-slate-500 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SOLD OUT</span>`
+          : isFstSelected
           ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#0B192C] text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SELECTED</span>`
           : (isFstSearched ? `<span class="selected-badge absolute -top-2.5 right-4 bg-[#C5A880] text-[#0B192C] text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow-sm">SEARCHED CABIN</span>` : ``);
 
         const fstHtml = `
-          <div class="bundle-col fare-card ${fstCardBorderClass} p-4 flex flex-col justify-between cursor-pointer" onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst')">
+          <div class="bundle-col fare-card ${fstCardBorderClass} p-4 flex flex-col justify-between ${fstAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}" ${fstAvailable ? `onclick="selectFare(${appState.activeSegmentIndex}, '${flight.id}', '${flight.flightNum}', '${fst.name}', ${fst.price}, 'fst')"` : ''}>
             ${fstBadge}
             <div>
               <span class="text-[10px] font-extrabold text-[#A0825B] uppercase tracking-wider block">FIRST SUITE</span>
-              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">$${fst.price.toLocaleString()}</span>
+              <span class="text-2xl font-extrabold text-[#0B192C] block mt-1 font-mono">£${fst.price.toLocaleString()}</span>
               <span class="text-[10px] text-amber-800 font-bold mt-0.5 block">${fst.note}</span>
               <ul class="mt-2.5 space-y-1 text-[11px] text-slate-600">
                 ${fst.perks.map(p => `<li class="flex items-center space-x-1.5"><span class="text-slate-400">✓</span><span class="truncate">${p}</span></li>`).join('')}

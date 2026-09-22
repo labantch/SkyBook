@@ -371,8 +371,8 @@
 <span class="text-[11px] text-slate-400" id="summary-fare-sub">Includes taxes &amp; fees</span>
 </div>
 <div class="text-right">
-<span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="summary-total-fare">$3,840</span>
-<span class="text-xs text-slate-400 font-bold ml-0.5">USD</span>
+<span class="text-2xl font-extrabold text-[#0B192C] font-mono" id="summary-total-fare">£3,840</span>
+<span class="text-xs text-slate-400 font-bold ml-0.5">EGP</span>
 </div>
 </div>
 <!-- Action Buttons -->
@@ -1275,7 +1275,7 @@
         fareLabel.textContent = `Total Fare (${paxKeys.length} ${paxKeys.length === 1 ? 'Adult' : 'Adults'})`;
       }
       if (fareDisp && bookingState.totalFare) {
-        fareDisp.textContent = `$${Number(bookingState.totalFare).toLocaleString()}`;
+        fareDisp.textContent = `£${Number(bookingState.totalFare).toLocaleString()}`;
       }
 
       // Primary Action Button
