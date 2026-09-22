@@ -56,7 +56,7 @@ namespace SkyBook.Business.Service
                     Message = "This booking has already been paid."
                 };
             }
-            // Calculate total reservation price for all related booking legs / passengers
+           
             var baseRef = !string.IsNullOrWhiteSpace(booking.BookingReference) && booking.BookingReference.Contains('-')
                 ? System.Text.RegularExpressions.Regex.Replace(booking.BookingReference.Trim(), @"-\d+$", "")
                 : booking.BookingReference;
@@ -113,18 +113,25 @@ namespace SkyBook.Business.Service
         }
 
         public async Task UpdatePaymentStatusAsync(
-            string transactionId,
-            PaymentStatus status)
+       string transactionId,
+       PaymentStatus status)
         {
+          
             var payment = await _context.payments
                 .Include(x => x.Booking)
-                .FirstOrDefaultAsync(
-                    x => x.TransactionId == transactionId);
+                .FirstOrDefaultAsync(x => x.TransactionId == transactionId)
+                ?? await _context.payments
+                .Include(x => x.Booking)
+                .Where(x => x.PaymentStatus == PaymentStatus.Pending)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
 
             if (payment == null)
             {
                 return;
             }
+
+            payment.TransactionId = transactionId;
             payment.PaymentStatus = status;
 
             var baseRef = payment.Booking != null && !string.IsNullOrWhiteSpace(payment.Booking.BookingReference) && payment.Booking.BookingReference.Contains('-')
@@ -152,7 +159,6 @@ namespace SkyBook.Business.Service
             }
             await _context.SaveChangesAsync();
         }
-
         public async Task<Payment?> GetPaymentByBookingIdAsync(
             int bookingId)
         {

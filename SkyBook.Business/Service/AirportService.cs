@@ -90,6 +90,11 @@ public class AirportService : IAirportService
         {
             throw new Exception("Airport Not Found");
         }
+        bool codeExists = await _context.Airports.AnyAsync(a => a.Code.ToLower() == model.Code.ToLower() && a.Id != model.Id);
+        if (codeExists)
+        {
+            throw new Exception("Airport Code Already Exists");
+        }
 
         airport.Name = model.Name;
         airport.Country = model.Country;

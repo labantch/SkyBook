@@ -8,27 +8,22 @@ using Microsoft.Extensions.Configuration;
 
 namespace SkyBook.Presentation.Controllers
 {
+    [Route("payment")]
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;
         private readonly IConfiguration _configuration;
 
-
         public PaymentController(IPaymentService paymentService, IConfiguration configuration)
-
         {
             _paymentService = paymentService;
             _configuration = configuration;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Pay(
-            int bookingId,
-            PaymentMethod paymentMethod)
+        [HttpGet("pay")]
+        public async Task<IActionResult> Pay(int bookingId, PaymentMethod paymentMethod)
         {
-            var result = await _paymentService.CreatePaymentAsync(
-                bookingId,
-                paymentMethod);
+            var result = await _paymentService.CreatePaymentAsync(bookingId, paymentMethod);
 
             if (!result.IsSuccess)
             {
@@ -38,93 +33,103 @@ namespace SkyBook.Presentation.Controllers
 
             return Redirect(result.PaymentUrl!);
         }
-        private bool VerifyHmac(
-    JsonElement transaction,
-    string receivedHmac)
+
+        [HttpPost("webhook")]
+        public async Task<IActionResult> Webhook([FromBody] JsonElement data)
         {
-            var hmacSecret =
-                _configuration["Paymob:Hmac"] ?? _configuration["Paymob:HmacSecret"];
-
-            if (string.IsNullOrEmpty(hmacSecret))
-                return false;
-
-            var values = new[]
+            if (!data.TryGetProperty("obj", out var transaction))
             {
-        transaction.GetProperty("amount_cents").ToString(),
-        transaction.GetProperty("created_at").ToString(),
-        transaction.GetProperty("currency").ToString(),
-        transaction.GetProperty("error_occured").ToString(),
-        transaction.GetProperty("has_parent_transaction").ToString(),
-        transaction.GetProperty("id").ToString(),
-        transaction.GetProperty("integration_id").ToString(),
-        transaction.GetProperty("is_3d_secure").ToString(),
-        transaction.GetProperty("is_auth").ToString(),
-        transaction.GetProperty("is_capture").ToString(),
-        transaction.GetProperty("is_refunded").ToString(),
-        transaction.GetProperty("is_standalone_payment").ToString(),
-        transaction.GetProperty("is_void").ToString(),
-        transaction.GetProperty("is_voided").ToString(),
-        transaction.GetProperty("order").GetProperty("id").ToString(),
-        transaction.GetProperty("owner").ToString(),
-        transaction.GetProperty("pending").ToString(),
-        transaction.GetProperty("source_data").GetProperty("pan").ToString(),
-        transaction.GetProperty("source_data").GetProperty("sub_type").ToString(),
-        transaction.GetProperty("source_data").GetProperty("type").ToString(),
-        transaction.GetProperty("success").ToString()
-    };
+                return BadRequest("Invalid payload structure");
+            }
 
-            var concatenatedValues = string.Concat(values);
+            string receivedHmac = Request.Query["hmac"].ToString();
+            if (string.IsNullOrEmpty(receivedHmac) && data.TryGetProperty("hmac", out var bodyHmac))
+            {
+                receivedHmac = bodyHmac.GetString() ?? string.Empty;
+            }
 
-            using var hmac =
-                new HMACSHA512(
-                    Encoding.UTF8.GetBytes(hmacSecret));
-
-            var hash =
-                hmac.ComputeHash(
-                    Encoding.UTF8.GetBytes(concatenatedValues));
-
-            var calculatedHmac =
-                Convert.ToHexString(hash).ToLowerInvariant();
-
-            return CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(calculatedHmac),
-                Encoding.UTF8.GetBytes(receivedHmac.ToLowerInvariant()));
-        }
-
-
-        [HttpPost]
-        [Route("payment/webhook")]
-        public async Task<IActionResult> Webhook(
-       [FromBody] JsonElement data)
-        {
-            var transaction = data.GetProperty("obj");
-
-            var receivedHmac =
-                Request.Query["hmac"].ToString();
-
-            if (!VerifyHmac(transaction, receivedHmac))
+            if (string.IsNullOrEmpty(receivedHmac) || !VerifyHmac(transaction, receivedHmac))
             {
                 return Unauthorized();
             }
 
-            var transactionId =
-                transaction.GetProperty("id")
-                           .GetInt32()
-                           .ToString();
+            var transactionId = transaction.GetProperty("id").GetInt32().ToString();
+            var success = transaction.GetProperty("success").GetBoolean();
+            var status = success ? PaymentStatus.Paid : PaymentStatus.Failed;
 
-            var success =
-                transaction.GetProperty("success")
-                           .GetBoolean();
-
-            var status = success
-                ? PaymentStatus.Paid
-                : PaymentStatus.Failed;
-
-            await _paymentService.UpdatePaymentStatusAsync(
-                transactionId,
-                status);
+          
+            await _paymentService.UpdatePaymentStatusAsync(transactionId, status);
 
             return Ok();
+        }
+
+        [HttpGet("success")]
+        public async Task<IActionResult> Success([FromQuery] string? success, [FromQuery] string? id, [FromQuery] string? pending)
+        {
+          
+            if (!string.IsNullOrEmpty(id) && success == "true")
+            {
+                await _paymentService.UpdatePaymentStatusAsync(id, PaymentStatus.Paid);
+            }
+
+            return View();
+        }
+
+        private bool VerifyHmac(JsonElement transaction, string receivedHmac)
+        {
+            var hmacSecret = _configuration["Paymob:Hmac"] ?? _configuration["Paymob:HmacSecret"];
+
+            if (string.IsNullOrEmpty(hmacSecret))
+                return false;
+
+            string GetPropertyString(JsonElement element, string propertyName)
+            {
+                if (!element.TryGetProperty(propertyName, out var prop))
+                    return string.Empty;
+
+                return prop.ValueKind switch
+                {
+                    JsonValueKind.True => "true",
+                    JsonValueKind.False => "false",
+                    JsonValueKind.Null => "",
+                    _ => prop.ToString()
+                };
+            }
+
+            var values = new[]
+            {
+                GetPropertyString(transaction, "amount_cents"),
+                GetPropertyString(transaction, "created_at"),
+                GetPropertyString(transaction, "currency"),
+                GetPropertyString(transaction, "error_occured"),
+                GetPropertyString(transaction, "has_parent_transaction"),
+                GetPropertyString(transaction, "id"),
+                GetPropertyString(transaction, "integration_id"),
+                GetPropertyString(transaction, "is_3d_secure"),
+                GetPropertyString(transaction, "is_auth"),
+                GetPropertyString(transaction, "is_capture"),
+                GetPropertyString(transaction, "is_refunded"),
+                GetPropertyString(transaction, "is_standalone_payment"),
+                GetPropertyString(transaction, "is_void"),
+                GetPropertyString(transaction, "is_voided"),
+                transaction.TryGetProperty("order", out var order) ? GetPropertyString(order, "id") : "",
+                GetPropertyString(transaction, "owner"),
+                GetPropertyString(transaction, "pending"),
+                transaction.TryGetProperty("source_data", out var source) ? GetPropertyString(source, "pan") : "",
+                transaction.TryGetProperty("source_data", out source) ? GetPropertyString(source, "sub_type") : "",
+                transaction.TryGetProperty("source_data", out source) ? GetPropertyString(source, "type") : "",
+                GetPropertyString(transaction, "success")
+            };
+
+            var concatenatedValues = string.Concat(values);
+
+            using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(hmacSecret));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(concatenatedValues));
+            var calculatedHmac = Convert.ToHexString(hash).ToLowerInvariant();
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(calculatedHmac),
+                Encoding.UTF8.GetBytes(receivedHmac.ToLowerInvariant()));
         }
     }
 }

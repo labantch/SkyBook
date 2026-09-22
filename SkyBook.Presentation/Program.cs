@@ -9,19 +9,31 @@ using SkyBook.Data.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllersWithViews();
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(7023, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+});
 
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<SkyBook.Data.Data.ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Paymob payment gateway — registered with AddHttpClient so it gets a typed HttpClient
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+
 builder.Services.AddHttpClient<IPaymentGateway, PaymobPaymentGateway>();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -42,9 +54,7 @@ builder.Services.AddScoped<SkyBook.Business.Interfaces.IApplicationUserService, 
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IProfileService, SkyBook.Business.Service.ProfileService>();
 builder.Services.AddScoped<SkyBook.Business.Interfaces.IPaymentService, SkyBook.Business.Service.PaymentService>();
 
-
 var app = builder.Build();
-
 
 if (!app.Environment.IsDevelopment())
 {
@@ -52,19 +62,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// 2. تعطيل UseHttpsRedirection أثناء تجربة ngrok لمنع قطع الاتصال
+// app.UseHttpsRedirection(); 
 
 app.UseStaticFiles();
-
 app.UseRouting();
-
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-
-
-
 
 app.MapControllerRoute(
     name: "areas",
@@ -73,11 +78,11 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     await IdentitySeeder.SeedRolesAsync(services);
 }
 
-    app.Run();
+app.Run();
